@@ -1,6 +1,6 @@
 local function FindHowl()
 	local currentDirectory = shell.dir()
-	local howlFiles = {"Howl", "Howlfile", "Howlfile.lua"}
+	local howlFiles = {"Howlfile", "Howlfile.lua"}
 
 	while true do
 		for _, file in ipairs(howlFiles) do

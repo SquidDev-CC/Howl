@@ -30,7 +30,7 @@ end
 -- @tparam string text The description of the task
 -- @treturn Task The current object (allows chaining)
 function Task:Description(text)
-	self.description = description
+	self.description = text
 	return self
 end
 --- Create a task

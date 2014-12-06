@@ -34,8 +34,8 @@ end):Description "Lists all the tasks"
 -- If no other task exists run this
 tasks:Default(function()
 	Utils.PrintError("No default task exists.")
-	Utils.Verbose("'Tasks:Default' to define a default")
-	Utils.PrintError("Choose from: ")
+	Utils.Verbose("Use 'Tasks:Default' to define a default task")
+	Utils.Print("Choose from: ")
 	tasks:ListTasks(" - ")
 end)
 

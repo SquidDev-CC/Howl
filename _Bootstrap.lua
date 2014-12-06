@@ -21,7 +21,7 @@ xpcall(setfenv(function()
 
 	Task = dolocalfile("Task.lua")
 	dolocalfile("Combiner.lua")
-	dolocalfile("Extensions.lua")
+	dolocalfile("TaskExtensions.lua")
 	HowlFile = dolocalfile("HowlFileLoader.lua")
 
 	loadlocalfile("Howl.lua")(unpack(args))

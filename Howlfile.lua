@@ -1,10 +1,13 @@
 local sources = Dependencies(CurrentDirectory)
 sources:Main "Howl.lua"
-	:Depends "Combiner"
-	:Depends "Depends"
 	:Depends "Task"
 	:Depends "ArgParse"
 	:Depends "HowlFile"
+
+	-- Not needed but we include
+	:Depends "TaskExtensions"
+	:Depends "Combiner"
+	:Depends "Depends"
 
 sources:File "Task.lua"
 	:Name "Task"
@@ -15,13 +18,15 @@ sources:File "Combiner.lua"
 	:Depends "Depends"
 	:Depends "Task"
 
-sources:File "Extensions.lua"
-	:Alias "Extensions"
+sources:File "TaskExtensions.lua"
+	:Alias "TaskExtensions"
 	:Depends "Task"
+	:Depends "Utils"
 
 sources:File "Utils.lua"          :Name "Utils"
 sources:File "HowlFileLoader.lua" :Name "HowlFile"
 sources:File "ArgParse.lua"       :Name "ArgParse"
 sources:File "Depends.lua"        :Name "Depends"
 
-Tasks:Combine("combine", sources, "result.lua")
+Tasks:Clean("clean", fs.combine(CurrentDirectory, "build"))
+Tasks:Combine("combine", sources, "build/Howl.lua", {"clean"})

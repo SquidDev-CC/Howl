@@ -76,5 +76,7 @@ end
 -- @tparam table A list of tasks this task requires
 -- @treturn TaskRunner The task runner (for chaining)
 function Task.TaskRunner:Combine(name, dependencies, outputFile, taskDepends)
-	return self:AddTask(name, taskDepends, function() dependencies:Combiner(outputFile) end):Description("Combines files")
+	return self:AddTask(name, taskDepends, function()
+		dependencies:Combiner(outputFile)
+	end):Description("Combines files into '" .. outputFile .. "'")
 end
