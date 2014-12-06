@@ -7,7 +7,8 @@ function Parameter:Matches(arg, options, tArgs)
 	end
 	arg = arg:sub(2)
 
-	if not (arg:find("^"..self.name.."$") or arg:find("^"..self.shortcut.."$")) then
+	local name, shortcut = Utils.EscapePattern(self.name), Utils.EscapePattern(self.shortcut)
+	if not (arg:find("^"..name.."$") or arg:find("^"..shortcut.."$")) then
 		return false
 	end
 
@@ -46,9 +47,11 @@ function Switch:Matches(arg, options, tArgs)
 	arg = arg:sub(2)
 
 	local value = nil
-	if arg:find("^"..self.name.."$") or arg:find("^"..self.shortcut.."$") then
+	local name, shortcut = Utils.EscapePattern(self.name), Utils.EscapePattern(self.shortcut)
+
+	if arg:find("^"..name.."$") or arg:find("^"..shortcut.."$") then
 		value = true
-	elseif arg:find("^".."not%-" .. self.name.."$") or arg:find("^".."n" .. self.shortcut.."$") then
+	elseif arg:find("^".."not%-" .. name.."$") or arg:find("^".."n" .. shortcut.."$") then
 		value = false
 	else
 		return false
@@ -97,6 +100,7 @@ end
 function Argument:Count(count)
 	assert(type(count) == "number" or count == "*", "Bad argument to Argument:count. Expected number, got " .. count)
 	self.count = count
+	self.oldCount = count
 	return self
 end
 
@@ -106,7 +110,7 @@ function Argument:Default(value)
 end
 
 local Parser = {}
---- Add a parameter (--key=value)
+--- Add a parameter (-key value)
 -- @tparam string The name of the parameter
 -- @treturn Parameter The created parameter object
 function Parser:Parameter(name)
@@ -130,7 +134,7 @@ end
 -- @tparam string The name of the argument
 -- @treturn Argument The created argument object
 function Parser:Argument(name)
-	local arg = setmetatable({name=name,count=1}, {__index=Argument})
+	local arg = setmetatable({name=name,count=1,oldCount = 1}, {__index=Argument})
 	table.insert(self.arguments, arg)
 	self.changed = true
 	return arg
@@ -164,14 +168,23 @@ function Parser:ParseArg(arg, args)
 end
 
 function Parser:Parse()
-	local spare = {}
-	local args = self.args
-	for arg in function() return table.remove(args, 1) end do
-		if not self:ParseArg(arg, args) then
-			table.insert(spare, arg)
-		end
+	local args = {}
+
+	-- Reset variables
+	for _, v in ipairs(self.arguments) do
+		v.matched = false
+		v.count = v.oldCount
 	end
-	self.args = spare
+	-- Copy table
+	for _, v in ipairs(self.args) do
+		table.insert(args, v)
+	end
+
+	-- Process args
+	for arg in function() return table.remove(args, 1) end do
+		self:ParseArg(arg, args)
+	end
+
 	self.changed = false
 	return self
 end
@@ -192,6 +205,7 @@ end
 -- @treturn table A dictionary of calculated results
 function Parser:Options()
 	if self.changed then
+		self.options = {}
 		self:Parse()
 	end
 

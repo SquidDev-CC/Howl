@@ -1,4 +1,4 @@
---@module Utils
+--- @module Utils
 
 local isVerbose = false
 
@@ -42,6 +42,29 @@ local function Verbose(...)
 	end
 end
 
+local matches = {
+	["^"] = "%^";
+	["$"] = "%$";
+	["("] = "%(";
+	[")"] = "%)";
+	["%"] = "%%";
+	["."] = "%.";
+	["["] = "%[";
+	["]"] = "%]";
+	["*"] = "%*";
+	["+"] = "%+";
+	["-"] = "%-";
+	["?"] = "%?";
+	["\0"] = "%z";
+}
+
+--- Escape a string for using in a pattern
+-- @tparam string pattern The string to escape
+-- @treturn string The escaped pattern
+local function EscapePattern(pattern)
+	return (pattern:gsub(".", matches))
+end
+
 return {
 	Print = print,
 	PrintError = printError,
@@ -51,4 +74,6 @@ return {
 
 	SetVerbose = SetVerbose,
 	Verbose = Verbose,
+
+	EscapePattern = EscapePattern,
 }

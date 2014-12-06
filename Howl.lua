@@ -7,6 +7,8 @@ parser
 	:Switch "time"
 	:Shortcut "t"
 parser
+	:Switch "trace"
+parser
 	:Argument "task"
 
 -- Setup listener for verbosity
@@ -17,7 +19,8 @@ end)
 local tasks = Task.Tasks()
 -- Setup listener for time
 parser:OnChanged(function(self, options)
-	tasks:ShowTime(options.time)
+	tasks.ShowTime = options.time
+	tasks.Traceback = options.trace
 end)
 
 parser:Options() -- Setup options
@@ -30,6 +33,19 @@ Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 tasks:Task "list" (function()
 	tasks:ListTasks()
 end):Description "Lists all the tasks"
+
+tasks:Task "help" (function()
+	Utils.Print("Howl [-v] [-t] <task>\nAvaliable tasks: ")
+	tasks:ListTasks("  ")
+
+	Utils.Print([[Options:
+  -v/-verbose  Verbose output
+  -t/-time     Show time taken for tasks
+
+Use -not-{name} or -n{short} to switch an option off
+]])
+
+end)
 
 -- If no other task exists run this
 tasks:Default(function()
@@ -46,6 +62,7 @@ local environment = HowlFile.SetupEnvironment({
 	Options = parser,
 	Dependencies = Depends.Depends,
 	Verbose = Utils.Verbose,
+	File = function(...) return fs.combine(currentDirectory, ...) end
 }, currentDirectory)
 
 -- Load the file

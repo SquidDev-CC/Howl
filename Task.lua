@@ -86,14 +86,6 @@ function TaskRunner:Default(task)
 	return self
 end
 
---- Sets whether tasks should be timedthe time each task took?
--- @tparam bool showTime Time tasks?
--- @treturn TaskRunner The current task object
-function TaskRunner:ShowTime(showTime)
-	self.showTime = showTime
-	return self
-end
-
 --- Run a task, and all its dependencies
 -- @tparam string name Name of the task to run
 -- @tparam table arguments A list of arguments to pass to the task
@@ -109,7 +101,8 @@ function TaskRunner:Run(name, context)
 		name = "<default>"
 	end
 
-	local showTime = self.showTime
+	local showTime = self.ShowTime
+	local traceback = self.Traceback
 
 	if not currentTask then
 		Utils.PrintError("Cannot find a task called " .. name)
@@ -127,7 +120,22 @@ function TaskRunner:Run(name, context)
 	local oldTime = os.time()
 	Utils.PrintColor(colors.cyan, "Running " .. name)
 	assert(currentTask.action, "Action cannot be nil")
-	local s, err = pcall(function() currentTask.action() end)
+
+	local s, err = true, nil
+	if traceback then
+		xpcall(currentTask.action, function(msg)
+			for i = 4, 15 do
+				local _, err = pcall(function() error("", i) end)
+				if msg:match("Howlfile") then break end
+				msg = msg .. "\n  " .. err
+			end
+
+			err = msg
+			s = false
+		end)
+	else
+		s, err = pcall(currentTask.action)
+	end
 	if s then
 		Utils.PrintSuccess(name .. ": Success")
 	else

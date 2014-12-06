@@ -1,3 +1,8 @@
+--- @module HowlFileLoader
+
+--- Finds the howl file
+-- @treturn string The name of the howl file
+-- @treturn string The path of the howl file
 local function FindHowl()
 	local currentDirectory = shell.dir()
 	local howlFiles = {"Howlfile", "Howlfile.lua"}
@@ -20,8 +25,11 @@ local function FindHowl()
 	error("Cannot find HowlFile. Looking for '" .. table.concat(howlFiles, "', '") .. "'")
 end
 
+--- Create an environment for running howl files
+-- @tparam table variables A list of variables to include in the environment
+-- @tparam table The created environment
 local function SetupEnvironment(variables)
-	local env = setmetatable(variables, { __index = getfenv()})
+	local env = setmetatable(variables or {}, { __index = getfenv()})
 
 	env._G = _G
 	function env.loadfile(path)
