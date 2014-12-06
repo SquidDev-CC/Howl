@@ -45,11 +45,16 @@ function Switch:Matches(arg, options, tArgs)
 	end
 	arg = arg:sub(2)
 
-	if not (arg:find("^"..self.name.."$") or arg:find("^"..self.shortcut.."$")) then
+	local value = nil
+	if arg:find("^"..self.name.."$") or arg:find("^"..self.shortcut.."$") then
+		value = true
+	elseif arg:find("^".."not%-" .. self.name.."$") or arg:find("^".."n" .. self.shortcut.."$") then
+		value = false
+	else
 		return false
 	end
 
-	options[self.name] = true
+	options[self.name] = value
 	return true
 end
 
