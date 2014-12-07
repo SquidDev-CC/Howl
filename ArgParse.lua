@@ -1,256 +1,250 @@
 --- @module ArgParse
 
-local Parameter = {}
-function Parameter:Matches(arg, options, tArgs)
-	if arg:sub(1,1) ~= "-" then
-		return false
-	end
-	arg = arg:sub(2)
+local Option = {
+	__index = function(object, func)
+		return function(self, ...)
+			local parser = self.parser
+			local value = parser[func](parser, self.name, ...)
 
-	local name, shortcut = Utils.EscapePattern(self.name), Utils.EscapePattern(self.shortcut)
-	if not (arg:find("^"..name.."$") or arg:find("^"..shortcut.."$")) then
-		return false
-	end
-
-	local val = table.remove(tArgs, 1)
-
-	if self.isMulti then
-		options[self.name] = options[self.name] or {}
-		table.insert(options[self.name], val)
-	else
-		options[self.name] = val
-	end
-
-	return true
-end
-
-function Parameter:Shortcut(shortcut)
-	self.shortcut = shortcut
-	return self
-end
-
-function Parameter:Multi()
-	self.isMulti = true
-	return self
-end
-
-function Parameter:Default(value)
-	self.default = value
-	return self
-end
-
-local Switch = {}
-function Switch:Matches(arg, options, tArgs)
-	if arg:sub(1,1) ~= "-" then
-		return false
-	end
-	arg = arg:sub(2)
-
-	local value = nil
-	local name, shortcut = Utils.EscapePattern(self.name), Utils.EscapePattern(self.shortcut)
-
-	if arg:find("^"..name.."$") or arg:find("^"..shortcut.."$") then
-		value = true
-	elseif arg:find("^".."not%-" .. name.."$") or arg:find("^".."n" .. shortcut.."$") then
-		value = false
-	else
-		return false
-	end
-
-	options[self.name] = value
-	return true
-end
-
-function Switch:Shortcut(shortcut)
-	self.shortcut = shortcut
-	return self
-end
-
-function Switch:Default(value)
-	self.default = value
-	return self
-end
-
-local Argument = {}
-function Argument:Matches(arg, options, tArgs)
-	if self.matched then
-		return false
-	end
-
-	if self.count == 1 then
-		options[self.name] = arg
-	else
-		local count = self.count
-		if count == "*" then
-			count = #tArgs
-		else
-			count = count - 1
+			if value == parser then return self end -- Allow chaining
+			return value -- Return the value
 		end
-		local args = {arg}
-		for i=1, count do
-			table.insert(args, table.remove(tArgs, 1))
-		end
-		options[self.name] = args
 	end
-
-	self.matched = true
-	return true
-end
-
-function Argument:Count(count)
-	assert(type(count) == "number" or count == "*", "Bad argument to Argument:count. Expected number, got " .. count)
-	self.count = count
-	self.oldCount = count
-	return self
-end
-
-function Argument:Default(value)
-	self.default = value
-	return self
-end
+}
 
 local Parser = {}
---- Add a parameter (-key value)
--- @tparam string The name of the parameter
--- @treturn Parameter The created parameter object
-function Parser:Parameter(name)
-	local param = setmetatable({name=name,shortcut=name}, {__index=Parameter})
-	table.insert(self.parameters, param)
-	self.changed = true
-	return param
+
+--- Returns the value of a option
+-- @tparam string name The name of the option
+-- @tparam string|bool default The default value (optional)
+-- @treturn string|bool The value of the option
+function Parser:Get(name, default)
+	local options = self.options
+
+	local value = options[name]
+	if value ~= nil then return value end
+
+	local settings = self.settings[name]
+	if settings then
+		local aliases = settings.aliases
+		if aliases then
+			for _, alias in ipairs(aliases) do
+				value = options[alias]
+				if value ~= nil then return value end
+			end
+		end
+
+		value = settings.default
+		if value ~= nil then return value end
+	end
+
+
+	return default
 end
 
----Add a switch (-v)
--- @tparam string The name of the switch
--- @treturn Switch The created switch object
-function Parser:Switch(name)
-	local switch = setmetatable({name=name,shortcut=name}, {__index=Switch})
-	table.insert(self.switches, switch)
-	self.changed = true
-	return switch
+--- Ensure a option exists, throw an error otherwise
+-- @tparam string name The name of the option
+-- @treturn string|bool The resulting value
+function Parser:Ensure(name)
+	local value = self:Get(name)
+	if value == nil then
+		error(name .. " must be set")
+	end
+	return value
 end
 
---- Add an argument (<value>)
--- @tparam string The name of the argument
--- @treturn Argument The created argument object
-function Parser:Argument(name)
-	local arg = setmetatable({name=name,count=1,oldCount = 1}, {__index=Argument})
-	table.insert(self.arguments, arg)
-	self.changed = true
-	return arg
-end
+--- Set the default value for an option
+-- @tparam string name The name of the options
+-- @tparam string|bool value The default value
+-- @treturn Parser The current object
+function Parser:Default(name, value)
+	if value == nil then value = true end
+	self._SetSetting(name, "default", value)
 
---- Sets the usage of this parser
--- @tparam string The usage string
--- @treturn Parser the current object
-function Parser:Usage(str)
-	self.usage = str
+	self:_Changed()
 	return self
 end
 
-function Parser:ParseArg(arg, args)
-	for _, v in ipairs(self.parameters) do
-		if v:Matches(arg, self.options, args) then
-			return true
+--- Sets an alias for an option
+-- @tparam string name The name of the option
+-- @tparam string alias The alias of the option
+-- @treturn Parser The current object
+function Parser:Alias(name, alias)
+	local settings = self.settings
+	local currentSettings = settings[name]
+	if currentSettings then
+		local currentAliases = currentSettings.aliases
+		if currentAliases == nil then
+			currentSettings.aliases = {alias}
+		else
+			table.insert(currentAliases, alias)
 		end
-	end
-	for _, v in ipairs(self.switches) do
-		if v:Matches(arg, self.options, args) then
-			return true
-		end
-	end
-	for _, v in ipairs(self.arguments) do
-		if v:Matches(arg, self.options, args) then
-			return true
-		end
-	end
-	return false
-end
-
-function Parser:Parse()
-	local args = {}
-
-	-- Reset variables
-	for _, v in ipairs(self.arguments) do
-		v.matched = false
-		v.count = v.oldCount
-	end
-	-- Copy table
-	for _, v in ipairs(self.args) do
-		table.insert(args, v)
+	else
+		settings[name] = {aliases = {alias}}
 	end
 
-	-- Process args
-	for arg in function() return table.remove(args, 1) end do
-		self:ParseArg(arg, args)
-	end
-
-	self.changed = false
+	self:_Changed()
 	return self
 end
 
-function Parser:Get(name)
-	for _, v in ipairs(self.parameters) do
-		if v.name == name then return v end
-	end
-	for _, v in ipairs(self.switches) do
-		if v.name == name then return v end
-	end
-	for _, v in ipairs(self.arguments) do
-		if v.name == name then return v end
-	end
+--- Sets the description, and type for an option
+-- @tparam string name The name of the option
+-- @tparam string description The description of the option
+-- @treturn Parser The current object
+function Parser:Description(name, description)
+	return self:_SetSetting(name, "description", description)
 end
 
---- Gets the parser's options, recalculating if needed
--- @treturn table A dictionary of calculated results
-function Parser:Options()
-	if self.changed then
-		self.options = {}
-		self:Parse()
+--- Sets if this option takes a value
+-- @tparam string name The name of the option
+-- @tparam bool takesValue If the option takes a value
+-- @treturn Parser The current object
+function Parser:TakesValue(name, takesValue)
+	if takesValue == nil then
+		takesValue = true
+	end
+	return self:_SetSetting(name, "takesValue", takesValue)
+end
+
+--- Sets a setting for an option
+-- @tparam string name The name of the option
+-- @tparam string key The key of the setting
+-- @tparam bool|string The value of the setting
+-- @treturn Parser The current object
+function Parser:_SetSetting(name, key, value)
+	local settings = self.settings
+	local thisSettings = settings[name]
+
+	if thisSettings then
+		thisSettings[key] = value
+	else
+		settings[name] = {[key] = value}
 	end
 
-	options = {}
-	-- Copy the table incase defaults are changed
-	for k, v in pairs(self.options) do
-		options[k] = v
-	end
+	return self
+end
 
-	for _, v in ipairs(self.parameters) do
-		local default, name = v.default, v.name
-		-- If the default value is not nil and there is no current value then set it to the default
-		if default ~= nil and options[name] == nil then options[name] = default end
-	end
-	for _, v in ipairs(self.switches) do
-		local default, name = v.default, v.name
-		if default ~= nil and options[name] == nil then options[name] = default end
-	end
-	for _, v in ipairs(self.arguments) do
-		local default, name = v.default, v.name
-		if default ~= nil and options[name] == nil then options[name] = default end
-	end
+--- Creates a useful option helper object
+-- @tparam string name The name of the option
+-- @treturn Option The created option
+function Parser:Option(name)
+	return setmetatable({
+		name = name,
+		parser = self
+	}, Option)
+end
 
-	for _, v in pairs(self.onChanged) do v(self, options) end
-
-	return options
+--- Returns a list of arguments
+-- @treturn table The argument list
+function Parser:Arguments()
+	return self.arguments
 end
 
 --- Adds an event listener to the options
 -- @tparam function callback The function to call
 -- @treturn Parser The current object
 function Parser:OnChanged(callback)
+	callback(self) -- Call the callback first
 	table.insert(self.onChanged, callback)
 	return self
 end
 
-return function(args)
-	return setmetatable({
-		parameters={},
-		switches={},
-		arguments={},
-
-		args = args,
-		options = {},
-		changed = false,
-		onChanged = {}
-	}, {__index=Parser})
+--- Fires the on changed event
+function Parser:_Changed()
+	for _, callback in ipairs(self.onChanged) do
+		callback(self)
+	end
 end
+
+--- Generates a help string
+-- @tparam string indent The indent to print it at
+function Parser:Help(indent)
+	for name, settings in pairs(self.settings) do
+		local prefix = '-'
+
+		-- If we take a value then we should say so
+		if settings.takesValue then
+			prefix = "--"
+			name = name .. "=value"
+		end
+
+		-- If length is more than one then we should set
+		-- the prefix to be --
+		if #name > 1 then
+			prefix = '--'
+		end
+
+		local result = indent .. prefix .. name
+
+		local aliases = settings.aliases
+		if aliases and #aliases > 0 then
+			local aliasLength = #aliases
+			result = result .. " ("
+
+			for i = 1, aliasLength do
+				local alias = "-" .. aliases[i]
+
+				if #alias > 2 then -- "-" and another character
+					alias = "-" .. alias
+				end
+
+				if i < aliasLength then
+					alias = alias .. ', '
+				end
+
+				result = result .. alias
+			end
+			result = result .. ")"
+		end
+
+		local description = settings.description
+		if description and description ~= "" then
+			result = result .. "  " .. description
+		end
+
+		print(result)
+	end
+end
+
+--- Parse the options
+-- @treturn Parser The current object
+function Parser:Parse(args)
+	local options = self.options
+	local arguments = self.arguments
+	for _, arg in ipairs(args) do
+		if arg:sub(1, 1) == "-" then -- Match `-`
+			if arg:sub(2, 2) == "-" then -- Match `--`
+				local key, value = arg:match("([%w_%-]+)=([%w_%-]+)", 3) -- Match [a-zA-Z0-9_-] in form key=value
+				if key then
+					options[key] = value
+				else
+					-- If it starts with not- or not_ then negate it
+					local beginning = arg:sub(3, 7)
+					options[arg:sub(3)] = (beginning ~= "not-" and beginning ~= "not_")
+				end
+			else -- Handle switches
+				for i = 2, #arg do
+					options[arg:sub(i, i)] = true
+				end
+			end
+		else
+			table.insert(arguments, arg)
+		end
+	end
+
+	return self
+end
+
+return {
+	Parser = Parser,
+	Options = function(args)
+		return setmetatable({
+			options = {},   -- The resulting values
+			arguments = {}, -- Spare arguments
+
+			settings = {},  -- Settings for options
+
+			onChanged = {}, -- Event handler for when values are changed
+		}, {__index=Parser}):Parse(args)
+	end
+}
