@@ -1,5 +1,8 @@
---- @module Depends
+--- Specify multiple dependencies
+-- @module Depends
 
+--- Stores a file and the dependencies of the file
+-- @type File
 local File = {}
 
 --- Define the name of this file
@@ -22,7 +25,7 @@ function File:Alias(name)
 end
 
 --- Define what this file depends on
--- @tparam string/table Name/list of dependencies
+-- @tparam string/table name Name/list of dependencies
 -- @treturn File The current object (allows chaining)
 function File:Depends(name)
 	if type(name) == "table" then
@@ -37,7 +40,7 @@ function File:Depends(name)
 end
 
 --- Should this file be set as a global. This has no effect if the module does not have an name
--- @tparam bool Boolean value setting if it should be exported or not
+-- @tparam boolean shouldExport Boolean value setting if it should be exported or not
 -- @return File The current object (allows chaining)
 function File:Export(shouldExport)
 	if shouldExport == nil then shouldExport = true end
@@ -45,7 +48,10 @@ function File:Export(shouldExport)
 	return self
 end
 
+--- Stores an entire list of dependencies and handles resolving them
+-- @type Dependencies
 local Dependencies = {}
+
 --- Add a file to the dependency list
 -- @tparam string path The path of the file relative to the PPI file
 -- @treturn File The created file object
@@ -114,13 +120,14 @@ function Dependencies:Iterate()
 end
 
 --- Return a table of exported values
--- @tparam bool shouldExport Should globals be exported
+-- @tparam boolean shouldExport Should globals be exported
 -- @treturn Depencencies The current object (allows chaining)
 function Dependencies:Export(shouldExport)
 	self.shouldExport = shouldExport
 	return self
 end
 
+--- @export
 return {
 	File = File,
 	Dependencies = Dependencies,

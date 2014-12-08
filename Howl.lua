@@ -1,4 +1,6 @@
---- @module Howl
+--- Core script for Howl
+-- @module Howl
+
 local options = ArgParse.Options({...})
 options
 	:Option "verbose"

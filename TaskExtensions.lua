@@ -1,7 +1,10 @@
---- @module Extensions
+--- Basic extensions to classes
+-- @module Task.Extensions
 
 --- Prints all tasks in a TaskRunner
--- @treturn TaskRunner The current task runner (allows chaining)
+-- Extends the @{Task.TaskRunner} class
+-- @tparam string indent The indent to print at
+-- @treturn Task.TaskRunner The current task runner (allows chaining)
 function Task.TaskRunner:ListTasks(indent)
 	local taskNames = {}
 	local maxLength = 0
@@ -25,10 +28,11 @@ function Task.TaskRunner:ListTasks(indent)
 end
 
 --- A task for cleaning a directory
--- @tparam string Name of the task
+-- Extends the @{Task.TaskRunner} class
+-- @tparam string name Name of the task
 -- @tparam string directory The directory to clean
--- @tparam table A list of tasks this task requires
--- @treturn TaskRunner The task runner (for chaining)
+-- @tparam table taskDepends A list of tasks this task requires
+-- @treturn Task.TaskRunner The task runner (for chaining)
 function Task.TaskRunner:Clean(name, directory, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		Utils.Verbose("Emptying directory '" .. directory .. "'")

@@ -1,5 +1,8 @@
---- @module ArgParse
+--- Parses command line arguments
+-- @module ArgParse
 
+--- Simple wrapper for Options
+-- @type Option
 local Option = {
 	__index = function(object, func)
 		return function(self, ...)
@@ -12,12 +15,14 @@ local Option = {
 	end
 }
 
+--- Parses command line arguments
+-- @type Parser
 local Parser = {}
 
 --- Returns the value of a option
 -- @tparam string name The name of the option
--- @tparam string|bool default The default value (optional)
--- @treturn string|bool The value of the option
+-- @tparam string|boolean default The default value (optional)
+-- @treturn string|boolean The value of the option
 function Parser:Get(name, default)
 	local options = self.options
 
@@ -44,7 +49,7 @@ end
 
 --- Ensure a option exists, throw an error otherwise
 -- @tparam string name The name of the option
--- @treturn string|bool The resulting value
+-- @treturn string|boolean The resulting value
 function Parser:Ensure(name)
 	local value = self:Get(name)
 	if value == nil then
@@ -55,7 +60,7 @@ end
 
 --- Set the default value for an option
 -- @tparam string name The name of the options
--- @tparam string|bool value The default value
+-- @tparam string|boolean value The default value
 -- @treturn Parser The current object
 function Parser:Default(name, value)
 	if value == nil then value = true end
@@ -97,7 +102,7 @@ end
 
 --- Sets if this option takes a value
 -- @tparam string name The name of the option
--- @tparam bool takesValue If the option takes a value
+-- @tparam boolean takesValue If the option takes a value
 -- @treturn Parser The current object
 function Parser:TakesValue(name, takesValue)
 	if takesValue == nil then
@@ -109,7 +114,7 @@ end
 --- Sets a setting for an option
 -- @tparam string name The name of the option
 -- @tparam string key The key of the setting
--- @tparam bool|string The value of the setting
+-- @tparam boolean|string value The value of the setting
 -- @treturn Parser The current object
 function Parser:_SetSetting(name, key, value)
 	local settings = self.settings
@@ -235,9 +240,10 @@ function Parser:Parse(args)
 	return self
 end
 
-return {
-	Parser = Parser,
-	Options = function(args)
+--- Create a new options parser
+-- @tparam table args The command line arguments passed
+-- @treturn Parser The resulting parser
+local function Options(args)
 		return setmetatable({
 			options = {},   -- The resulting values
 			arguments = {}, -- Spare arguments
@@ -247,4 +253,9 @@ return {
 			onChanged = {}, -- Event handler for when values are changed
 		}, {__index=Parser}):Parse(args)
 	end
+
+--- @export
+return {
+	Parser = Parser,
+	Options = Options,
 }

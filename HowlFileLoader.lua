@@ -1,4 +1,5 @@
---- @module HowlFileLoader
+--- Handles loading and creation of HowlFiles
+-- @module HowlFileLoader
 
 --- Finds the howl file
 -- @treturn string The name of the howl file
@@ -27,7 +28,7 @@ end
 
 --- Create an environment for running howl files
 -- @tparam table variables A list of variables to include in the environment
--- @tparam table The created environment
+-- @treturn table The created environment
 local function SetupEnvironment(variables)
 	local env = setmetatable(variables or {}, { __index = getfenv()})
 
@@ -45,6 +46,7 @@ local function SetupEnvironment(variables)
 	return env
 end
 
+--- @export
 return {
 	FindHowl = FindHowl,
 	SetupEnvironment = SetupEnvironment,

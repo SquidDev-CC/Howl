@@ -1,9 +1,13 @@
---- @module Task
+--- Handles tasks and dependencies
+-- @module Task
 
+--- A single task: actions, dependencies and metadata
+-- @type Task
+-- @field Task
 local Task = {}
 
 --- Define what this task depends on
--- @tparam string/table Name/list of dependencies
+-- @tparam string/table name Name/list of dependencies
 -- @treturn Task The current object (allows chaining)
 function Task:Depends(name)
 	if type(name) == "table" then
@@ -18,7 +22,7 @@ function Task:Depends(name)
 end
 
 --- Set the action for this task
--- @tparam function func The action to run
+-- @tparam function action The action to run
 -- @treturn Task The current object (allows chaining)
 function Task:Action(action)
 	assert(action and type(action) == "function", "action must be a function")
@@ -35,7 +39,7 @@ function Task:Description(text)
 end
 --- Create a task
 -- @tparam table dependencies A list of tasks this task requires
--- @tparam function The action to run
+-- @tparam function action The action to run
 -- @treturn Task The created task
 local function TaskFactory(dependencies, action)
 	-- Check calling with no dependencies
@@ -47,6 +51,8 @@ local function TaskFactory(dependencies, action)
 	return setmetatable({action = action, dependencies = dependencies, description = nil}, {__index = Task})
 end
 
+--- Handles a collection of tasks and running them
+-- @type TaskRunner
 local TaskRunner = {}
 
 --- Create a task
@@ -59,7 +65,7 @@ end
 --- Add a task to the collection
 -- @tparam string name The name of the task to add
 -- @tparam table dependencies A list of tasks this task requires
--- @tparam function The action to run
+-- @tparam function action The action to run
 -- @treturn Task The created task
 function TaskRunner:AddTask(name, dependencies, action)
 	local task = TaskFactory(dependencies, action)
@@ -68,7 +74,7 @@ function TaskRunner:AddTask(name, dependencies, action)
 end
 
 --- Set the default task
--- @tparam ?|string|function The task to run or the name of the task
+-- @tparam ?|string|function task The task to run or the name of the task
 -- @treturn TaskRunner The current object for chaining
 function TaskRunner:Default(task)
 	local defaultTask
@@ -88,7 +94,6 @@ end
 
 --- Run a task, and all its dependencies
 -- @tparam string name Name of the task to run
--- @tparam table arguments A list of arguments to pass to the task
 -- @tparam table context List of already run tasks
 function TaskRunner:Run(name, context)
 	context = context or {}
@@ -149,10 +154,14 @@ function TaskRunner:Run(name, context)
 	return s
 end
 
+--- Create a @{TaskRunner} object
+-- @treturn TaskRunner The created runner object
+local function Tasks()
+	return setmetatable({tasks = {}, default = nil}, {__index = TaskRunner})
+end
+--- @export
 return {
 	Task = Task,
 	TaskRunner = TaskRunner,
-	Tasks = function()
-		return setmetatable({tasks = {}, default = nil}, {__index = TaskRunner})
-	end,
+	Tasks = Tasks,
 }

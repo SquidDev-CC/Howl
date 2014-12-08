@@ -1,4 +1,6 @@
---- @module Combiner
+--- Combines multiple files into one file
+-- Extends @{Depends.Dependencies} and @{Task.TaskRunner} classes
+-- @module Combiner
 
 local functionLoaderName = "_W"
 --[[
@@ -16,6 +18,7 @@ end]]):gsub("[\t ]+", " ")
 
 --- Combines Dependencies into one file
 -- @tparam string outputFile The path of the output file
+-- @see Depends.Dependencies
 function Depends.Dependencies:Combiner(outputFile)
 	local path = self.path
 	local shouldExport = self.shouldExport
@@ -70,11 +73,12 @@ function Depends.Dependencies:Combiner(outputFile)
 end
 
 --- A task for combining stuff
--- @tparam string Name of the task
--- @tparam Dependencies dependencies The dependencies to compile
+-- @tparam string name Name of the task
+-- @tparam @{Depends.Dependencies} dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
--- @tparam table A list of tasks this task requires
--- @treturn TaskRunner The task runner (for chaining)
+-- @tparam table taskDepends A list of @{Task.Task|tasks} this task requires
+-- @treturn Task.TaskRunner The task runner (for chaining)
+-- @see Task.TaskRunner
 function Task.TaskRunner:Combine(name, dependencies, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		dependencies:Combiner(outputFile)

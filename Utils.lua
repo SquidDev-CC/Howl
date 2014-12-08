@@ -1,4 +1,5 @@
---- @module Utils
+--- Useful little helpers for things
+-- @module Utils
 
 local isVerbose = false
 
@@ -65,9 +66,17 @@ local function EscapePattern(pattern)
 	return (pattern:gsub(".", matches))
 end
 
+-- Hacky docs for objects
+
+--- Print messages
+local Print = print
+--- Print error messages
+local PrintError = printError
+
+--- @export
 return {
-	Print = print,
-	PrintError = printError,
+	Print = Print,
+	PrintError = PrintError,
 	PrintSuccess = PrintSuccess,
 	PrintColor = PrintColor,
 	WriteColor = WriteColor,

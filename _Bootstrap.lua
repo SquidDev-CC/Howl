@@ -1,6 +1,6 @@
---- @module Bootstrap
--- Core script used to bootstrap the howl process
+--- Core script used to bootstrap the howl process
 -- when running in a non-compiled howl environment
+-- @module Bootstrap
 
 local howlDirectory = fs.getDir(shell.getRunningProgram())
 
