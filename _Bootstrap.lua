@@ -15,14 +15,14 @@ env.dolocalfile = function(path) return env.loadlocalfile(path)() end
 
 local args = {...}
 xpcall(setfenv(function()
-	ArgParse = dolocalfile("ArgParse.lua")
-	Utils = dolocalfile("Utils.lua")
-	Depends = dolocalfile("Depends.lua")
+	ArgParse = dolocalfile("core/ArgParse.lua")
+	Utils = dolocalfile("core/Utils.lua")
+	Depends = dolocalfile("depends/Depends.lua")
 
-	Task = dolocalfile("Task.lua")
-	dolocalfile("Combiner.lua")
-	dolocalfile("TaskExtensions.lua")
-	HowlFile = dolocalfile("HowlFileLoader.lua")
+	Task = dolocalfile("tasks/Task.lua")
+	dolocalfile("depends/Combiner.lua")
+	dolocalfile("tasks/Extensions.lua")
+	HowlFile = dolocalfile("core/HowlFileLoader.lua")
 
 	loadlocalfile("Howl.lua")(unpack(args))
 end, env), function(err)
