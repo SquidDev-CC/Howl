@@ -24,6 +24,9 @@ xpcall(setfenv(function()
 	dolocalfile("tasks/Extensions.lua")
 	HowlFile = dolocalfile("core/HowlFileLoader.lua")
 
+	Scope = dolocalfile("lexer/Scope.lua")
+	Parse = dolocalfile("lexer/Parse.lua")
+
 	loadlocalfile("Howl.lua")(unpack(args))
 end, env), function(err)
 	printError(err)
