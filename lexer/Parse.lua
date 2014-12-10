@@ -14,6 +14,7 @@ local hexDigits = Constants.HexDigits
 local keywords = Constants.Keywords
 local statListCloseKeywords = Constants.StatListCloseKeywords
 local unops = Constants.UnOps
+local setmeta = setmetatable
 
 --- One token
 -- @table Token
@@ -22,10 +23,15 @@ local unops = Constants.UnOps
 -- @tparam string CommentType The type of comment  (Optional)
 -- @tparam number Line Line number (Optional)
 -- @tparam number Char Character number (Optional)
+local Token = {}
 
---- A node
--- @table Node
--- @tparam string AstType The name of the node
+--- Creates a string representation of the token
+-- @treturn string The resulting string
+function Token:Print()
+	return "<"..(self.Type .. string.rep(' ', 7-#self.Type)).."  "..(self.Data or '').." >"
+end
+
+local tokenMeta = { __index = Token }
 
 --- Create a list of @{Token|tokens} from a Lua source
 -- @tparam string src Lua source code
@@ -169,18 +175,15 @@ local function LexLua(src)
 					while peek() ~= '\n' and peek() ~= '' do
 						leadingWhite = leadingWhite .. get()
 					end
-					local token = {
+
+					table.insert(leading, setmeta({
 						Type = 'Comment',
 						CommentType = 'Shebang',
 						Data = leadingWhite,
 						Line = line,
 						Char = char
-					}
-					token.Print = function()
-						return "<"..(token.Type .. string.rep(' ', 7-#token.Type)).."  "..(token.Data or '').." >"
-					end
+					}, tokenMeta))
 					leadingWhite = ""
-					table.insert(leading, token)
 				end
 				if c == ' ' or c == '\t' then
 					--whitespace
@@ -190,17 +193,13 @@ local function LexLua(src)
 				elseif c == '\n' or c == '\r' then
 					local nl = get()
 					if leadingWhite ~= "" then
-						local token = {
+						table.insert(leading, setmeta({
 							Type = 'Comment',
 							CommentType = longStr and 'LongComment' or 'Comment',
 							Data = leadingWhite,
 							Line = line,
 							Char = char,
-						}
-						token.Print = function()
-							return "<"..(token.Type .. string.rep(' ', 7-#token.Type)).."  "..(token.Data or '').." >"
-						end
-						table.insert(leading, token)
+						}, tokenMeta))
 						leadingWhite = ""
 					end
 					table.insert(leading, { Type = 'Whitespace', Line = line, Char = char, Data = nl })
@@ -223,17 +222,14 @@ local function LexLua(src)
 				end
 			end
 			if leadingWhite ~= "" then
-				local token = {
+				table.insert(leading, setmeta(
+				{
 					Type = 'Comment',
-					CommentType = longStr and 'LongComment' or 'Com mnment',
+					CommentType = longStr and 'LongComment' or 'Comment',
 					Data = leadingWhite,
 					Line = line,
 					Char = char,
-				}
-				token.Print = function()
-					return "<"..(token.Type .. string.rep(' ', 7-#token.Type)).."  "..(token.Data or '').." >"
-				end
-				table.insert(leading, token)
+				}, tokenMeta))
 			end
 
 			--get the initial char
@@ -361,16 +357,10 @@ local function LexLua(src)
 
 			--add the emitted symbol, after adding some common data
 			toEmit.LeadingWhite = leading -- table of leading whitespace/comments
-			--for k, tok in pairs(leading) do
-			--	tokens[#tokens + 1] = tok
-			--end
 
 			toEmit.Line = thisLine
 			toEmit.Char = thisChar
-			toEmit.Print = function()
-				return "<"..(toEmit.Type..string.rep(' ', 7-#toEmit.Type)).."  "..(toEmit.Data or '').." >"
-			end
-			tokens[#tokens+1] = toEmit
+			tokens[#tokens+1] = setmeta(toEmit, tokenMeta)
 
 			--halt after eof has been emitted
 			if toEmit.Type == 'Eof' then break end

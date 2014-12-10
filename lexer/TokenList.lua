@@ -116,9 +116,21 @@ function TokenList:IsEof()
 	return self:Peek().Type == 'Eof'
 end
 
-function TokenList:Print()
+--- Produce a string off all tokens
+-- @tparam boolean includeLeading Include the leading whitespace
+-- @treturn string The resulting string
+function TokenList:Print(includeLeading)
+	includeLeading = (includeLeading == nil and true or includeLeading)
+
 	local out = ""
 	for _, token in ipairs(self.tokens) do
+		if includeLeading then
+			for _, whitespace in ipairs(token.LeadingWhite) do
+				if whitespace.Print then
+					out = out .. whitespace:Print() .. "\n"
+				end
+			end
+		end
 		out = out .. token:Print() .. "\n"
 	end
 

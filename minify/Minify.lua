@@ -1,7 +1,7 @@
 --- Minify lua sources
 -- @module minify.Minify
 
-local createLookup = Utils.CreateLookup
+local joinStatements = Rebuild.JoinStatements
 
 --- Returns the minified version of an AST. Operations which are performed:
 --  - All comments and whitespace are ignored
@@ -33,13 +33,13 @@ local function FormatMini(ast)
 			out = out..tostring(expr.Value)
 
 		elseif expr.AstType == 'NilExpr' then
-			out = joinStatementsSafe(out, "nil")
+			out = joinStatements(out, "nil")
 
 		elseif expr.AstType == 'BinopExpr' then
 			currentPrecedence = expr.OperatorPrecedence
-			out = joinStatementsSafe(out, formatExpr(expr.Lhs, currentPrecedence))
-			out = joinStatementsSafe(out, expr.Op)
-			out = joinStatementsSafe(out, formatExpr(expr.Rhs))
+			out = joinStatements(out, formatExpr(expr.Lhs, currentPrecedence))
+			out = joinStatements(out, expr.Op)
+			out = joinStatements(out, formatExpr(expr.Rhs))
 			if expr.Op == '^' or expr.Op == '..' then
 				currentPrecedence = currentPrecedence - 1
 			end
@@ -50,8 +50,8 @@ local function FormatMini(ast)
 				skipParens = true
 			end
 		elseif expr.AstType == 'UnopExpr' then
-			out = joinStatementsSafe(out, expr.Op)
-			out = joinStatementsSafe(out, formatExpr(expr.Rhs))
+			out = joinStatements(out, expr.Op)
+			out = joinStatements(out, formatExpr(expr.Rhs))
 
 		elseif expr.AstType == 'DotsExpr' then
 			out = out.."..."
@@ -97,8 +97,8 @@ local function FormatMini(ast)
 				out = out.."..."
 			end
 			out = out..")"
-			out = joinStatementsSafe(out, formatStatlist(expr.Body))
-			out = joinStatementsSafe(out, "end")
+			out = joinStatements(out, formatStatlist(expr.Body))
+			out = joinStatements(out, "end")
 
 		elseif expr.AstType == 'ConstructorExpr' then
 			out = out.."{"
@@ -170,37 +170,37 @@ local function FormatMini(ast)
 			end
 
 		elseif statement.AstType == 'IfStatement' then
-			out = joinStatementsSafe("if", formatExpr(statement.Clauses[1].Condition))
-			out = joinStatementsSafe(out, "then")
-			out = joinStatementsSafe(out, formatStatlist(statement.Clauses[1].Body))
+			out = joinStatements("if", formatExpr(statement.Clauses[1].Condition))
+			out = joinStatements(out, "then")
+			out = joinStatements(out, formatStatlist(statement.Clauses[1].Body))
 			for i = 2, #statement.Clauses do
 				local st = statement.Clauses[i]
 				if st.Condition then
-					out = joinStatementsSafe(out, "elseif")
-					out = joinStatementsSafe(out, formatExpr(st.Condition))
-					out = joinStatementsSafe(out, "then")
+					out = joinStatements(out, "elseif")
+					out = joinStatements(out, formatExpr(st.Condition))
+					out = joinStatements(out, "then")
 				else
-					out = joinStatementsSafe(out, "else")
+					out = joinStatements(out, "else")
 				end
-				out = joinStatementsSafe(out, formatStatlist(st.Body))
+				out = joinStatements(out, formatStatlist(st.Body))
 			end
-			out = joinStatementsSafe(out, "end")
+			out = joinStatements(out, "end")
 
 		elseif statement.AstType == 'WhileStatement' then
-			out = joinStatementsSafe("while", formatExpr(statement.Condition))
-			out = joinStatementsSafe(out, "do")
-			out = joinStatementsSafe(out, formatStatlist(statement.Body))
-			out = joinStatementsSafe(out, "end")
+			out = joinStatements("while", formatExpr(statement.Condition))
+			out = joinStatements(out, "do")
+			out = joinStatements(out, formatStatlist(statement.Body))
+			out = joinStatements(out, "end")
 
 		elseif statement.AstType == 'DoStatement' then
-			out = joinStatementsSafe(out, "do")
-			out = joinStatementsSafe(out, formatStatlist(statement.Body))
-			out = joinStatementsSafe(out, "end")
+			out = joinStatements(out, "do")
+			out = joinStatements(out, formatStatlist(statement.Body))
+			out = joinStatements(out, "end")
 
 		elseif statement.AstType == 'ReturnStatement' then
 			out = "return"
 			for i = 1, #statement.Arguments do
-				out = joinStatementsSafe(out, formatExpr(statement.Arguments[i]))
+				out = joinStatements(out, formatExpr(statement.Arguments[i]))
 				if i ~= #statement.Arguments then
 					out = out..","
 				end
@@ -211,16 +211,16 @@ local function FormatMini(ast)
 
 		elseif statement.AstType == 'RepeatStatement' then
 			out = "repeat"
-			out = joinStatementsSafe(out, formatStatlist(statement.Body))
-			out = joinStatementsSafe(out, "until")
-			out = joinStatementsSafe(out, formatExpr(statement.Condition))
+			out = joinStatements(out, formatStatlist(statement.Body))
+			out = joinStatements(out, "until")
+			out = joinStatements(out, formatExpr(statement.Condition))
 
 		elseif statement.AstType == 'Function' then
 			statement.Scope:ObfuscateVariables()
 			if statement.IsLocal then
 				out = "local"
 			end
-			out = joinStatementsSafe(out, "function ")
+			out = joinStatements(out, "function ")
 			if statement.IsLocal then
 				out = out..statement.Name.Name
 			else
@@ -240,8 +240,8 @@ local function FormatMini(ast)
 				out = out.."..."
 			end
 			out = out..")"
-			out = joinStatementsSafe(out, formatStatlist(statement.Body))
-			out = joinStatementsSafe(out, "end")
+			out = joinStatements(out, formatStatlist(statement.Body))
+			out = joinStatements(out, "end")
 
 		elseif statement.AstType == 'GenericForStatement' then
 			statement.Scope:ObfuscateVariables()
@@ -254,14 +254,14 @@ local function FormatMini(ast)
 			end
 			out = out.." in"
 			for i = 1, #statement.Generators do
-				out = joinStatementsSafe(out, formatExpr(statement.Generators[i]))
+				out = joinStatements(out, formatExpr(statement.Generators[i]))
 				if i ~= #statement.Generators then
-					out = joinStatementsSafe(out, ',')
+					out = joinStatements(out, ',')
 				end
 			end
-			out = joinStatementsSafe(out, "do")
-			out = joinStatementsSafe(out, formatStatlist(statement.Body))
-			out = joinStatementsSafe(out, "end")
+			out = joinStatements(out, "do")
+			out = joinStatements(out, formatStatlist(statement.Body))
+			out = joinStatements(out, "end")
 
 		elseif statement.AstType == 'NumericForStatement' then
 			out = "for "
@@ -270,9 +270,9 @@ local function FormatMini(ast)
 			if statement.Step then
 				out = out..","..formatExpr(statement.Step)
 			end
-			out = joinStatementsSafe(out, "do")
-			out = joinStatementsSafe(out, formatStatlist(statement.Body))
-			out = joinStatementsSafe(out, "end")
+			out = joinStatements(out, "do")
+			out = joinStatements(out, formatStatlist(statement.Body))
+			out = joinStatements(out, "end")
 		elseif statement.AstType == 'LabelStatement' then
 			out = getIndentation() .. "::" .. statement.Label .. "::"
 		elseif statement.AstType == 'GotoStatement' then
@@ -292,7 +292,7 @@ local function FormatMini(ast)
 		local out = ''
 		statList.Scope:ObfuscateVariables()
 		for _, stat in pairs(statList.Body) do
-			out = joinStatementsSafe(out, formatStatement(stat), ';')
+			out = joinStatements(out, formatStatement(stat), ';')
 		end
 		return out
 	end
