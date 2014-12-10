@@ -33,7 +33,7 @@ end
 -- @tparam string type The type to compare it with
 -- @treturn bool If the type matches
 function TokenList:Is(type)
-	return TokenList:Peek().Type == type
+	return self:Peek().Type == type
 end
 
 --- Save position in a stream
@@ -98,7 +98,7 @@ end
 -- @tparam string kw The particular keyword
 -- @treturn boolean If it matches or not
 function TokenList:IsKeyword(kw)
-	local token = TokenList:Peek()
+	local token = self:Peek()
 	return token.Type == 'Keyword' and token.Data == kw
 end
 
@@ -106,14 +106,23 @@ end
 -- @tparam string symbol The particular symbol
 -- @treturn boolean If it matches or not
 function TokenList:IsSymbol(symbol)
-	local token = TokenList:Peek()
+	local token = self:Peek()
 	return token.Type == 'Symbol' and token.Data == symbol
 end
 
 --- Check if the next token is an end of file
 -- @treturn boolean If the next token is an end of file
 function TokenList:IsEof()
-	return TokenList:Peek().Type == 'Eof'
+	return self:Peek().Type == 'Eof'
+end
+
+function TokenList:Print()
+	local out = ""
+	for _, token in ipairs(self.tokens) do
+		out = out .. token:Print() .. "\n"
+	end
+
+	return out
 end
 
 return TokenList

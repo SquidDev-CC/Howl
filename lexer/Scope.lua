@@ -267,7 +267,7 @@ local function NewScope(parent)
 		oldLocalNamesMap = { },
 		oldGlobalNamesMap = { },
 		Children = { },
-	}, { __index = scope })
+	}, { __index = Scope })
 
 	if parent then
 		table.insert(parent.Children, scope)

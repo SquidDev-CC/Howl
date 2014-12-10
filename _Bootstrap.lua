@@ -6,28 +6,42 @@ local howlDirectory = fs.getDir(shell.getRunningProgram())
 
 local fileLoader = loadfile
 local env = setmetatable({}, {__index = getfenv()})
-env.loadlocalfile = function(path)
+local function loadLocal(path)
 	local file = fileLoader(fs.combine(howlDirectory, path))
 	assert(file, "Cannot load file at " .. fs.combine(howlDirectory, path))
 	return setfenv(file, env)
 end
-env.dolocalfile = function(path) return env.loadlocalfile(path)() end
+
+local function doFunction(f)
+	local e=setmetatable({}, {__index = env})
+	setfenv(f,e)
+	local r=f()
+	if r ~= nil then return r end
+	return e
+end
+
+local function doFile(path)
+	return doFunction(loadLocal(path))
+end
 
 local args = {...}
 xpcall(setfenv(function()
-	ArgParse = dolocalfile("core/ArgParse.lua")
-	Utils = dolocalfile("core/Utils.lua")
-	Depends = dolocalfile("depends/Depends.lua")
+	ArgParse = doFile("core/ArgParse.lua")
+	Utils = doFile("core/Utils.lua")
+	Dump = doFile("core/Dump.lua")
+	Depends = doFile("depends/Depends.lua")
 
-	Task = dolocalfile("tasks/Task.lua")
-	dolocalfile("depends/Combiner.lua")
-	dolocalfile("tasks/Extensions.lua")
-	HowlFile = dolocalfile("core/HowlFileLoader.lua")
+	Task = doFile("tasks/Task.lua")
+	doFile("depends/Combiner.lua")
+	doFile("tasks/Extensions.lua")
+	HowlFile = doFile("core/HowlFileLoader.lua")
 
-	Scope = dolocalfile("lexer/Scope.lua")
-	Parse = dolocalfile("lexer/Parse.lua")
+	Scope = doFile("lexer/Scope.lua")
+	TokenList = doFile("lexer/TokenList.lua")
+	Constants = doFile("lexer/Constants.lua")
+	Parse = doFile("lexer/Parse.lua")
 
-	loadlocalfile("Howl.lua")(unpack(args))
+	loadLocal("Howl.lua")(unpack(args))
 end, env), function(err)
 	printError(err)
 	for i = 4, 15 do
