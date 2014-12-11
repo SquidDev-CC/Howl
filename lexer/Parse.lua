@@ -1048,7 +1048,7 @@ local function ParseLua(tok)
 			local exList = {}
 			if not tok:IsKeyword('end') then
 				-- Use PCall as this may produce an error
-				local st, firstEx = pcall(function() ParseExpr(scope) end)
+				local st, firstEx = pcall(function() return ParseExpr(scope) end)
 				if st then
 					exList[1] = firstEx
 					while tok:ConsumeSymbol(',', tokenList) do

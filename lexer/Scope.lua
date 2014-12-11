@@ -3,6 +3,8 @@
 -- a linear search is used instead to look up variables
 -- @module lexer.Scope
 
+local keywords = Constants.Keywords
+
 --- Holds the data for one variable
 -- @table Variable
 -- @tfield Scope Scope The parent scope
@@ -209,10 +211,9 @@ function Scope:getVars(top, ret)
 end
 
 --- Rename all locals to smaller values
--- @tparam table keywords A table of keywords that cannot be used
 -- @tparam string validNameChars All characters that can be used to make a variable name
 -- @fixme Some of the string generation happens a lot, this could be looked at
-function Scope:ObfuscateLocals(keywords, validNameChars)
+function Scope:ObfuscateLocals(validNameChars)
 	-- Use values sorted for letter frequency instead
 	local startChars = validNameChars or "etaoinshrdlucmfwypvbgkqjxz_ETAOINSHRDLUCMFWYPVBGKQJXZ"
 	local otherChars = validNameChars or "etaoinshrdlucmfwypvbgkqjxz_0123456789ETAOINSHRDLUCMFWYPVBGKQJXZ"

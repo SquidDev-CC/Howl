@@ -36,10 +36,12 @@ xpcall(setfenv(function()
 	doFile("tasks/Extensions.lua")
 	HowlFile = doFile("core/HowlFileLoader.lua")
 
-	Scope = doFile("lexer/Scope.lua")
 	TokenList = doFile("lexer/TokenList.lua")
 	Constants = doFile("lexer/Constants.lua")
+	Scope = doFile("lexer/Scope.lua")
 	Parse = doFile("lexer/Parse.lua")
+	Rebuild = doFile("lexer/Rebuild.lua")
+	doFile("lexer/Tasks.lua")
 
 	loadLocal("Howl.lua")(unpack(args))
 end, env), function(err)

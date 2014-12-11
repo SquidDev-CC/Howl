@@ -18,30 +18,31 @@ end
 -- @tparam table seen A list of seen objects
 -- @tparam boolean meta Print metatables too
 local function InternalDump(object, indent, seen, meta)
+	local result = ""
 	local objType = type(object)
 	if objType == "table" then
 		local id = seen[object]
 
 		if id then
-			print(indent .. "--[[ Object@" .. id .. " ]] { }")
+			result = result .. (indent .. "--[[ Object@" .. id .. " ]] { }") .. "\n"
 		else
 			id = seen.length + 1
 			seen[object] = id
 			seen.length = id
-			print(indent .. "--[[ Object@" .. id .. " ]] {")
+			result = result .. (indent .. "--[[ Object@" .. id .. " ]] {") .. "\n"
 			for k, v in pairs(object) do
 
 				if type(k) == "table" then
-					print(indent .. "\t{")
-					InternalDump(k, indent .. "\t\t", seen, meta)
-					InternalDump(v, indent .. "\t\t", seen, meta)
-					print(indent .. "\t},")
+					result = result .. (indent .. "\t{") .. "\n"
+					result = result .. InternalDump(k, indent .. "\t\t", seen, meta)
+					result = result .. InternalDump(v, indent .. "\t\t", seen, meta)
+					result = result .. (indent .. "\t},") .. "\n"
 				elseif type(v) == "table" then
-					print(indent .. "\t[" .. InternalFormat(k) .. "] = {")
-					InternalDump(v, indent .. "\t\t", seen, meta)
-					print(indent .. "\t},")
+					result = result .. (indent .. "\t[" .. InternalFormat(k) .. "] = {") .. "\n"
+					result = result .. InternalDump(v, indent .. "\t\t", seen, meta)
+					result = result .. (indent .. "\t},") .. "\n"
 				else
-					print(indent .. "\t[" .. InternalFormat(k) .. "] = " .. InternalFormat(v) .. ",")
+					result = result .. (indent .. "\t[" .. InternalFormat(k) .. "] = " .. InternalFormat(v) .. ",") .. "\n"
 				end
 			end
 
@@ -49,16 +50,18 @@ local function InternalDump(object, indent, seen, meta)
 				local metatable = getmetatable(object)
 
 				if metatable then
-					print(indent .. "\tMetatable = {")
-					InternalDump(metatable, indent .. "\t\t", seen, meta)
-					print(indent .. "\t}")
+					result = result .. (indent .. "\tMetatable = {") .. "\n"
+					result = result .. InternalDump(metatable, indent .. "\t\t", seen, meta)
+					result = result .. (indent .. "\t}") .. "\n"
 				end
 			end
-			print(indent .. "}")
+			result = result .. (indent .. "}") .. "\n"
 		end
 	else
-		print(indent .. InternalFormat(object))
+		result = result .. (indent .. InternalFormat(object)) .. "\n"
 	end
+
+	return result
 end
 
 --- Dumps an object
@@ -67,7 +70,7 @@ end
 -- @tparam ?|string indent The indent to use
 local function Dump(object, meta, indent)
 	if meta == nil then meta = true end
-	InternalDump(object, indent or "", {length = 0}, meta)
+	return InternalDump(object, indent or "", {length = 0}, meta)
 end
 
 --- @export Dump
