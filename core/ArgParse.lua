@@ -64,7 +64,7 @@ end
 -- @treturn Parser The current object
 function Parser:Default(name, value)
 	if value == nil then value = true end
-	self._SetSetting(name, "default", value)
+	self:_SetSetting(name, "default", value)
 
 	self:_Changed()
 	return self
