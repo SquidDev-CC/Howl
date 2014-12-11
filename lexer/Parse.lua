@@ -28,7 +28,7 @@ local Token = {}
 --- Creates a string representation of the token
 -- @treturn string The resulting string
 function Token:Print()
-	return "<"..(self.Type .. string.rep(' ', 7-#self.Type)).."  "..(self.Data or '').." >"
+	return "<"..(self.Type .. string.rep(' ', math.max(3, 12-#self.Type))).."  "..(self.Data or '').." >"
 end
 
 local tokenMeta = { __index = Token }
@@ -189,7 +189,12 @@ local function LexLua(src)
 					--whitespace
 					--leadingWhite = leadingWhite..get()
 					local c2 = get() -- ignore whitespace
-					table.insert(leading, { Type = 'Whitespace', Line = line, Char = char, Data = c2 })
+					table.insert(leading, setmeta({
+						Type = 'Whitespace',
+						Line = line,
+						Char = char,
+						Data = c2
+					}, tokenMeta))
 				elseif c == '\n' or c == '\r' then
 					local nl = get()
 					if leadingWhite ~= "" then
@@ -202,7 +207,12 @@ local function LexLua(src)
 						}, tokenMeta))
 						leadingWhite = ""
 					end
-					table.insert(leading, { Type = 'Whitespace', Line = line, Char = char, Data = nl })
+					table.insert(leading, setmeta({
+						Type = 'Whitespace',
+						Line = line,
+						Char = char,
+						Data = nl,
+					}, tokenMeta))
 				elseif c == '-' and peek(1) == '-' then
 					--comment
 					get()

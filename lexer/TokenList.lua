@@ -126,9 +126,7 @@ function TokenList:Print(includeLeading)
 	for _, token in ipairs(self.tokens) do
 		if includeLeading then
 			for _, whitespace in ipairs(token.LeadingWhite) do
-				if whitespace.Print then
-					out = out .. whitespace:Print() .. "\n"
-				end
+				out = out .. whitespace:Print() .. "\n"
 			end
 		end
 		out = out .. token:Print() .. "\n"
