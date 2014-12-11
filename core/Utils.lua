@@ -66,6 +66,16 @@ local function EscapePattern(pattern)
 	return (pattern:gsub(".", matches))
 end
 
+--- Create a lookup table from a list of values
+-- @tparam table tbl The table of values
+-- @treturn The same table, with lookups as well
+local function CreateLookup(tbl)
+	for _, v in ipairs(tbl) do
+		tbl[v] = true
+	end
+	return tbl
+end
+
 -- Hacky docs for objects
 
 --- Print messages
@@ -85,4 +95,5 @@ return {
 	Verbose = Verbose,
 
 	EscapePattern = EscapePattern,
+	CreateLookup = CreateLookup,
 }
