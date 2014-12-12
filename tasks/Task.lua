@@ -1,18 +1,60 @@
---- Handles tasks and dependencies
--- @module Task
+--- The main task class
+-- @module tasks.Task
+
+local matches = {
+	["^"] = "%^",
+	["$"] = "%$",
+	["("] = "%(",
+	[")"] = "%)",
+	["%"] = "%%",
+	["."] = "%.",
+	["["] = "%[",
+	["]"] = "%]",
+	--["*"] = "%*";
+	["+"] = "%+",
+	["-"] = "%-",
+	["?"] = "%?",
+	["\0"] = "%z",
+}
+
+--- Parse a series of patterns
+local function ParsePattern(from, to)
+	local beginning = from:sub(1, 5)
+	if beginning == "ptrn:" or beginning == "wild:" then
+		assert(beginning == to:sub(1, 5), string.format("Both '%s' and '%s' have the same prefix", from, to))
+
+		local fromEnd = from:sub(6)
+		local toEnd = to:sub(6)
+		if beginning == "wild:" then
+			-- Escape the pattern and replace wildcards with (.*) capture
+			toEnd = ((toEnd:gsub(".", matches)):gsub("(%*)", "(.*)"))
+
+			local counter = 0
+			-- Escape the pattern and then replace wildcards with the results of the capture %1, %2, etc...
+			fromEnd = ((fromEnd:gsub(".", matches)):gsub("(%*)", function()
+				counter = counter + 1
+				return "%" .. counter
+			end))
+		end
+
+		return {Type = "Pattern", From = fromEnd, To = toEnd}
+	else
+		return {Type = "Normal", From = from, To = to}
+	end
+end
 
 --- A single task: actions, dependencies and metadata
 -- @type Task
--- @field Task
 local Task = {}
 
 --- Define what this task depends on
--- @tparam string/table name Name/list of dependencies
+-- @tparam string|table name Name/list of dependencies
 -- @treturn Task The current object (allows chaining)
 function Task:Depends(name)
 	if type(name) == "table" then
+		local dependencies = self.dependencies
 		for _, file in ipairs(name) do
-			self:Depends(name)
+			table.insert(dependencies, name)
 		end
 	else
 		table.insert(self.dependencies, name)
@@ -21,11 +63,49 @@ function Task:Depends(name)
 	return self
 end
 
+--- Sets a file this task requires
+-- @tparam string|table file The path of the file
+-- @treturn Task The current object (allows chaining)
+function Task:Requires(file)
+	if type(file) == "table" then
+		local requires = self.requires
+		for _, file in ipairs(file) do
+			table.insert(requires, file)
+		end
+	else
+		table.insert(self.requires, file)
+	end
+	return self
+end
+
+--- Sets a file this task produces
+-- @tparam string|table file The path of the file
+-- @treturn Task The current object (allows chaining)
+function Task:Produces(file)
+	if type(file) == "table" then
+		local produces = self.produces
+		for _, file in ipairs(file) do
+			table.insert(produces, file)
+		end
+	else
+		table.insert(self.produces, file)
+	end
+	return self
+end
+
+--- Sets a file mapping
+-- @tparam string from The file to map form
+-- @tparam string to The file to map to
+-- @treturn Task The current object (allows chaining)
+function Task:Maps(from, to)
+	table.insert(self.maps, ParsePattern(from, to))
+	return self
+end
+
 --- Set the action for this task
 -- @tparam function action The action to run
 -- @treturn Task The current object (allows chaining)
 function Task:Action(action)
-	assert(action and type(action) == "function", "action must be a function")
 	self.action = action
 	return self
 end
@@ -37,131 +117,100 @@ function Task:Description(text)
 	self.description = text
 	return self
 end
+
+--- Execute the task
+-- @tparam Context.Context context The task context
+-- @param ... The arguments to pass to task
+-- @tparam boolean Success
+function Task:Run(context, ...)
+	for _, depends in ipairs(self.dependencies) do
+		if not context:Run(depends) then
+			return false
+		end
+	end
+
+	for _, file in ipairs(self.requires) do
+		if not context:DoRequire(file) then
+			return false
+		end
+	end
+
+	for _, file in ipairs(self.produces) do
+		context.filesProduced[file] = true
+	end
+
+	-- Technically we don't need to specify an action
+	if self.action then
+		local args = {...}
+		local description = ""
+
+		-- Get a list of arguments
+		if #args > 0 then
+			newArgs = {}
+			for _, arg in ipairs(args) do
+				table.insert(newArgs, tostring(arg))
+			end
+			description = " (" .. table.concat(newArgs, ", ") .. ")"
+		end
+		Utils.PrintColor(colors.cyan, "Running " .. self.name .. description)
+
+		local oldTime = os.time()
+		local s, err = true, nil
+		if context.Traceback then
+			xpcall(function() self.action(unpack(args)) end, function(msg)
+				for i = 5, 15 do
+					local _, err = pcall(function() error("", i) end)
+					if msg:match("Howlfile") then break end
+					msg = msg .. "\n  " .. err
+				end
+
+				err = msg
+				s = false
+			end)
+		else
+			s, err = pcall(self.action, ...)
+		end
+
+		if s then
+			Utils.PrintSuccess(self.name .. ": Success")
+		else
+			Utils.PrintError(self.name .. ": Failure\n" .. err)
+		end
+
+		if context.ShowTime then
+			Utils.Print("\t", "Took " .. os.time() - oldTime .. "s")
+		end
+
+		return s
+	end
+
+	return true
+end
+
 --- Create a task
 -- @tparam table dependencies A list of tasks this task requires
 -- @tparam function action The action to run
 -- @treturn Task The created task
-local function TaskFactory(dependencies, action)
+local function Factory(name, dependencies, action)
 	-- Check calling with no dependencies
 	if type(dependencies) == "function" then
 		action = dependencies
 		dependencies = {}
 	end
 
-	return setmetatable({action = action, dependencies = dependencies, description = nil}, {__index = Task})
+	return setmetatable({
+		name = name,       -- The name of the function
+		action = action,   -- The action to call
+		dependencies = dependencies or {}, -- Task dependencies
+		description = nil, -- Description of the task
+		maps = {},         -- Reads and produces list
+		requires = {},     -- Files this task requires
+		produces = {},     -- Files this task produces
+	}, {__index = Task})
 end
 
---- Handles a collection of tasks and running them
--- @type TaskRunner
-local TaskRunner = {}
-
---- Create a task
--- @tparam string name The name of the task to create
--- @treturn function A builder for tasks
-function TaskRunner:Task(name)
-	return function(dependencies, action) return self:AddTask(name, dependencies, action) end
-end
-
---- Add a task to the collection
--- @tparam string name The name of the task to add
--- @tparam table dependencies A list of tasks this task requires
--- @tparam function action The action to run
--- @treturn Task The created task
-function TaskRunner:AddTask(name, dependencies, action)
-	local task = TaskFactory(dependencies, action)
-	self.tasks[name] = task
-	return task
-end
-
---- Set the default task
--- @tparam ?|string|function task The task to run or the name of the task
--- @treturn TaskRunner The current object for chaining
-function TaskRunner:Default(task)
-	local defaultTask
-	if task == nil then
-		self.default = nil
-	elseif type(task) == "string" then
-		self.default  = self.tasks[task]
-		if not self.default  then
-			error("Cannot find task " .. task)
-		end
-	else
-		self.default = TaskFactory({}, task)
-	end
-
-	return self
-end
-
---- Run a task, and all its dependencies
--- @tparam string name Name of the task to run
--- @tparam table context List of already run tasks
-function TaskRunner:Run(name, context)
-	context = context or {}
-	table.insert(context, name)
-	local currentTask
-	if name then
-		currentTask = self.tasks[name]
-	else
-		currentTask = self.default
-		name = "<default>"
-	end
-
-	local showTime = self.ShowTime
-	local traceback = self.Traceback
-
-	if not currentTask then
-		Utils.PrintError("Cannot find a task called " .. name)
-		return false
-	end
-
-	for _, dep in ipairs(currentTask.dependencies or {}) do
-		if not context[dep] then
-			if not self:Run(dep, context) then
-				return false
-			end
-		end
-	end
-
-	local oldTime = os.time()
-	Utils.PrintColor(colors.cyan, "Running " .. name)
-	assert(currentTask.action, "Action cannot be nil")
-
-	local s, err = true, nil
-	if traceback then
-		xpcall(currentTask.action, function(msg)
-			for i = 4, 15 do
-				local _, err = pcall(function() error("", i) end)
-				if msg:match("Howlfile") then break end
-				msg = msg .. "\n  " .. err
-			end
-
-			err = msg
-			s = false
-		end)
-	else
-		s, err = pcall(currentTask.action)
-	end
-	if s then
-		Utils.PrintSuccess(name .. ": Success")
-	else
-		Utils.PrintError(name .. ": Failure\n" .. err)
-	end
-
-	if showTime then
-		Utils.Print("\t", "Took " .. os.time() - oldTime .. "s")
-	end
-
-	return s
-end
-
---- Create a @{TaskRunner} object
--- @treturn TaskRunner The created runner object
-local function Tasks()
-	return setmetatable({tasks = {}, default = nil}, {__index = TaskRunner})
-end
 --- @export
 return {
+	Factory = Factory,
 	Task = Task,
-	TaskRunner = TaskRunner,
-	Tasks = Tasks,
 }

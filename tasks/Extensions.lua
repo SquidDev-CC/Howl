@@ -2,20 +2,23 @@
 -- @module Task.Extensions
 
 --- Prints all tasks in a TaskRunner
--- Extends the @{Task.TaskRunner} class
+-- Extends the @{Runner.Runner} class
 -- @tparam string indent The indent to print at
--- @treturn Task.TaskRunner The current task runner (allows chaining)
-function Task.TaskRunner:ListTasks(indent)
+-- @tparam boolean all Include all tasks (otherwise exclude ones starting with _)
+-- @treturn Runner.Runner The current task runner (allows chaining)
+function Runner.Runner:ListTasks(indent, all)
 	local taskNames = {}
 	local maxLength = 0
 	for name, task in pairs(self.tasks) do
-		local description =  task.description or ""
-		local length = #name
-		if length > maxLength then
-			maxLength = length
-		end
+		if all or name:sub(1, 1) ~= "_" then
+			local description =  task.description or ""
+			local length = #name
+			if length > maxLength then
+				maxLength = length
+			end
 
-		taskNames[name] = description
+			taskNames[name] = description
+		end
 	end
 
 	maxLength = maxLength + 2
@@ -28,12 +31,12 @@ function Task.TaskRunner:ListTasks(indent)
 end
 
 --- A task for cleaning a directory
--- Extends the @{Task.TaskRunner} class
+-- Extends the @{Runner.Runner} class
 -- @tparam string name Name of the task
 -- @tparam string directory The directory to clean
 -- @tparam table taskDepends A list of tasks this task requires
--- @treturn Task.TaskRunner The task runner (for chaining)
-function Task.TaskRunner:Clean(name, directory, taskDepends)
+-- @treturn Runner.Runner The task runner (for chaining)
+function Runner.Runner:Clean(name, directory, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		Utils.Verbose("Emptying directory '" .. directory .. "'")
 		fs.delete(directory)

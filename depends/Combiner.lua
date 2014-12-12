@@ -1,5 +1,5 @@
 --- Combines multiple files into one file
--- Extends @{Depends.Dependencies} and @{Task.TaskRunner} classes
+-- Extends @{Depends.Dependencies} and @{Runner.Runner} classes
 -- @module Combiner
 
 local functionLoaderName = "_W"
@@ -23,7 +23,7 @@ function Depends.Dependencies:Combiner(outputFile)
 	local path = self.path
 	local shouldExport = self.shouldExport
 
-	local output = fs.open(fs.combine(path, outputFile), "w")
+	local output = fs.open(outputFile, "w")
 	assert(output, "Could not create" .. outputFile)
 
 	output.writeLine(functionLoader)
@@ -77,10 +77,12 @@ end
 -- @tparam @{Depends.Dependencies} dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
 -- @tparam table taskDepends A list of @{Task.Task|tasks} this task requires
--- @treturn Task.TaskRunner The task runner (for chaining)
--- @see Task.TaskRunner
-function Task.TaskRunner:Combine(name, dependencies, outputFile, taskDepends)
+-- @treturn Runner.Runner The task runner (for chaining)
+-- @see Runner.Runner
+function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		dependencies:Combiner(outputFile)
-	end):Description("Combines files into '" .. outputFile .. "'")
+	end)
+		:Description("Combines files into '" .. outputFile .. "'")
+		:Produces(outputFile)
 end

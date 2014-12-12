@@ -76,6 +76,20 @@ local function CreateLookup(tbl)
 	return tbl
 end
 
+--- Checks if two tables are equal
+-- @tparam table a
+-- @tparam table b
+-- @tparam boolean If they match
+local function MatchTables(a, b)
+	local length = #a
+	if length ~= #b then return false end
+
+	for i=1, length do
+		if a[i] ~= b[i] then return false end
+	end
+	return true
+end
+
 -- Hacky docs for objects
 
 --- Print messages
@@ -96,4 +110,5 @@ return {
 
 	EscapePattern = EscapePattern,
 	CreateLookup = CreateLookup,
+	MatchTables = MatchTables,
 }

@@ -1,6 +1,9 @@
+Options:Default("trace")
+Options:Default("with-minify")
+
 local sources = Dependencies(CurrentDirectory)
 sources:Main "Howl.lua"
-	:Depends "Task"
+	:Depends "Runner"
 	:Depends "ArgParse"
 	:Depends "HowlFile"
 
@@ -9,18 +12,29 @@ sources:Main "Howl.lua"
 	:Depends "Combiner"
 	:Depends "Depends"
 
+-- Task files
+sources:File "tasks/Context.lua"
+	:Name "Context"
+	:Depends "Utils"
+
 sources:File "tasks/Task.lua"
 	:Name "Task"
 	:Depends "Utils"
 
+sources:File "tasks/Runner.lua"
+	:Name "Runner"
+	:Depends "Utils"
+	:Depends "Task"
+	:Depends "Context"
+
 sources:File "depends/Combiner.lua"
 	:Alias "Combiner"
 	:Depends "Depends"
-	:Depends "Task"
+	:Depends "Runner"
 
 sources:File "tasks/Extensions.lua"
 	:Alias "Task.Extensions"
-	:Depends "Task"
+	:Depends "Runner"
 	:Depends "Utils"
 
 sources:File "core/Utils.lua"          :Name "Utils"
@@ -58,9 +72,13 @@ if Options:Get("with-minify") then
 
 	sources.mainFiles[1]
 		:Depends "Minify"
-
 end
 
-Tasks:Clean("clean", fs.combine(CurrentDirectory, "build"))
-Tasks:Combine("combine", sources, "build/Howl.lua", {"clean"})
-Tasks:Minify("minify", File "build/Howl.lua", File "build/Howl.min.lua", {"combine"})
+Tasks:Clean("clean", File "build")
+Tasks:Combine("combine", sources, File "build/Howl.lua", {"clean"})
+
+Tasks:MinifyAll()
+
+Tasks:AddTask "minify"
+	:Requires(File "build/Howl.min.lua")
+	:Description("Produces a minified version of the code")

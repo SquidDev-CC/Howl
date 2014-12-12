@@ -19,7 +19,7 @@ options
 	:Alias "h"
 	:Description "Print this help"
 
-local tasks = Task.Tasks()
+local tasks = Runner.Factory()
 local currentTask = options:Arguments()[1]
 
 options:OnChanged(function(options)

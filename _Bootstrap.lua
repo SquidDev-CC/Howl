@@ -31,9 +31,12 @@ xpcall(setfenv(function()
 	Dump = doFile("core/Dump.lua")
 	Depends = doFile("depends/Depends.lua")
 
+	Context = doFile("tasks/Context.lua")
 	Task = doFile("tasks/Task.lua")
-	doFile("depends/Combiner.lua")
+	Runner = doFile("tasks/Runner.lua")
 	doFile("tasks/Extensions.lua")
+
+	doFile("depends/Combiner.lua")
 	HowlFile = doFile("core/HowlFileLoader.lua")
 
 	TokenList = doFile("lexer/TokenList.lua")
