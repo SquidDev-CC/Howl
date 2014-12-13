@@ -10,44 +10,53 @@ sources:Main "Howl.lua"
 	-- Not needed but we include
 	:Depends "Task.Extensions"
 	:Depends "Combiner"
+	:Depends "Bootstrap"
 	:Depends "Depends"
 
--- Task files
-sources:File "tasks/Context.lua"
-	:Name "Context"
-	:Depends "Utils"
-
-sources:File "tasks/Task.lua"
-	:Name "Task"
-	:Depends "Utils"
-
-sources:File "tasks/Runner.lua"
-	:Name "Runner"
-	:Depends "Utils"
-	:Depends "Task"
-	:Depends "Context"
-
-sources:File "depends/Combiner.lua"
-	:Alias "Combiner"
-	:Depends "Depends"
-	:Depends "Runner"
-
-sources:File "tasks/Extensions.lua"
-	:Alias "Task.Extensions"
-	:Depends "Runner"
-	:Depends "Utils"
-
-sources:File "core/Utils.lua"          :Name "Utils"
-sources:File "core/HowlFileLoader.lua" :Name "HowlFile"
-sources:File "core/ArgParse.lua"       :Name "ArgParse"
-sources:File "depends/Depends.lua"     :Name "Depends"
-
-if Options:Get("with-dump") then
-	sources:File "core/Dump.lua"       :Name "Dump"
-	sources.mainFiles[1]:Depends "Dump" -- Hacky fix to require the file
+do -- Core files
+	sources:File "core/Utils.lua"          :Name "Utils"
+	sources:File "core/HowlFileLoader.lua" :Name "HowlFile"
+	sources:File "core/ArgParse.lua"       :Name "ArgParse"
+	sources:File "core/Dump.lua"           :Name "Dump"
 end
 
-if Options:Get("with-minify") then
+do -- Task files
+	sources:File "tasks/Context.lua"
+		:Name "Context"
+		:Depends "Utils"
+
+	sources:File "tasks/Task.lua"
+		:Name "Task"
+		:Depends "Utils"
+
+	sources:File "tasks/Runner.lua"
+		:Name "Runner"
+		:Depends "Utils"
+		:Depends "Task"
+		:Depends "Context"
+
+	sources:File "tasks/Extensions.lua"
+		:Alias "Task.Extensions"
+		:Depends "Runner"
+		:Depends "Utils"
+end
+
+do -- Dependencies
+	sources:File "depends/Depends.lua"
+		:Name "Depends"
+
+	sources:File "depends/Combiner.lua"
+		:Alias "Combiner"
+		:Depends "Depends"
+		:Depends "Runner"
+
+	sources:File "depends/Bootstrap.lua"
+		:Alias "Bootstrap"
+		:Depends "Depends"
+		:Depends "Runner"
+end
+
+do -- Minification
 	sources:File "lexer/Parse.lua"
 		:Name "Parse"
 		:Depends "Constants"
@@ -69,16 +78,20 @@ if Options:Get("with-minify") then
 		:Alias "Minify"
 		:Depends "Parse"
 		:Depends "Rebuild"
+end
 
-	sources.mainFiles[1]
-		:Depends "Minify"
+if Options:Get("with-dump") then
+	sources.mainFiles[1]:Depends "Dump" -- Hacky fix to require the file
+end
+
+if Options:Get("with-minify") then
+	sources.mainFiles[1]:Depends "Minify"
 end
 
 Tasks:Clean("clean", File "build")
 Tasks:Combine("combine", sources, File "build/Howl.lua", {"clean"})
 
-Tasks:MinifyAll()
-
-Tasks:AddTask "minify"
-	:Requires(File "build/Howl.min.lua")
+Tasks:Minify("minify", File "build/Howl.lua", File "build/Howl.min.lua")
 	:Description("Produces a minified version of the code")
+
+Tasks:CreateBootstrap("boot", sources, File "build/Boot.lua", {"clean"})

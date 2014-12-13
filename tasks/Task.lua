@@ -188,10 +188,12 @@ function Task:Run(context, ...)
 end
 
 --- Create a task
+-- @tparam string name The name of the task
 -- @tparam table dependencies A list of tasks this task requires
 -- @tparam function action The action to run
+-- @tparam table prototype The base class of the Task
 -- @treturn Task The created task
-local function Factory(name, dependencies, action)
+local function Factory(name, dependencies, action, prototype)
 	-- Check calling with no dependencies
 	if type(dependencies) == "function" then
 		action = dependencies
@@ -206,7 +208,7 @@ local function Factory(name, dependencies, action)
 		maps = {},         -- Reads and produces list
 		requires = {},     -- Files this task requires
 		produces = {},     -- Files this task produces
-	}, {__index = Task})
+	}, {__index = prototype or Task})
 end
 
 --- @export

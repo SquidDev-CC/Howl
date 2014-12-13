@@ -37,6 +37,7 @@ xpcall(setfenv(function()
 	doFile("tasks/Extensions.lua")
 
 	doFile("depends/Combiner.lua")
+	doFile("depends/Bootstrap.lua")
 	HowlFile = doFile("core/HowlFileLoader.lua")
 
 	TokenList = doFile("lexer/TokenList.lua")
