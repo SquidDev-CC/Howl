@@ -73,5 +73,4 @@ local function Dump(object, meta, indent)
 	return InternalDump(object, indent or "", {length = 0}, meta)
 end
 
---- @export Dump
 return Dump

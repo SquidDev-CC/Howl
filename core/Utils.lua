@@ -79,7 +79,7 @@ end
 --- Checks if two tables are equal
 -- @tparam table a
 -- @tparam table b
--- @tparam boolean If they match
+-- @treturn boolean If they match
 local function MatchTables(a, b)
 	local length = #a
 	if length ~= #b then return false end

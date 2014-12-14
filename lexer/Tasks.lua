@@ -18,9 +18,9 @@ end
 -- @tparam string name Name of the task
 -- @tparam string inputFile The input file
 -- @tparam string outputFile The file to save to
--- @tparam table taskDepends A list of @{Task.Task|tasks} this task requires
+-- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
 -- @treturn Runner.Runner The task runner (for chaining)
--- @see Runner.Runner
+-- @see tasks.Runner.Runner
 function Runner.Runner:Minify(name, inputFile, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		MinifyFile(inputFile, outputFile)
@@ -34,7 +34,7 @@ end
 -- @tparam string name Name of the task
 -- @tparam string inputPattern The pattern to read in
 -- @tparam string outputPattern The pattern to produce
--- @treturn Runner.Runner The task runner (for chaining)
+-- @treturn tasks.Runner.Runner The task runner (for chaining)
 function Runner.Runner:MinifyAll(name, inputPattern, outputPattern)
 	name = name or "_minify"
 	return self:AddTask(name, {}, MinifyFile)

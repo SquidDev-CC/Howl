@@ -1,5 +1,5 @@
 --- Basic extensions to classes
--- @module Task.Extensions
+-- @module tasks.Extensions
 
 --- Prints all tasks in a TaskRunner
 -- Extends the @{Runner.Runner} class

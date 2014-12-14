@@ -58,7 +58,7 @@ function Context:DoRequire(path, quite)
 end
 
 --- Run a task
--- @tparam string|Task.Task task The name of the task or a Task object
+-- @tparam string|Task.Task name The name of the task or a Task object
 -- @param ... The arguments to pass to it
 -- @treturn boolean Success in running the task?
 function Context:Run(name, ...)
@@ -87,8 +87,8 @@ function Context:Run(name, ...)
 end
 
 --- Start the task process
--- @tparam string The name of the task (Optional)
--- @tretrn boolean Success in running the task?
+-- @tparam string name The name of the task (Optional)
+-- @treturn boolean Success in running the task?
 function Context:Start(name)
 	local task
 	if name then
@@ -148,6 +148,9 @@ function Context:BuildCache()
 	return self
 end
 
+--- Create a new task context
+-- @tparam Runner.Runner runner The task runner to run tasks from
+-- @treturn Context The resulting context
 local function Factory(runner)
 	return setmetatable({
 		ran = {}, -- List of task already run

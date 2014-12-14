@@ -1,5 +1,5 @@
 --- Core script for Howl
--- @module Howl
+-- @script Howl
 
 local options = ArgParse.Options({...})
 options
@@ -63,7 +63,7 @@ local environment = HowlFile.SetupEnvironment({
 	CurrentDirectory = currentDirectory,
 	Tasks = tasks,
 	Options = options,
-	Dependencies = Depends.Depends,
+	Dependencies = Depends.Factory,
 	Verbose = Utils.Verbose,
 	File = function(...) return fs.combine(currentDirectory, ...) end
 }, currentDirectory)

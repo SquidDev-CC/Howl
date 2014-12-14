@@ -1,5 +1,5 @@
 --- Specify multiple dependencies
--- @module Depends
+-- @module depends.Depends
 
 --- Stores a file and the dependencies of the file
 -- @type File
@@ -127,11 +127,16 @@ function Dependencies:Export(shouldExport)
 	return self
 end
 
+--- Create a new Dependencies object
+-- @tparam string path The base path of the dependencies
+-- @treturn Dependencies The new Dependencies object
+local function Factory(path)
+	return setmetatable({mainFiles = {}, files = {}, path = path, shouldExport = false}, {__index=Dependencies})
+end
+
 --- @export
 return {
 	File = File,
 	Dependencies = Dependencies,
-	Depends = function(path)
-		return setmetatable({mainFiles = {}, files = {}, path = path, shouldExport = false}, {__index=Dependencies})
-	end,
+	Factory = Factory,
 }

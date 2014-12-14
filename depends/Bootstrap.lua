@@ -1,3 +1,6 @@
+--- Creates a bootstrap file, which is used to run dependencies
+-- @module depends.Bootstrap
+
 local header = [=[--[[
 This is a script that is used to load other files
 ]]
@@ -51,11 +54,11 @@ end
 
 --- A task creating a 'dynamic' combination of files
 -- @tparam string name Name of the task
--- @tparam @{Depends.Dependencies} dependencies The dependencies to compile
+-- @tparam Depends.Dependencies dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
--- @tparam table taskDepends A list of @{Task.Task|tasks} this task requires
--- @treturn Runner.Runner The task runner (for chaining)
--- @see Runner.Runner
+-- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
+-- @treturn tasks.Runner.Runner The task runner (for chaining)
+-- @see tasks.Runner.Runner
 function Runner.Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		dependencies:CreateBootstrap(outputFile)

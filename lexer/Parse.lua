@@ -427,8 +427,8 @@ local function ParseLua(tok)
 	      ParseSuffixedExpr
 
 	--- Parse the function definition and its arguments
-	-- @tparam Scope.Scope The current scope
-	-- @tparam table tokenList. A table to fill with tokens
+	-- @tparam Scope.Scope scope The current scope
+	-- @tparam table tokenList A table to fill with tokens
 	-- @treturn Node A function Node
 	local function ParseFunctionArgsAndBody(scope, tokenList)
 		local funcScope = Scope(scope)
@@ -480,7 +480,7 @@ local function ParseLua(tok)
 	end
 
 	--- Parse a simple expression
-	-- @tparam Scope.Scope The current scope
+	-- @tparam Scope.Scope scope The current scope
 	-- @treturn Node the resulting node
 	function ParsePrimaryExpr(scope)
 		local tokenList = {}

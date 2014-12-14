@@ -116,6 +116,7 @@ end
 -- @tparam string key The key of the setting
 -- @tparam boolean|string value The value of the setting
 -- @treturn Parser The current object
+-- @local
 function Parser:_SetSetting(name, key, value)
 	local settings = self.settings
 	local thisSettings = settings[name]
@@ -155,6 +156,7 @@ function Parser:OnChanged(callback)
 end
 
 --- Fires the on changed event
+-- @local
 function Parser:_Changed()
 	for _, callback in ipairs(self.onChanged) do
 		callback(self)

@@ -1,6 +1,6 @@
 --- Combines multiple files into one file
--- Extends @{Depends.Dependencies} and @{Runner.Runner} classes
--- @module Combiner
+-- Extends @{depends.Depends.Dependencies} and @{tasks.Runner.Runner} classes
+-- @module depends.Combiner
 
 local functionLoaderName = "_W"
 --[[
@@ -74,11 +74,11 @@ end
 
 --- A task for combining stuff
 -- @tparam string name Name of the task
--- @tparam @{Depends.Dependencies} dependencies The dependencies to compile
+-- @tparam depends.Depends.Dependencies dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
--- @tparam table taskDepends A list of @{Task.Task|tasks} this task requires
--- @treturn Runner.Runner The task runner (for chaining)
--- @see Runner.Runner
+-- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
+-- @treturn tasks.Runner.Runner The task runner (for chaining)
+-- @see tasks.Runner.Runner
 function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		dependencies:Combiner(outputFile)
