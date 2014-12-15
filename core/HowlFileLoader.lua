@@ -1,5 +1,5 @@
 --- Handles loading and creation of HowlFiles
--- @module HowlFileLoader
+-- @module HowlFile
 
 --- Finds the howl file
 -- @treturn string The name of the howl file
@@ -46,8 +46,12 @@ local function SetupEnvironment(variables)
 	return env
 end
 
+--- The current howlfile location
+-- @tfield string CurrentDirectory
+
 --- @export
 return {
 	FindHowl = FindHowl,
 	SetupEnvironment = SetupEnvironment,
+	CurrentDirectory = ""
 }

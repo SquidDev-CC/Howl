@@ -24,7 +24,8 @@ function Runner.Runner:ListTasks(indent, all)
 	maxLength = maxLength + 2
 	indent = indent or ""
 	for name, description in pairs(taskNames) do
-		Utils.Print(indent .. name .. string.rep(" ", maxLength - #name) .. description)
+		Utils.WriteColor(colors.white, indent .. name)
+		Utils.PrintColor(colors.lightGray, string.rep(" ", maxLength - #name) .. description)
 	end
 
 	return self
@@ -39,6 +40,6 @@ end
 function Runner.Runner:Clean(name, directory, taskDepends)
 	return self:AddTask(name, taskDepends, function()
 		Utils.Verbose("Emptying directory '" .. directory .. "'")
-		fs.delete(directory)
+		fs.delete(fs.combine(HowlFile.CurrentDirectory, directory))
 	end):Description("Clean the '" .. directory .. "' directory")
 end

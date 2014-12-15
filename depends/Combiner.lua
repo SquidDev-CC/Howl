@@ -23,7 +23,7 @@ function Depends.Dependencies:Combiner(outputFile)
 	local path = self.path
 	local shouldExport = self.shouldExport
 
-	local output = fs.open(outputFile, "w")
+	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create" .. outputFile)
 
 	output.writeLine(functionLoader)

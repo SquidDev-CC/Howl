@@ -181,12 +181,13 @@ function Parser:Help(indent)
 			prefix = '--'
 		end
 
-		local result = indent .. prefix .. name
+		Utils.WriteColor(colors.white, indent .. prefix .. name)
 
+		local aliasStr = ""
 		local aliases = settings.aliases
 		if aliases and #aliases > 0 then
 			local aliasLength = #aliases
-			result = result .. " ("
+			aliasStr = aliasStr .. " ("
 
 			for i = 1, aliasLength do
 				local alias = "-" .. aliases[i]
@@ -199,17 +200,16 @@ function Parser:Help(indent)
 					alias = alias .. ', '
 				end
 
-				result = result .. alias
+				aliasStr = aliasStr .. alias
 			end
-			result = result .. ")"
+			aliasStr = aliasStr .. ")"
 		end
 
+		Utils.WriteColor(colors.brown, aliasStr)
 		local description = settings.description
 		if description and description ~= "" then
-			result = result .. "  " .. description
+			Utils.PrintColor(colors.lightGray, " " .. description)
 		end
-
-		print(result)
 	end
 end
 

@@ -1,8 +1,9 @@
+-- By default we want to include the minify library
+-- and print a trace on errors
 Options:Default("trace")
 Options:Default("with-minify")
 
-local sources = Dependencies(CurrentDirectory)
-sources:Main "Howl.lua"
+Sources:Main "Howl.lua"
 	:Depends "Runner"
 	:Depends "ArgParse"
 	:Depends "HowlFile"
@@ -14,84 +15,94 @@ sources:Main "Howl.lua"
 	:Depends "Depends"
 
 do -- Core files
-	sources:File "core/Utils.lua"          :Name "Utils"
-	sources:File "core/HowlFileLoader.lua" :Name "HowlFile"
-	sources:File "core/ArgParse.lua"       :Name "ArgParse"
-	sources:File "core/Dump.lua"           :Name "Dump"
+	Sources:File "core/ArgParse.lua"
+		:Name "ArgParse"
+		:Depends "Utils"
+
+	Sources:File "core/Utils.lua"          :Name "Utils"
+	Sources:File "core/HowlFileLoader.lua" :Name "HowlFile"
+	Sources:File "core/Dump.lua"           :Name "Dump"
 end
 
 do -- Task files
-	sources:File "tasks/Context.lua"
+	Sources:File "tasks/Context.lua"
 		:Name "Context"
 		:Depends "Utils"
 
-	sources:File "tasks/Task.lua"
+	Sources:File "tasks/Task.lua"
 		:Name "Task"
 		:Depends "Utils"
 
-	sources:File "tasks/Runner.lua"
+	Sources:File "tasks/Runner.lua"
 		:Name "Runner"
-		:Depends "Utils"
-		:Depends "Task"
 		:Depends "Context"
+		:Depends "Task"
+		:Depends "Utils"
 
-	sources:File "tasks/Extensions.lua"
+	Sources:File "tasks/Extensions.lua"
 		:Alias "Task.Extensions"
+		:Depends "HowlFile"
 		:Depends "Runner"
 		:Depends "Utils"
 end
 
 do -- Dependencies
-	sources:File "depends/Depends.lua"
+	Sources:File "depends/Depends.lua"
 		:Name "Depends"
 
-	sources:File "depends/Combiner.lua"
+	Sources:File "depends/Combiner.lua"
 		:Alias "Combiner"
 		:Depends "Depends"
+		:Depends "HowlFile"
 		:Depends "Runner"
 
-	sources:File "depends/Bootstrap.lua"
+	Sources:File "depends/Bootstrap.lua"
 		:Alias "Bootstrap"
 		:Depends "Depends"
+		:Depends "HowlFile"
 		:Depends "Runner"
 end
 
 do -- Minification
-	sources:File "lexer/Parse.lua"
+	Sources:File "lexer/Parse.lua"
 		:Name "Parse"
 		:Depends "Constants"
 		:Depends "Scope"
 		:Depends "TokenList"
 
-	sources:File "lexer/Rebuild.lua"
+	Sources:File "lexer/Rebuild.lua"
 		:Name "Rebuild"
 		:Depends "Constants"
 
-	sources:File "lexer/Scope.lua"
+	Sources:File "lexer/Scope.lua"
 		:Name "Scope"
 		:Depends "Scope"
 
-	sources:File "lexer/TokenList.lua" :Name "TokenList"
-	sources:File "lexer/Constants.lua" :Name "Constants"
+	Sources:File "lexer/TokenList.lua" :Name "TokenList"
+	Sources:File "lexer/Constants.lua" :Name "Constants"
 
-	sources:File "lexer/Tasks.lua"
+	Sources:File "lexer/Tasks.lua"
 		:Alias "Minify"
+		:Depends "HowlFile"
 		:Depends "Parse"
 		:Depends "Rebuild"
 end
 
 if Options:Get("with-dump") then
-	sources.mainFiles[1]:Depends "Dump" -- Hacky fix to require the file
+	Sources:Depends "Dump"
 end
 
 if Options:Get("with-minify") then
-	sources.mainFiles[1]:Depends "Minify"
+	Sources:Depends "Minify"
 end
 
-Tasks:Clean("clean", File "build")
-Tasks:Combine("combine", sources, File "build/Howl.lua", {"clean"})
+Tasks:Clean("clean", "build")
+Tasks:Combine("combine", Sources, "build/Howl.lua", {"clean"})
 
-Tasks:Minify("minify", File "build/Howl.lua", File "build/Howl.min.lua")
+Tasks:Minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 	:Description("Produces a minified version of the code")
 
-Tasks:CreateBootstrap("boot", sources, File "build/Boot.lua", {"clean"})
+Tasks:CreateBootstrap("boot", Sources, "build/Boot.lua", {"clean"})
+
+Tasks:Task "build"{"minify", "boot"}
+	:Description "Minify and bootstrap"

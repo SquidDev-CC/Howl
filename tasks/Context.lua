@@ -62,8 +62,6 @@ end
 -- @param ... The arguments to pass to it
 -- @treturn boolean Success in running the task?
 function Context:Run(name, ...)
-	if self.ran[task] then return true end
-
 	local task
 	if type(name) == "string" then
 		task = self.tasks[name]
@@ -77,6 +75,7 @@ function Context:Run(name, ...)
 		return false
 	end
 
+	if self.ran[task] then return true end
 	self.ran[task] = true
 
 	-- Sleep before every task just in case

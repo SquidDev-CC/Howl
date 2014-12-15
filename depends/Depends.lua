@@ -25,7 +25,7 @@ function File:Alias(name)
 end
 
 --- Define what this file depends on
--- @tparam string/table name Name/list of dependencies
+-- @tparam string|table name Name/list of dependencies
 -- @treturn File The current object (allows chaining)
 function File:Depends(name)
 	if type(name) == "table" then
@@ -78,6 +78,15 @@ function Dependencies:Main(path)
 	return file
 end
 
+--- Basic 'hack' to enable you to add a dependency to the build
+-- @tparam string|table name Name/list of dependencies
+-- @treturn Dependencies The current object (allows chaining)
+function Dependencies:Depends(path)
+	local main = self.mainFiles[1]
+	assert(main, "Cannot find a main file")
+	main:Depends(path)
+end
+
 --- Attempts to find a file based on its name or path
 -- @tparam string name Name/Path of the file
 -- @treturn ?|file The file or nil on failure
@@ -116,7 +125,10 @@ function Dependencies:Iterate()
 		coroutine.yield(fileObject)
 	end
 
-	return coroutine.wrap(function() for _, file in ipairs(self.mainFiles) do internalLoop(file) end end)
+	-- If we have no dependencies
+	local mainFiles = self.mainFiles
+	if #mainFiles == 0 then mainFiles = self.files end
+	return coroutine.wrap(function() for _, file in ipairs(mainFiles) do internalLoop(file) end end)
 end
 
 --- Return a table of exported values
@@ -131,7 +143,13 @@ end
 -- @tparam string path The base path of the dependencies
 -- @treturn Dependencies The new Dependencies object
 local function Factory(path)
-	return setmetatable({mainFiles = {}, files = {}, path = path, shouldExport = false}, {__index=Dependencies})
+	return setmetatable({
+		mainFiles = {},
+		files = {},
+		path = path,
+		modules = {},
+		shouldExport = false,
+	}, {__index=Dependencies})
 end
 
 --- @export

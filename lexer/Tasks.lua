@@ -2,13 +2,14 @@
 -- @module lexer.Tasks
 
 local function MinifyFile(inputFile, outputFile)
-	local input = fs.open(inputFile, "r")
+	local cd = HowlFile.CurrentDirectory
+	local input = fs.open(fs.combine(cd, inputFile), "r")
 	local contents = input.readAll()
 	input.close()
 
 	local contents = Rebuild.Minify(Parse.ParseLua(Parse.LexLua(contents)))
 
-	local result = fs.open(outputFile, "w")
+	local result = fs.open(fs.combine(cd, outputFile), "w")
 	result.write(contents)
 	result.close()
 end

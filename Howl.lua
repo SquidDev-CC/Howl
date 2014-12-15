@@ -34,6 +34,7 @@ end)
 
 -- Locate the howl file
 local howlFile, currentDirectory = HowlFile.FindHowl()
+HowlFile.CurrentDirectory = currentDirectory
 Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 
 -- SETUP TASKS
@@ -43,10 +44,11 @@ tasks:Task "list" (function()
 end):Description "Lists all the tasks"
 
 tasks:Task "help" (function()
-	Utils.Print("Howl [options] [task]\nTasks:")
+	Utils.Print("Howl [options] [task]")
+	Utils.PrintColor(colors.orange, "Tasks:")
 	tasks:ListTasks("  ")
 
-	Utils.Print("\nOptions:")
+	Utils.PrintColor(colors.orange, "\nOptions:")
 	options:Help("  ")
 end):Description "Print out a detailed usage for Howl"
 
@@ -54,7 +56,7 @@ end):Description "Print out a detailed usage for Howl"
 tasks:Default(function()
 	Utils.PrintError("No default task exists.")
 	Utils.Verbose("Use 'Tasks:Default' to define a default task")
-	Utils.Print("Choose from: ")
+	Utils.PrintColor(colors.orange, "Choose from: ")
 	tasks:ListTasks("  ")
 end)
 
@@ -65,8 +67,9 @@ local environment = HowlFile.SetupEnvironment({
 	Options = options,
 	Dependencies = Depends.Factory,
 	Verbose = Utils.Verbose,
+	Sources = Depends.Factory(currentDirectory),
 	File = function(...) return fs.combine(currentDirectory, ...) end
-}, currentDirectory)
+})
 
 -- Load the file
 environment.dofile(howlFile)
