@@ -81,10 +81,10 @@ end
 --- Basic 'hack' to enable you to add a dependency to the build
 -- @tparam string|table name Name/list of dependencies
 -- @treturn Dependencies The current object (allows chaining)
-function Dependencies:Depends(path)
+function Dependencies:Depends(name)
 	local main = self.mainFiles[1]
 	assert(main, "Cannot find a main file")
-	main:Depends(path)
+	main:Depends(name)
 end
 
 --- Attempts to find a file based on its name or path

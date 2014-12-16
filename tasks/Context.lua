@@ -52,6 +52,7 @@ function Context:DoRequire(path, quite)
 
 	self.filesProduced[path] = true
 	if not quite then
+		Utils.Verbose("Matched: ", self.patternMapsCache, self.normalMapsCache, self.producesCache)
 		Utils.PrintError("Cannot find a task matching '" .. path .. "'")
 	end
 	return false

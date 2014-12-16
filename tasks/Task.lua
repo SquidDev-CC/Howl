@@ -1,46 +1,15 @@
 --- The main task class
 -- @module tasks.Task
 
-local matches = {
-	["^"] = "%^",
-	["$"] = "%$",
-	["("] = "%(",
-	[")"] = "%)",
-	["%"] = "%%",
-	["."] = "%.",
-	["["] = "%[",
-	["]"] = "%]",
-	--["*"] = "%*";
-	["+"] = "%+",
-	["-"] = "%-",
-	["?"] = "%?",
-	["\0"] = "%z",
-}
-
---- Parse a series of patterns
+--- Convert a pattern
 local function ParsePattern(from, to)
-	local beginning = from:sub(1, 5)
-	if beginning == "ptrn:" or beginning == "wild:" then
-		assert(beginning == to:sub(1, 5), string.format("Both '%s' and '%s' have the same prefix", from, to))
+	local fromParsed = Utils.ParsePattern(from, true)
+	local toParsed = Utils.ParsePattern(to)
 
-		local fromEnd = from:sub(6)
-		local toEnd = to:sub(6)
-		if beginning == "wild:" then
-			-- Escape the pattern and replace wildcards with (.*) capture
-			toEnd = ((toEnd:gsub(".", matches)):gsub("(%*)", "(.*)"))
+	local newType = fromParsed.Type
+	assert(newType == toParsed.Type, "Both from and to must be the same type " .. newType .. " and " .. fromParsed.Type)
 
-			local counter = 0
-			-- Escape the pattern and then replace wildcards with the results of the capture %1, %2, etc...
-			fromEnd = ((fromEnd:gsub(".", matches)):gsub("(%*)", function()
-				counter = counter + 1
-				return "%" .. counter
-			end))
-		end
-
-		return {Type = "Pattern", From = fromEnd, To = toEnd}
-	else
-		return {Type = "Normal", From = from, To = to}
-	end
+	return {Type = newType, From = fromParsed.Text, To = toParsed.Text}
 end
 
 --- A single task: actions, dependencies and metadata

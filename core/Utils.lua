@@ -43,20 +43,44 @@ local function Verbose(...)
 	end
 end
 
+--- Pretty prints values if verbose is turned on
+-- @param ... Values to print
+local function VerboseLog(...)
+	if isVerbose then
+		local s, m = pcall(function() error("", 4) end)
+		WriteColor(colors.gray, m)
+
+		local hasPrevious = false
+		for _, value in ipairs({...}) do
+			local t = type(value)
+			if t == "table" then
+				value = textutils.serialize(value)
+			else
+				value = tostring(value)
+			end
+
+			if hasPrevious then value = " " .. value end
+			hasPrevious = true
+			WriteColor(colors.lightGray, value)
+		end
+		print()
+	end
+end
+
 local matches = {
-	["^"] = "%^";
-	["$"] = "%$";
-	["("] = "%(";
-	[")"] = "%)";
-	["%"] = "%%";
-	["."] = "%.";
-	["["] = "%[";
-	["]"] = "%]";
-	["*"] = "%*";
-	["+"] = "%+";
-	["-"] = "%-";
-	["?"] = "%?";
-	["\0"] = "%z";
+	["^"] = "%^",
+	["$"] = "%$",
+	["("] = "%(",
+	[")"] = "%)",
+	["%"] = "%%",
+	["."] = "%.",
+	["["] = "%[",
+	["]"] = "%]",
+	["*"] = "%*",
+	["+"] = "%+",
+	["-"] = "%-",
+	["?"] = "%?",
+	["\0"] = "%z",
 }
 
 --- Escape a string for using in a pattern
@@ -64,6 +88,55 @@ local matches = {
 -- @treturn string The escaped pattern
 local function EscapePattern(pattern)
 	return (pattern:gsub(".", matches))
+end
+
+local basicMatches = {
+	["^"] = "%^",
+	["$"] = "%$",
+	["("] = "%(",
+	[")"] = "%)",
+	["%"] = "%%",
+	["."] = "%.",
+	["["] = "%[",
+	["]"] = "%]",
+	["+"] = "%+",
+	["-"] = "%-",
+	["?"] = "%?",
+	["\0"] = "%z",
+}
+
+--- A resulting pattern
+-- @table Pattern
+-- @tfield string Type `Pattern` or `Normal`
+-- @tfield string Text The resulting pattern
+
+--- Parse a series of patterns
+-- @tparam string text Pattern to parse
+-- @tparam boolean invert If using a wildcard, invert it
+-- @treturn Pattern
+local function ParsePattern(text, invert)
+	local beginning = text:sub(1, 5)
+	if beginning == "ptrn:" or beginning == "wild:" then
+
+		local text = text:sub(6)
+		if beginning == "wild:" then
+			if invert then
+				local counter = 0
+				-- Escape the pattern and then replace wildcards with the results of the capture %1, %2, etc...
+				text = ((text:gsub(".", basicMatches)):gsub("(%*)", function()
+					counter = counter + 1
+					return "%" .. counter
+				end))
+			else
+				-- Escape the pattern and replace wildcards with (.*) capture
+				text = ((text:gsub(".", basicMatches)):gsub("(%*)", "(.*)"))
+			end
+		end
+
+		return {Type = "Pattern", Text = text}
+	else
+		return {Type = "Normal", Text = text}
+	end
 end
 
 --- Create a lookup table from a list of values
@@ -109,6 +182,7 @@ return {
 	Verbose = Verbose,
 
 	EscapePattern = EscapePattern,
+	ParsePattern = ParsePattern,
 	CreateLookup = CreateLookup,
 	MatchTables = MatchTables,
 }
