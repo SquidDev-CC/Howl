@@ -129,7 +129,7 @@ local function ParsePattern(text, invert)
 				end))
 			else
 				-- Escape the pattern and replace wildcards with (.*) capture
-				text = ((text:gsub(".", basicMatches)):gsub("(%*)", "(.*)"))
+				text = "^" .. ((text:gsub(".", basicMatches)):gsub("(%*)", "(.*)")) .. "$"
 			end
 		end
 
@@ -180,6 +180,7 @@ return {
 
 	SetVerbose = SetVerbose,
 	Verbose = Verbose,
+	VerboseLog = VerboseLog,
 
 	EscapePattern = EscapePattern,
 	ParsePattern = ParsePattern,

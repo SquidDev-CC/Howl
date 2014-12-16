@@ -47,6 +47,9 @@ xpcall(setfenv(function()
 	Rebuild = doFile("lexer/Rebuild.lua")
 	doFile("lexer/Tasks.lua")
 
+	Files = doFile("files/Files.lua")
+	doFile("files/Compilr.lua")
+
 	loadLocal("Howl.lua")(unpack(args))
 end, env), function(err)
 	printError(err)

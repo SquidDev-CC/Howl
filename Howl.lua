@@ -67,8 +67,10 @@ local environment = HowlFile.SetupEnvironment({
 	Options = options,
 	Dependencies = Depends.Factory,
 	Verbose = Utils.Verbose,
+	Log = Utils.VerboseLog,
 	Sources = Depends.Factory(currentDirectory),
-	File = function(...) return fs.combine(currentDirectory, ...) end
+	File = function(...) return fs.combine(currentDirectory, ...) end,
+	Files = Files.Factory
 })
 
 -- Load the file
