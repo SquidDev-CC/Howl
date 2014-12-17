@@ -74,7 +74,9 @@ function Dependencies:File(path)
 		dependencies = {},
 		name = nil, alias = nil,
 		path = path,
-		shouldExport = true, __isMain = false
+		shouldExport = true,
+		__isMain = false,
+		parent = self,
 	}, {__index = File})
 
 	self.files[path] = file
@@ -103,14 +105,27 @@ end
 
 --- Attempts to find a file based on its name or path
 -- @tparam string name Name/Path of the file
+-- @tparam boolean preventBubble Prevent using the parent to find a module
 -- @treturn ?|file The file or nil on failure
-function Dependencies:FindFile(name)
+function Dependencies:FindFile(name, preventBubble)
 	local files = self.files
 	local file = files[name] -- Attempt loading file through path
 	if file then return file end
 
 	file = files[name .. ".lua"] -- Common case with name being file minus '.lua'
 	if file then return file end
+
+	local position = name:find('.', 1, true) -- Check module
+	if position then
+		Utils.VerboseLog("Looking for " .. name:sub(1, position - 1))
+		local thisModule = self.modules[name:sub(1, position - 1)]
+		if thisModule then
+			Utils.VerboseLog("Found " .. name:sub(1, position - 1) .. " looking for "..name:sub(position + 1))
+			file = thisModule:FindFile(name:sub(position + 1), true)
+			Utils.VerboseLog("Found ", file.path)
+			if file then return file end
+		end
+	end
 
 	for _, file in pairs(files) do
 		if file.alias == name then
@@ -119,7 +134,7 @@ function Dependencies:FindFile(name)
 	end
 
 	local parent = self.parent
-	if parent then return parent:FindFile(name) end
+	if parent and not preventBubble then return parent:FindFile(name) end
 
 	return nil
 end
@@ -135,9 +150,17 @@ function Dependencies:Iterate()
 		done[fileObject.path] = true
 
 		for _, depName in ipairs(fileObject.dependencies) do
-			local dep = self:FindFile(depName)
+			local dep = fileObject.parent:FindFile(depName)
 			if not dep then error("Cannot find file " .. depName) end
-			internalLoop(dep)
+
+			local depParent = dep.parent
+			if depParent ~= self then
+				coroutine.yield(dep)
+			else
+
+			end
+
+
 		end
 		coroutine.yield(fileObject)
 	end
@@ -162,7 +185,7 @@ end
 -- @tparam function generator Function used to add dependencies
 -- @treturn Dependencies The resulting module
 function Dependencies:Module(name, path, generator)
-	local newModule = Factory(path or self.path, self)
+	local newModule = Factory(fs.combine(self.path, path or ""), self)
 	self.modules[name] = newModule
 	generator(newModule)
 	return newModule
