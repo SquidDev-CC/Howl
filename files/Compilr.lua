@@ -256,7 +256,7 @@ function Files.Files:Compilr(output, options)
 		result = Rebuild.Minify(Parse.ParseLua(Parse.LexLua(result)))
 	end
 
-	local outputFile = fs.open(fs.combine(path, output), "w")
+	local outputFile = fs.open(fs.combine(HowlFile.CurrentDirectory, output), "w")
 	outputFile.write(result)
 	outputFile.close()
 end
