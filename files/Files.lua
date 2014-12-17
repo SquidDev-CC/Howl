@@ -96,6 +96,10 @@ local function Factory(path)
 	}, {__index = Files})
 end
 
+HowlFile.EnvironmentHook(function(env)
+	env.Files = Factory
+end)
+
 --- @export
 return {
 	Files = Files,

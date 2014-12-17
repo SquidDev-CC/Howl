@@ -30,7 +30,7 @@ end
 function File:Depends(name)
 	if type(name) == "table" then
 		for _, file in ipairs(name) do
-			self:Depends(name)
+			self:Depends(file)
 		end
 	else
 		table.insert(self.dependencies, name)
@@ -51,6 +51,20 @@ end
 --- Stores an entire list of dependencies and handles resolving them
 -- @type Dependencies
 local Dependencies = {}
+
+--- Create a new Dependencies object
+-- @tparam string path The base path of the dependencies
+-- @treturn Dependencies The new Dependencies object
+local function Factory(path, parent)
+	return setmetatable({
+		mainFiles = {},
+		files = {},
+		path = path or HowlFile.CurrentDirectory,
+		modules = {},
+		shouldExport = false,
+		parent = parent,
+	}, {__index=Dependencies})
+end
 
 --- Add a file to the dependency list
 -- @tparam string path The path of the file relative to the PPI file
@@ -104,6 +118,9 @@ function Dependencies:FindFile(name)
 		end
 	end
 
+	local parent = self.parent
+	if parent then return parent:FindFile(name) end
+
 	return nil
 end
 
@@ -139,18 +156,23 @@ function Dependencies:Export(shouldExport)
 	return self
 end
 
---- Create a new Dependencies object
--- @tparam string path The base path of the dependencies
--- @treturn Dependencies The new Dependencies object
-local function Factory(path)
-	return setmetatable({
-		mainFiles = {},
-		files = {},
-		path = path,
-		modules = {},
-		shouldExport = false,
-	}, {__index=Dependencies})
+--- Generate a submodule
+-- @tparam string name The name of the module
+-- @tparam string path The sub path of the module
+-- @tparam function generator Function used to add dependencies
+-- @treturn Dependencies The resulting module
+function Dependencies:Module(name, path, generator)
+	local newModule = Factory(path or self.path, self)
+	self.modules[name] = newModule
+	generator(newModule)
+	return newModule
 end
+
+-- Setup a HowlFile hook
+HowlFile.EnvironmentHook(function(env)
+	env.Dependencies = Factory
+	env.Sources = Factory()
+end)
 
 --- @export
 return {

@@ -62,15 +62,14 @@ end)
 
 -- Setup an environment
 local environment = HowlFile.SetupEnvironment({
+	-- Core globals
 	CurrentDirectory = currentDirectory,
 	Tasks = tasks,
 	Options = options,
-	Dependencies = Depends.Factory,
+	-- Helper functions
 	Verbose = Utils.Verbose,
 	Log = Utils.VerboseLog,
-	Sources = Depends.Factory(currentDirectory),
 	File = function(...) return fs.combine(currentDirectory, ...) end,
-	Files = Files.Factory
 })
 
 -- Load the file

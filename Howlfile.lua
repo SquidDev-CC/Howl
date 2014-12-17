@@ -1,7 +1,24 @@
--- By default we want to include the minify library
--- and print a trace on errors
-Options:Default("trace")
-Options:Default("with-minify")
+do -- Setup options
+	-- By default we want to include the minify and depends library
+	-- and print a trace on errors
+	Options:Default "trace"
+	Options:Option "with-minify"
+		:Description "Include the minify library"
+		:Alias "wm"
+		:Default()
+
+	Options:Option "with-depends"
+		:Description "Include the dependencies library"
+		:Alias "wd"
+		:Default()
+
+	Options:Option "with-dump"
+		:Description "Include the dumper"
+
+	Options:Option "with-files"
+		:Description "Include the files library"
+		:Alias "wf"
+end
 
 Sources:Main "Howl.lua"
 	:Depends "Runner"
@@ -82,8 +99,22 @@ do -- Minification
 	Sources:File "lexer/Constants.lua" :Name "Constants"
 
 	Sources:File "lexer/Tasks.lua"
-		:Alias "Minify"
+		:Alias "Lexer.Tasks"
 		:Depends "HowlFile"
+		:Depends "Parse"
+		:Depends "Rebuild"
+end
+
+do -- Minification
+	Sources:File "files/Files.lua"
+		:Name "Files"
+		:Depends "Utils"
+		:Depends "HowlFile"
+
+	Sources:File "files/Compilr.lua"
+		:Alias "Compilr"
+		:Depends "Files"
+		:Depends "Runner"
 		:Depends "Parse"
 		:Depends "Rebuild"
 end
@@ -93,7 +124,15 @@ if Options:Get("with-dump") then
 end
 
 if Options:Get("with-minify") then
-	Sources:Depends "Minify"
+	Sources:Depends "Lexer.Tasks"
+end
+
+if Options:Get("with-depends") then
+	Sources:Depends{"Bootstrap", "Combiner"}
+end
+
+if Options:Get("with-files") then
+	Sources:Depends{"Compilr"}
 end
 
 Tasks:Clean("clean", "build")

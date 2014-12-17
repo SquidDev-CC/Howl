@@ -22,8 +22,8 @@ local Task = {}
 function Task:Depends(name)
 	if type(name) == "table" then
 		local dependencies = self.dependencies
-		for _, file in ipairs(name) do
-			table.insert(dependencies, name)
+		for _, task in ipairs(name) do
+			table.insert(dependencies, task)
 		end
 	else
 		table.insert(self.dependencies, name)
@@ -123,7 +123,7 @@ function Task:Run(context, ...)
 		end
 		Utils.PrintColor(colors.cyan, "Running " .. self.name .. description)
 
-		local oldTime = os.time()
+		local oldTime = os.clock()
 		local s, err = true, nil
 		if context.Traceback then
 			xpcall(function() self.action(unpack(args)) end, function(msg)
@@ -147,7 +147,7 @@ function Task:Run(context, ...)
 		end
 
 		if context.ShowTime then
-			Utils.Print("\t", "Took " .. os.time() - oldTime .. "s")
+			Utils.Print("\t", "Took " .. os.clock() - oldTime .. "s")
 		end
 
 		return s

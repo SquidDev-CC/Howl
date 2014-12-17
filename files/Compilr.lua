@@ -9,13 +9,9 @@ local header = [=[--[[Hideously Smashed Together by Compilr, a Hideous Smash-Stu
 ]=]
 
 local footer = [[
-
 local function run(tArgs)
-
 	local fnFile, err = loadstring(files[%q], %q)
-	if err then
-		error(err)
-	end
+	if err then error(err) end
 
 	local function split(str, pat)
 		 local t = {}
@@ -107,19 +103,12 @@ local function run(tArgs)
 			end,
 
 			getName = fs.getName,
-
 			getSize = fs.getSize,
-
 			getFreespace = fs.getFreespace,
-
 			makeDir = fs.makeDir,
-
 			move = fs.move,
-
 			copy = fs.copy,
-
 			delete = fs.delete,
-
 			combine = fs.combine,
 
 			open = function(path, mode)
@@ -270,4 +259,12 @@ function Files.Files:Compilr(output, options)
 	local outputFile = fs.open(fs.combine(path, output), "w")
 	outputFile.write(result)
 	outputFile.close()
+end
+
+function Runner.Runner:Compilr(name, files, outputFile, taskDepends)
+	return self:AddTask(name, taskDepends, function()
+		files:Compilr(outputFile)
+	end)
+		:Description("Combines multiple files using Compilr")
+		:Produces(outputFile)
 end

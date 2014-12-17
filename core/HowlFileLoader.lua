@@ -26,6 +26,8 @@ local function FindHowl()
 	error("Cannot find HowlFile. Looking for '" .. table.concat(howlFiles, "', '") .. "'")
 end
 
+local hooks = {}
+
 --- Create an environment for running howl files
 -- @tparam table variables A list of variables to include in the environment
 -- @treturn table The created environment
@@ -43,7 +45,17 @@ local function SetupEnvironment(variables)
 		return env.loadfile(path)()
 	end
 
+	for _, callback in ipairs(hooks) do
+		callback(env)
+	end
+
 	return env
+end
+
+--- Setup a hook to allow additions to the environment
+-- @tparam function callback The function to add..
+local function EnvironmentHook(callback)
+	table.insert(hooks, callback)
 end
 
 --- The current howlfile location
@@ -53,5 +65,6 @@ end
 return {
 	FindHowl = FindHowl,
 	SetupEnvironment = SetupEnvironment,
+	EnvironmentHook = EnvironmentHook,
 	CurrentDirectory = ""
 }
