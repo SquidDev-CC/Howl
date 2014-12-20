@@ -27,7 +27,7 @@ Sources:Main "Howl.lua"
 
 	-- Not needed but we include
 	:Depends "Task.Extensions"
-	:Depends "depends.Combiner"
+	:Depends "Combiner"
 	:Depends "Bootstrap"
 
 do -- Core files
@@ -62,22 +62,22 @@ do -- Task files
 		:Depends "Utils"
 end
 
-Sources:Module("depends", "depends", function(Sources)
-	Sources:File "Depends.lua"
+do
+	Sources:File "depends/Depends.lua"
 		:Name "Depends"
 
-	Sources:File "Combiner.lua"
+	Sources:File "depends/Combiner.lua"
 		:Alias "Combiner"
 		:Depends "Depends"
 		:Depends "HowlFile"
 		:Depends "Runner"
 
-	Sources:File "Bootstrap.lua"
+	Sources:File "depends/Bootstrap.lua"
 		:Alias "Bootstrap"
 		:Depends "Depends"
 		:Depends "HowlFile"
 		:Depends "Runner"
-end)
+end
 
 do -- Minification
 	Sources:File "lexer/Parse.lua"

@@ -60,7 +60,7 @@ local function Factory(path, parent)
 		mainFiles = {},
 		files = {},
 		path = path or HowlFile.CurrentDirectory,
-		modules = {},
+		namespaces = {},
 		shouldExport = false,
 		parent = parent,
 	}, {__index=Dependencies})
@@ -105,9 +105,8 @@ end
 
 --- Attempts to find a file based on its name or path
 -- @tparam string name Name/Path of the file
--- @tparam boolean preventBubble Prevent using the parent to find a module
 -- @treturn ?|file The file or nil on failure
-function Dependencies:FindFile(name, preventBubble)
+function Dependencies:FindFile(name)
 	local files = self.files
 	local file = files[name] -- Attempt loading file through path
 	if file then return file end
@@ -115,26 +114,11 @@ function Dependencies:FindFile(name, preventBubble)
 	file = files[name .. ".lua"] -- Common case with name being file minus '.lua'
 	if file then return file end
 
-	local position = name:find('.', 1, true) -- Check module
-	if position then
-		Utils.VerboseLog("Looking for " .. name:sub(1, position - 1))
-		local thisModule = self.modules[name:sub(1, position - 1)]
-		if thisModule then
-			Utils.VerboseLog("Found " .. name:sub(1, position - 1) .. " looking for "..name:sub(position + 1))
-			file = thisModule:FindFile(name:sub(position + 1), true)
-			Utils.VerboseLog("Found ", file.path)
-			if file then return file end
-		end
-	end
-
 	for _, file in pairs(files) do
 		if file.alias == name then
 			return file
 		end
 	end
-
-	local parent = self.parent
-	if parent and not preventBubble then return parent:FindFile(name) end
 
 	return nil
 end
@@ -150,17 +134,9 @@ function Dependencies:Iterate()
 		done[fileObject.path] = true
 
 		for _, depName in ipairs(fileObject.dependencies) do
-			local dep = fileObject.parent:FindFile(depName)
+			local dep = self:FindFile(depName)
 			if not dep then error("Cannot find file " .. depName) end
-
-			local depParent = dep.parent
-			if depParent ~= self then
-				coroutine.yield(dep)
-			else
-
-			end
-
-
+			internalLoop(fileObject)
 		end
 		coroutine.yield(fileObject)
 	end
@@ -180,15 +156,15 @@ function Dependencies:Export(shouldExport)
 end
 
 --- Generate a submodule
--- @tparam string name The name of the module
--- @tparam string path The sub path of the module
+-- @tparam string name The name of the namespace
+-- @tparam string path The sub path of the namespace
 -- @tparam function generator Function used to add dependencies
--- @treturn Dependencies The resulting module
-function Dependencies:Module(name, path, generator)
-	local newModule = Factory(fs.combine(self.path, path or ""), self)
-	self.modules[name] = newModule
-	generator(newModule)
-	return newModule
+-- @treturn Dependencies The resulting namespace
+function Dependencies:Namespace(name, path, generator)
+	local namespace = Factory(fs.combine(self.path, path or ""), self)
+	self.namespaces[name] = namespace
+	generator(namespace)
+	return namespace
 end
 
 -- Setup a HowlFile hook
