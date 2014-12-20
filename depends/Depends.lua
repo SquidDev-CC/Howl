@@ -39,6 +39,21 @@ function File:Depends(name)
 	return self
 end
 
+--- Define what this file really really needs
+-- @tparam string|table name Name/list of dependencies
+-- @treturn File The current object (allows chaining)
+function File:Prerequisite(name)
+	if type(name) == "table" then
+		for _, file in ipairs(name) do
+			self:Prerequisite(file)
+		end
+	else
+		table.insert(self.dependencies, 1, name)
+	end
+
+	return self
+end
+
 --- Should this file be set as a global. This has no effect if the module does not have an name
 -- @tparam boolean shouldExport Boolean value setting if it should be exported or not
 -- @return File The current object (allows chaining)
@@ -101,6 +116,17 @@ function Dependencies:Depends(name)
 	local main = self.mainFiles[1]
 	assert(main, "Cannot find a main file")
 	main:Depends(name)
+	return self
+end
+
+--- Basic 'hack' to enable you to add a very important dependency to the build
+-- @tparam string|table name Name/list of dependencies
+-- @treturn Dependencies The current object (allows chaining)
+function Dependencies:Prerequisite(name)
+	local main = self.mainFiles[1]
+	assert(main, "Cannot find a main file")
+	main:Prerequisite(name)
+	return self
 end
 
 --- Attempts to find a file based on its name or path
@@ -136,7 +162,7 @@ function Dependencies:Iterate()
 		for _, depName in ipairs(fileObject.dependencies) do
 			local dep = self:FindFile(depName)
 			if not dep then error("Cannot find file " .. depName) end
-			internalLoop(fileObject)
+			internalLoop(dep)
 		end
 		coroutine.yield(fileObject)
 	end

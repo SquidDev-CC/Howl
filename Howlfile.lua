@@ -18,6 +18,10 @@ do -- Setup options
 	Options:Option "with-files"
 		:Description "Include the files library"
 		:Alias "wf"
+
+	Options:Option "with-interop"
+		:Description "Include the interop library"
+		:Alias "wi"
 end
 
 Sources:Main "Howl.lua"
@@ -118,6 +122,21 @@ do -- Minification
 		:Depends "Rebuild"
 end
 
+do -- Interop
+	Sources:File "interop/Colors.lua"     :Name "colors"
+	Sources:File "interop/FileSystem.lua" :Name "fs"
+	Sources:File "interop/Shell.lua"      :Name "shell"
+
+	Sources:File "interop/Terminal.lua"
+		:Name "term"
+		:Depends "colors"
+
+	Sources:File "interop/Globals.lua"
+		:Alias "InteropGlobals"
+		:Depends "term"
+		:Depends "colors"
+end
+
 if Options:Get("with-dump") then
 	Sources:Depends "Dump"
 end
@@ -132,6 +151,14 @@ end
 
 if Options:Get("with-files") then
 	Sources:Depends{"Compilr"}
+end
+
+if Options:Get("with-interop") then
+	Sources
+		:Prerequisite "InteropGlobals"
+		:Prerequisite "shell"
+		:Prerequisite "fs"
+		:Prerequisite "term"
 end
 
 Tasks:Clean("clean", "build")
