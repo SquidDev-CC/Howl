@@ -30,6 +30,8 @@ function Context:DoRequire(path, quite)
 
 	for match, data in pairs(self.patternMapsCache) do
 		if path:match(match) then
+			self.filesProduced[path] = true
+
 			-- Run task, replacing match with the replacement pattern
 			name = data.Name
 			from = path:gsub(match, data.Pattern.From)
@@ -38,8 +40,8 @@ function Context:DoRequire(path, quite)
 	end
 
 	if name then
-		local canCreate = self:DoRequire(from, quite)
-		if not canCreate and not fs.exists(from) then
+		local canCreate = self:DoRequire(from, true)
+		if not canCreate then
 			if not quite then
 				Utils.PrintError("Cannot find '" .. from .. "'")
 			end
@@ -49,10 +51,12 @@ function Context:DoRequire(path, quite)
 		return self:Run(name, from, to)
 	end
 
+	if fs.exists(fs.combine(HowlFile.CurrentDirectory, path)) then
+		self.filesProduced[path] = true
+		return true
+	end
 
-	self.filesProduced[path] = true
 	if not quite then
-		Utils.Verbose("Matched: ", self.patternMapsCache, self.normalMapsCache, self.producesCache)
 		Utils.PrintError("Cannot find a task matching '" .. path .. "'")
 	end
 	return false

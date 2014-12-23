@@ -36,9 +36,7 @@ local function SetupEnvironment(variables)
 
 	env._G = _G
 	function env.loadfile(path)
-		local loaded = loadfile(fs.combine(env.CurrentDirectory, path))
-		assert(loaded, "Cannot load file " .. tostring(path))
-		return setfenv(loaded, env)
+		return setfenv(loadfile(path), env)
 	end
 
 	function env.dofile(path)

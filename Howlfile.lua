@@ -48,6 +48,7 @@ do -- Task files
 	Sources:File "tasks/Context.lua"
 		:Name "Context"
 		:Depends "Utils"
+		:Depends "HowlFile"
 
 	Sources:File "tasks/Task.lua"
 		:Name "Task"

@@ -73,7 +73,7 @@ local environment = HowlFile.SetupEnvironment({
 })
 
 -- Load the file
-environment.dofile(howlFile)
+environment.dofile(fs.combine(currentDirectory, howlFile))
 
 -- Run the task
 tasks:Run(currentTask)
