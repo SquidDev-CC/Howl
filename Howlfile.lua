@@ -140,6 +140,8 @@ end
 
 if Options:Get("with-dump") then
 	Sources:Depends "Dump"
+	Sources:FindFile "Utils"
+		:Depends "Dump"
 end
 
 if Options:Get("with-minify") then

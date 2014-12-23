@@ -347,7 +347,6 @@ local function Minify(ast)
 		return out
 	end
 
-	ast.Scope:ObfuscateLocals()
 	return formatStatlist(ast)
 end
 

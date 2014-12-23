@@ -54,7 +54,8 @@ local function VerboseLog(...)
 		for _, value in ipairs({...}) do
 			local t = type(value)
 			if t == "table" then
-				value = textutils.serialize(value)
+				local dmp = Dump or textutils.serialize
+				value = dmp(value)
 			else
 				value = tostring(value)
 			end
