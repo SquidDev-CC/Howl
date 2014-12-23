@@ -226,8 +226,13 @@ function Parser:Parse(args)
 					options[key] = value
 				else
 					-- If it starts with not- or not_ then negate it
-					local beginning = arg:sub(3, 7)
-					options[arg:sub(3)] = (beginning ~= "not-" and beginning ~= "not_")
+					local beginning = arg:sub(3, 6)
+					local value = true
+					if beginning == "not-" or beginning == "not_" then
+						value = false
+						arg = arg:sub(7)
+					end
+					options[arg] = value
 				end
 			else -- Handle switches
 				for i = 2, #arg do
