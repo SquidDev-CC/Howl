@@ -1,7 +1,7 @@
 --- Lexer constants
 -- @module lexer.Constants
 
-createLookup = Utils.CreateLookup
+local createLookup = Utils.CreateLookup
 
 --- List of white chars
 WhiteChars = createLookup{' ', '\n', '\t', '\r'}

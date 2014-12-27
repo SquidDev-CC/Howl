@@ -7,7 +7,9 @@ local function MinifyFile(inputFile, outputFile)
 	local contents = input.readAll()
 	input.close()
 
-	contents = Rebuild.Minify(Parse.ParseLua(Parse.LexLua(contents)))
+	local ast = Parse.ParseLua(Parse.LexLua(contents))
+	ast = Optimisation(ast)
+	contents = Rebuild.Minify(ast)
 
 	local result = fs.open(fs.combine(cd, outputFile), "w")
 	result.write(contents)

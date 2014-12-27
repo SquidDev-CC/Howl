@@ -67,7 +67,7 @@ do -- Task files
 		:Depends "Utils"
 end
 
-do
+do -- Dependencies
 	Sources:File "depends/Depends.lua"
 		:Name "Depends"
 
@@ -99,17 +99,21 @@ do -- Minification
 		:Name "Scope"
 		:Depends "Scope"
 
+	Sources:File "lexer/Optimisation.lua"
+		:Name "Optimisation"
+
 	Sources:File "lexer/TokenList.lua" :Name "TokenList"
 	Sources:File "lexer/Constants.lua" :Name "Constants"
 
 	Sources:File "lexer/Tasks.lua"
 		:Alias "Lexer.Tasks"
 		:Depends "HowlFile"
+		:Depends "Optimisation"
 		:Depends "Parse"
 		:Depends "Rebuild"
 end
 
-do -- Minification
+do -- Compilr
 	Sources:File "files/Files.lua"
 		:Name "Files"
 		:Depends "Utils"
@@ -174,3 +178,5 @@ Tasks:CreateBootstrap("boot", Sources, "build/Boot.lua", {"clean"})
 
 Tasks:Task "build"{"minify", "boot"}
 	:Description "Minify and bootstrap"
+
+Tasks:Minify("test", "spec/Minification.lua", "spec/Minification.min.lua")

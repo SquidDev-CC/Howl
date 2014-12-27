@@ -42,6 +42,7 @@ xpcall(setfenv(function()
 
 	TokenList = doFile("lexer/TokenList.lua")
 	Constants = doFile("lexer/Constants.lua")
+	Optimisation = doFile("lexer/Optimisation.lua")
 	Scope = doFile("lexer/Scope.lua")
 	Parse = doFile("lexer/Parse.lua")
 	Rebuild = doFile("lexer/Rebuild.lua")
