@@ -30,8 +30,6 @@ function Depends.Dependencies:Combiner(outputFile, header)
 
 	local exports = {}
 	for file in self:Iterate() do
-
-
 		local fileHandle = fs.open(fs.combine(path, file.path), "r")
 		assert(fileHandle, "File " .. file.path .. " does not exist")
 
@@ -42,7 +40,13 @@ function Depends.Dependencies:Combiner(outputFile, header)
 			output.writeLine(fileHandle.readAll())
 
 		elseif moduleName then -- If the file has an module name then use that
-			local line = moduleName .. '=' .. functionLoaderName .. '(function()'
+			-- Check if we are prevented in setting a custom environment
+			local startFunc, endFunc = functionLoaderName .. '(function()', 'end)'
+			if file.noWrap then
+				startFunc, endFunc = '(function()', 'end)()'
+			end
+
+			local line = moduleName .. '=' .. startFunc
 			if not file.shouldExport then -- If this object shouldn't be exported then add local
 				line = "local " .. line
 			elseif not shouldExport then -- If we shouldn't export globally then add to the export table and mark as global
@@ -52,12 +56,14 @@ function Depends.Dependencies:Combiner(outputFile, header)
 
 			output.writeLine(line)
 			output.writeLine(fileHandle.readAll())
-			output.writeLine('end)')
+			output.writeLine(endFunc)
 
 		else -- We have no name so we can just export it normally
-			output.writeLine("do")
+			local noWrap = file.noWrap -- Don't wrap in do...end if noWrap is set
+
+			if noWrap then output.writeLine("do") end
 			output.writeLine(fileHandle.readAll())
-			output.writeLine('end')
+			if noWrap then output.writeLine('end') end
 		end
 
 		fileHandle.close()

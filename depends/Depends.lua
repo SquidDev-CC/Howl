@@ -56,10 +56,19 @@ end
 
 --- Should this file be set as a global. This has no effect if the module does not have an name
 -- @tparam boolean shouldExport Boolean value setting if it should be exported or not
--- @return File The current object (allows chaining)
+-- @treturn File The current object (allows chaining)
 function File:Export(shouldExport)
 	if shouldExport == nil then shouldExport = true end
 	self.shouldExport = shouldExport
+	return self
+end
+
+--- Prevent this file be wrapped in a custom environment or a do...end block
+-- @tparam boolean noWrap `true` to prevent the module being wrapped
+-- @treturn File The current object (allows chaining)
+function File:NoWrap(noWrap)
+	if noWrap == nil then noWrap = true end
+	self.noWrap = noWrap
 	return self
 end
 
@@ -90,6 +99,7 @@ function Dependencies:File(path)
 		name = nil, alias = nil,
 		path = path,
 		shouldExport = true,
+		noWrap = false,
 		__isMain = false,
 		parent = self,
 	}, {__index = File})
