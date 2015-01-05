@@ -55,6 +55,18 @@ function Runner:Run(name)
 	return Context.Factory(self):Start(name)
 end
 
+--- Run a task, and all its dependencies
+-- @tparam table names Names of the tasks to run
+-- @treturn Runner The current object for chaining
+function Runner:RunMany(names)
+	local context = Context.Factory(self)
+	for _, name in ipairs(names) do
+		context:Start(name)
+	end
+
+	return self
+end
+
 --- Create a @{Runner} object
 -- @treturn Runner The created runner object
 local function Factory()

@@ -20,7 +20,7 @@ options
 	:Description "Print this help"
 
 local tasks = Runner.Factory()
-local currentTask = options:Arguments()[1]
+local taskList = options:Arguments()
 
 options:OnChanged(function(options)
 	Utils.SetVerbose(options:Get "verbose")
@@ -28,7 +28,7 @@ options:OnChanged(function(options)
 	tasks.Traceback = options:Get "trace"
 
 	if options:Get "help" then
-		currentTask = "help"
+		taskList = {"help"}
 	end
 end)
 
@@ -76,4 +76,8 @@ local environment = HowlFile.SetupEnvironment({
 environment.dofile(fs.combine(currentDirectory, howlFile))
 
 -- Run the task
-tasks:Run(currentTask)
+if #taskList == 0 then
+	tasks:Run()
+else
+	tasks:RunMany(taskList)
+end

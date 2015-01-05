@@ -95,6 +95,8 @@ do -- Minification
 	Sources:File "lexer/Rebuild.lua"
 		:Name "Rebuild"
 		:Depends "Constants"
+		:Depends "HowlFile"
+		:Depends "Parse"
 
 	Sources:File "lexer/Scope.lua"
 		:Name "Scope"
@@ -105,8 +107,6 @@ do -- Minification
 
 	Sources:File "lexer/Tasks.lua"
 		:Alias "Lexer.Tasks"
-		:Depends "HowlFile"
-		:Depends "Parse"
 		:Depends "Rebuild"
 end
 

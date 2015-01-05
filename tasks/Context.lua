@@ -67,7 +67,7 @@ end
 -- @param ... The arguments to pass to it
 -- @treturn boolean Success in running the task?
 function Context:Run(name, ...)
-	local task
+	local task = name
 	if type(name) == "string" then
 		task = self.tasks[name]
 
@@ -107,7 +107,7 @@ function Context:Start(name)
 		return false
 	end
 
-	return task:Run(self)
+	return self:Run(task)
 end
 
 --- Build a cache of tasks

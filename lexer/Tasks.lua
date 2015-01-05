@@ -1,26 +1,6 @@
 --- Tasks for the lexer
 -- @module lexer.Tasks
-
-local push, pop = os.queueEvent, coroutine.yield
-local function MinifyFile(inputFile, outputFile)
-	local cd = HowlFile.CurrentDirectory
-	local input = fs.open(fs.combine(cd, inputFile), "r")
-	local contents = input.readAll()
-	input.close()
-
-	local lex = Parse.LexLua(contents)
-	push("sleep") pop("sleep") -- Minifying often takes too long
-
-	lex = Parse.ParseLua(lex)
-	push("sleep") pop("sleep")
-
-	contents = Rebuild.Minify(lex)
-
-	local result = fs.open(fs.combine(cd, outputFile), "w")
-	result.write(contents)
-	result.close()
-end
-
+local minifyFile = Rebuild.MinifyFile
 
 --- A task that minifies a source file
 -- @tparam string name Name of the task
@@ -38,11 +18,10 @@ function Runner.Runner:Minify(name, inputFile, outputFile, taskDepends)
 			assert(lenIn == #outputFile, "Tables must be the same length")
 
 			for i = 1, lenIn do
-				MinifyFile(inputFile[i], outputFile[i])
-				push("sleep") pop("sleep")
+				minifyFile(inputFile[i], outputFile[i])
 			end
 		else
-			MinifyFile(inputFile, outputFile)
+			minifyFile(inputFile, outputFile)
 		end
 	end)
 		:Description("Minifies '" .. fs.getName(inputFile) .. "'' into '" .. fs.getName(outputFile) .. "'")
@@ -57,7 +36,11 @@ end
 -- @treturn tasks.Runner.Runner The task runner (for chaining)
 function Runner.Runner:MinifyAll(name, inputPattern, outputPattern)
 	name = name or "_minify"
-	return self:AddTask(name, {}, MinifyFile)
+	return self:AddTask(name, {}, minifyFile)
 		:Description("Minifies files")
 		:Maps(inputPattern or "wild:*.lua", outputPattern or "wild:*.min.lua")
 end
+
+HowlFile.EnvironmentHook(function(env)
+	env.Minify = Rebuild.MinifyFile
+end)

@@ -113,7 +113,7 @@ end
 -- @tparam string path The path of the file relative to the PPI file
 -- @treturn File The created file object
 function Dependencies:Main(path)
-	local file = self:File(path)
+	local file = self:FindFile(path) or self:File(path)
 	file.__isMain = true
 	table.insert(self.mainFiles, file)
 	return file
@@ -180,7 +180,11 @@ function Dependencies:Iterate()
 	-- If we have no dependencies
 	local mainFiles = self.mainFiles
 	if #mainFiles == 0 then mainFiles = self.files end
-	return coroutine.wrap(function() for _, file in ipairs(mainFiles) do internalLoop(file) end end)
+	return coroutine.wrap(function()
+		for _, file in ipairs(mainFiles) do
+			internalLoop(file)
+		end
+	end)
 end
 
 --- Return a table of exported values
@@ -201,6 +205,20 @@ function Dependencies:Namespace(name, path, generator)
 	self.namespaces[name] = namespace
 	generator(namespace)
 	return namespace
+end
+
+--- Clone dependencies, whilst ignoring the main file
+-- @tparam boolean deep Deep clone dependencies
+-- @tparam Dependencies The cloned dependencies object
+function Dependencies:CloneDependencies(deep)
+	local result = setmetatable({ }, {__index=Dependencies})
+
+	for k, v in pairs(self) do
+		result[k] = v
+	end
+
+	result.mainFiles = {}
+	return result
 end
 
 -- Setup a HowlFile hook

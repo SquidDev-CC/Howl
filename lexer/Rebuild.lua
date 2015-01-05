@@ -350,8 +350,35 @@ local function Minify(ast)
 	return formatStatlist(ast)
 end
 
+local push, pop = os.queueEvent, coroutine.yield
+
+--- Minify a file
+-- @tparam string inputFile File to read from
+-- @tparam string outputFile File to write to (Defaults to inputFile)
+local function MinifyFile(inputFile, outputFile)
+	outputFile = outputFile or inputFile
+
+	local cd = HowlFile.CurrentDirectory
+	local input = fs.open(fs.combine(cd, inputFile), "r")
+	local contents = input.readAll()
+	input.close()
+
+	local lex = Parse.LexLua(contents)
+	push("sleep") pop("sleep") -- Minifying often takes too long
+
+	lex = Parse.ParseLua(lex)
+	push("sleep") pop("sleep")
+
+	contents = Minify(lex)
+
+	local result = fs.open(fs.combine(cd, outputFile), "w")
+	result.write(contents)
+	result.close()
+end
+
 --- @export
 return {
 	JoinStatements = JoinStatements,
 	Minify = Minify,
+	MinifyFile = MinifyFile,
 }
