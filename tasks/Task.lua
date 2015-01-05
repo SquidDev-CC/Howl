@@ -87,6 +87,11 @@ function Task:Description(text)
 	return self
 end
 
+--- Run the action with no bells or whistles
+function Task:_RunAction(...)
+	return self.action(...)
+end
+
 --- Execute the task
 -- @tparam Context.Context context The task context
 -- @param ... The arguments to pass to task
@@ -126,7 +131,7 @@ function Task:Run(context, ...)
 		local oldTime = os.clock()
 		local s, err = true, nil
 		if context.Traceback then
-			xpcall(function() self.action(unpack(args)) end, function(msg)
+			xpcall(function() self:_RunAction(unpack(args)) end, function(msg)
 				for i = 5, 15 do
 					local _, err = pcall(function() error("", i) end)
 					if msg:match("Howlfile") then break end
@@ -137,7 +142,7 @@ function Task:Run(context, ...)
 				s = false
 			end)
 		else
-			s, err = pcall(self.action, ...)
+			s, err = pcall(self._RunAction, self, ...)
 		end
 
 		if s then

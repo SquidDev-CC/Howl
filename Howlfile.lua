@@ -76,6 +76,7 @@ do
 		:Depends "Depends"
 		:Depends "HowlFile"
 		:Depends "Runner"
+		:Depends "Task"
 
 	Sources:File "depends/Bootstrap.lua"
 		:Alias "Bootstrap"

@@ -53,8 +53,8 @@ xpcall(setfenv(function()
 	loadLocal("Howl.lua")(unpack(args))
 end, env), function(err)
 	printError(err)
-	for i = 4, 15 do
-		local s, msg = pcall(function() error("", i) end)
+	for i = 3, 15 do
+		local s, msg = pcall(error, "", i)
 		if msg:match("_Bootstrap.lua") then break end
 		print("\t", msg)
 	end

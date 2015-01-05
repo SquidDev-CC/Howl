@@ -18,8 +18,15 @@ end
 -- @tparam function action The action to run
 -- @treturn Task The created task
 function Runner:AddTask(name, dependencies, action)
-	local task = Task.Factory(name, dependencies, action)
-	self.tasks[name] = task
+	return self:InjectTask(Task.Factory(name, dependencies, action))
+end
+
+--- Add a Task object to the collection
+-- @tparam Task task The task to insert
+-- @tparam string name The name of the task (optional)
+-- @treturn Task The current task
+function Runner:InjectTask(task, name)
+	self.tasks[name or task.name] = task
 	return task
 end
 

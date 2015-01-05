@@ -18,26 +18,44 @@ end]]):gsub("[\t ]+", " ")
 
 --- Combines Dependencies into one file
 -- @tparam string outputFile The path of the output file
+-- @tparam boolean header Include the header function
+-- @tparam boolean verify Verify the source files before loading
 -- @see Depends.Dependencies
-function Depends.Dependencies:Combiner(outputFile, header)
+function Depends.Dependencies:Combiner(outputFile, header, verify)
 	local path = self.path
 	local shouldExport = self.shouldExport
+	local loadstring = loadstring
 
 	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create" .. outputFile)
 
-	if not header then output.writeLine(functionLoader) end
+	-- If header == nil or header is true then include the header
+	if header ~= false then output.writeLine(functionLoader) end
 
 	local exports = {}
 	for file in self:Iterate() do
-		local fileHandle = fs.open(fs.combine(path, file.path), "r")
-		assert(fileHandle, "File " .. file.path .. " does not exist")
+		local filePath = file.path
+		local fileHandle = fs.open(fs.combine(path, filePath), "r")
+		assert(fileHandle, "File " .. filePath .. " does not exist")
 
-		Utils.Verbose("Adding " .. file.path)
+		local contents = fileHandle.readAll()
+		fileHandle.close()
+
+		if verify then
+			local success, err = loadstring(contents)
+			if not success then
+				Utils.VerboseLog({contents, success, err, {loadstring("HELLO")}})
+				local msg = "Could not load file " .. filePath
+				if err ~= "nil" then msg = msg  .. ":\n" .. err end
+				error(msg)
+			end
+		end
+
+		Utils.Verbose("Adding " .. filePath)
 
 		local moduleName = file.name
 		if file.__isMain then -- If the file is a main file then just print it
-			output.writeLine(fileHandle.readAll())
+			output.writeLine(contents)
 
 		elseif moduleName then -- If the file has an module name then use that
 			-- Check if we are prevented in setting a custom environment
@@ -50,23 +68,21 @@ function Depends.Dependencies:Combiner(outputFile, header)
 			if not file.shouldExport then -- If this object shouldn't be exported then add local
 				line = "local " .. line
 			elseif not shouldExport then -- If we shouldn't export globally then add to the export table and mark as global
-				table.insert(exports, moduleName)
+				exports[#exports + 1] =  moduleName
 				line = "local " .. line
 			end
 
 			output.writeLine(line)
-			output.writeLine(fileHandle.readAll())
+			output.writeLine(contents)
 			output.writeLine(endFunc)
 
 		else -- We have no name so we can just export it normally
 			local noWrap = file.noWrap -- Don't wrap in do...end if noWrap is set
 
 			if noWrap then output.writeLine("do") end
-			output.writeLine(fileHandle.readAll())
+			output.writeLine(contents)
 			if noWrap then output.writeLine('end') end
 		end
-
-		fileHandle.close()
 	end
 
 	-- Should we export any values?
@@ -80,6 +96,23 @@ function Depends.Dependencies:Combiner(outputFile, header)
 	output.close()
 end
 
+--- A subclass of @{tasks.Task.Task} for combiners
+-- @type CombinerTask
+local CombinerTask = setmetatable({}, {__index = Task.Task})
+
+--- Should files be verified on execution
+-- @tparam boolean verify
+-- @treturn CombinerTask The current object (for chaining)
+function CombinerTask:Verify(verify)
+	if verify == nil then verify = true end
+	self.verify = verify
+	return self
+end
+
+function CombinerTask:_RunAction(...)
+	return Task.Task._RunAction(self, self.verify, ...)
+end
+
 --- A task for combining stuff
 -- @tparam string name Name of the task
 -- @tparam depends.Depends.Dependencies dependencies The dependencies to compile
@@ -88,9 +121,9 @@ end
 -- @treturn tasks.Runner.Runner The task runner (for chaining)
 -- @see tasks.Runner.Runner
 function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
-	return self:AddTask(name, taskDepends, function()
-		dependencies:Combiner(outputFile)
-	end)
+	return self:InjectTask(Task.Factory(name, taskDepends, function(verify)
+		dependencies:Combiner(outputFile, true, verify)
+	end, CombinerTask))
 		:Description("Combines files into '" .. outputFile .. "'")
 		:Produces(outputFile)
 end
