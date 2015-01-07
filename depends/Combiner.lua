@@ -2,6 +2,8 @@
 -- Extends @{depends.Depends.Dependencies} and @{tasks.Runner.Runner} classes
 -- @module depends.Combiner
 
+local find = string.find
+
 local functionLoaderName = "_W"
 --[[
 	If the function returns a non nil value then we use that, otherwise we
@@ -16,38 +18,162 @@ local functionLoader = ("local function " .. functionLoaderName .. [[(f)
 	return e
 end]]):gsub("[\t ]+", " ")
 
+
+local lineMapper = {
+	header = [[
+		-- Maps
+		local lineToModule = setmetatable({{lineToModule}}, {
+			__index = function(t, k)
+				if k > 1 then return t[k-1] end
+			end
+		})
+		local moduleStarts = {{modulestarts}}
+		local programEnd = {{currentLine}}
+
+		-- Stores the current file, safer than shell.getRunningProgram()
+		local currentFile = pcall(error, "", 2):match("[^:]")
+	]]
+	updateError = [[
+		-- Something is really broken if we can't find a filename
+		-- If we can't find a line number than we must have `pcall:` or `xpcall`
+		-- This means, we shouldn't have an error, so we must be debugging somewhere
+		if not filename or not line then return end
+
+		-- If we are in the current file then we should map to the old modules
+		if filename == currentFile then
+
+			-- If this line is after the program end then
+			-- something is broken, and so we just roll with it
+			if line >= programEnd then return end
+
+			-- convert to module lines
+			filename = lineToModule[line] or "<?>"
+			line = line - moduleStarts[filename] or -1
+		end
+	]]
+}
+
+local finalizer = {
+	header = [[
+		local finalizer = function() {{finalizer}} end
+	]],
+	parseTrace = [[
+		local ok, finaliserError = pcall(finalizer, message, traceback)
+
+		if not ok then
+			printError("Finalizer Error: ", finaliserError)
+		end
+	]]
+}
+
+local traceback = ([[
+end
+
+local args = {...}
+local currentTerm = term.current()
+local ok, returns = xpcall(
+	function() return {__program(unpack(args))} end,
+	function(message)
+		local error, pcall, printError, tostring,setmetatable = error, pcall, printError, tostring, setmetatable
+		{{header}}
+
+		local messageMeta = {
+			__tostring = function(self)
+				local msg = self.filename or "<?>"
+				if self.line then msg = msg .. ":" .. tostring(self.line) end
+				if self.message then msg = msg .. ":" .. tostring(self.message) end
+			end
+		end}
+		local function updateError(err)
+			local filename, line, message = err:match("([^:]):(%d+):(.+)")
+			{{updateError}}
+			return setmetatable({filename, line, message}, messageMeta)
+		end
+
+		-- Reset terminal
+		term.redirect(currentTerm)
+
+		-- Build a traceback
+		local topError = updateError(message) or message
+		local traceback = {topError}
+		for i = 3, 3 + 18 do
+			local _, err = pcall(error, "", i)
+			err = updateError(err)
+			if not err then break end
+			traceback[#traceback + 1] = err
+		end
+
+		{{parseTrace}}
+
+		printError(tostring(topError))
+		print("Raw Stack Trace:")
+		for i =2, #traceback do
+			print("  ", tostring(traceback[i]))
+		end
+	end
+)
+
+if ok then
+	return unpack(returns)
+end
+]]):gsub("[\t ]+", " ")
+
+--- Counts the number of lines in a string
+-- @tparam string contents The string to count
+-- @treturn int The line count
+local function countLines(contents)
+	local position, start, newPosition = 1, 1, 1
+	local lineCount = 1
+	local length = #contents
+	while position < length do
+		start, newPosition = find(contents, '\n', position, true);
+		if not start then break end
+		lineCount = lineCount + 1
+		position = newPosition + 1
+	end
+	return lineCount
+end
+
+--- Verify a source file
+-- @tparam string contents The lua string to verify
+-- @throws When source is not valid
+local function verifySource(contents, path)
+	local success, err = loadstring(contents)
+	if not success then
+		local msg = "Could not load " .. (path and ("file " .. path) or "string")
+		if err ~= "nil" then msg = msg  .. ":\n" .. err end
+		error(msg)
+	end
+end
+
+
+--- Combiner options
+-- @table CombinerOptions
+-- @tfield boolean verify Verify source
+-- @tfield boolean lineMapping Map line numbers (Requires traceback)
+-- @tfield boolean traceback Print the traceback out
+
 --- Combines Dependencies into one file
 -- @tparam string outputFile The path of the output file
 -- @tparam boolean header Include the header function
--- @tparam boolean verify Verify the source files before loading
+-- @tparam CombinerOptions options Options for combining
 -- @see Depends.Dependencies
-function Depends.Dependencies:Combiner(outputFile, header, verify)
-	local line = 2
-	local oldLine = 2
-	local linetomodule = {}
-	local modulestarts = {}
+function Depends.Dependencies:Combiner(outputFile, header, options)
+	local path = self.path
+	local shouldExport = self.shouldExport
+	local lineMapping = options.lineMapping
+	local loadstring = loadstring
 
-	local function getLines(str)
-		local x, a, b = 1;
-		local c = 1
-		while x < string.len(str) do
-			a, b = string.find(str, '.-\n', x);
-			if not a then
-				break;
-			else
-				c = c +1
-			end;
-			x = b + 1;
-		end
-		return c
-	end
+	local line, oldLine = 1, 1
+	local lineToModule, moduleStarts = {}, {}
+
 	local function setLines(mod, n1, n2)
 		if not n1 and not n2 then return end
 
-		if modulestarts[mod] then
-			modulestarts[mod] = math.min(n1, modulestarts[mod])
+		if moduleStarts[mod] then
+			moduleStarts[mod] = math.min(n1, moduleStarts[mod])
 		else
-			modulestarts[mod] = n1
+			moduleStarts[mod] = n1
 		end
 
 		local min
@@ -59,25 +185,23 @@ function Depends.Dependencies:Combiner(outputFile, header, verify)
 			min = math.min(n1, n2)
 		end
 
-		linetomodule[min] = mod
+		lineToModule[min] = mod
 	end
-
-	local path = self.path
-	local shouldExport = self.shouldExport
-	local loadstring = loadstring
 
 	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
 
-	function writeLine(txt, mod)
-		output.writeLine(txt)
-		oldLine = line
-		line = line + getLines(txt)
-		setLines(mod or "Unknown", oldLine +1, line -1)
+	local function writeLine(contents, name)
+		output.writeLine(contents)
+		if lineMapping then
+			oldLine = line
+			line = line + countLines(contents)
+			setLines(name or outputFile, oldLine + 1, line - 1)
+		end
 	end
 
 	-- If header == nil or header is true then include the header
-	output.writeLine("local __program = function(...)")
+	writeLine("local __program = function(...)")
 
 	if header ~= false then writeLine(functionLoader, "file") end
 
@@ -91,15 +215,7 @@ function Depends.Dependencies:Combiner(outputFile, header, verify)
 		local contents = fileHandle.readAll()
 		fileHandle.close()
 
-		if verify then
-			local success, err = loadstring(contents)
-			if not success then
-				Utils.VerboseLog({contents, success, err, {loadstring("HELLO")}})
-				local msg = "Could not load file " .. filePath
-				if err ~= "nil" then msg = msg  .. ":\n" .. err end
-				error(msg)
-			end
-		end
+		if verify then verifySource(contents, filePath) end
 
 		local beginline
 		Utils.Verbose("Adding " .. filePath)
@@ -119,104 +235,48 @@ function Depends.Dependencies:Combiner(outputFile, header, verify)
 			if not file.shouldExport then -- If this object shouldn't be exported then add local
 				line = "local " .. line
 			elseif not shouldExport then -- If we shouldn't export globally then add to the export table and mark as global
-				exports[#exports + 1] =  moduleName
+				exports[#exports + 1] = moduleName
 				line = "local " .. line
 			end
 
-			writeLine(line, "file")
+			writeLine(line)
 			writeLine(contents, moduleName)
-			writeLine(endFunc, "file")
+			writeLine(endFunc)
 
 		else -- We have no name so we can just export it normally
 			local noWrap = file.noWrap -- Don't wrap in do...end if noWrap is set
 
-			if not noWrap then output.writeLine("do") end
+			if not noWrap then writeLine("do") end
 			writeLine(contents, file.alias or file.path)
-			if not noWrap then output.writeLine('end') end
+			if not noWrap then writeLine('end') end
 		end
 	end
 
-	local finalizertxt = ""
+	local finalizerContents
 	if self.finalizer then
-		local r = fs.open(fs.combine(path, self.finalizer.path), "r")
-		assert(r, "Could not open "..fs.combine(path, self.finalizer.path))
-		finalizertxt = r.readAll() or ""
+		local path = fs.combine(path, self.finalizer.path)
+		local finalizer = assert(fs.open(path, "r"), "Finalizer " .. path .. " does not exist")
+
+		finalizerContents = r.readAll()
+		finalizer.close()
+
+		if #finalizerContents == 0 then
+			finalizerContents = nil
+		elseif verify then
+			verifySource(finalizerContents, path)
+		end
 	end
+
 	-- Should we export any values?
 	if shouldExport then
-		writeLine("return {", "file")
+		local exported = {}
 		for _, export in ipairs(exports) do
-			writeLine("\t" .. export .. "=" .. export ..",", "file")
+			exported[#exported+1] = export .. "=" .. export ..", "
 		end
-		writeLine("}", "file")
-	end
-	output.writeLine(
-[[
-end
-local __finalizer = function() ]]..finalizertxt..[[ end
-local __linetomodule = setmetatable(]]..textutils.serialize(linetomodule)..[[, {__index = function(t, k) if k > 1 then return t[k-1] end end})
-local __modulestarts = ]]..textutils.serialize(modulestarts)..[[
-local __programend = ]]..line..[[
-local firstfilename = nil
-local function __updateerr(__err)
-	local __t = string.find(__err, ":")
-	if not __t then return __err end
-	local __filename = __err:sub(1, __t -1)
-	if not firstfilename then
-		firstfilename = __err:sub(1, __t-1)
-	end
-	if __filename ~= firstfilename then
-		return __err
-	end
-	local __t2 = string.find(string.sub(__err, __t +1, -1), ":")
-	if not __t2 then return __err end
-	local __errline = tonumber(string.sub(__err, __t +1, __t + __t2 -1))
-
-	if __errline then
-		-- convert to module lines
-		if __errline >= __programend then
-			return nil
-		end
-		local __modname = __linetomodule[__errline] or "unknown"
-		local __modline = __errline - __modulestarts[__modname] or -1
-		return __modname..":"..__modline..":"..tostring(__err:sub(__t + __t2 +1, -1))
-
-	end
-end
-local __varargs = {...}
-local __returns = {}
-local __current = term.current()
-local __ok, __err = xpcall(function() __returns = {__program(unpack(__varargs))} end,
-function(msg) pcall(function() (function(__msg)
-	__msg = "  "..(__updateerr(__msg) or "")
-	for i = 8, 7 + 18 do
-		local _, err = pcall(function() error("", i) end)
-		err = __updateerr(err)
-		if not err then break end
-		__msg = __msg .. "\n  " .. err
+		writeLine("return {" .. table.concat(exported) .. "}")
 	end
 
-	err = __msg
-	local finmsg
-	local ok, _err = pcall(function() finmsg = __finalizer() end)
-	term.redirect(__current)
-	term.setBackgroundColor(colors.black)
-	term.setTextColor(colors.red)
-	term.clear()
-	term.setCursorPos(1, 1)
-	if not ok then
-		print("Finalizer Error: ", _err)
-	end
-	if finmsg then
-		print(finmsg)
-	end
-	print("Raw Stack Trace: \n", err)
-	return err
-end)(msg) end) end)
-if __ok then
-	return unpack(__returns)
-end
-]])
+	output.writeLine(lineMapper)
 	output.close()
 end
 
