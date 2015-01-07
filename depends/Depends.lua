@@ -101,11 +101,18 @@ function Dependencies:File(path)
 		shouldExport = true,
 		noWrap = false,
 		__isMain = false,
+		__isFinalizer = false,
 		parent = self,
 	}, {__index = File})
 
 	self.files[path] = file
 	return file
+end
+
+function Dependencies:Finalizer(path)
+	local file = self:FindFile(path) or self:File(path)
+	file.__isFinalizer = true
+	self.finalizer = file
 end
 
 --- Add a 'main' file to the dependency list. This is a file that will be executed (added to the end of a script)
