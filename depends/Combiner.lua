@@ -9,7 +9,7 @@ local functionLoaderName = "_W"
 	This probably need some work as a function but...
 ]]
 local functionLoader = ("local function " .. functionLoaderName .. [[(f)
-	local e=setmetatable({}, {__index = getfenv(), __newindex = function(t, k, v) (getfenv())[k] = v end})
+	local e=setmetatable({}, {__index = getfenv()})
 	setfenv(f,e)
 	local r=f()
 	if r ~= nil then return r end
