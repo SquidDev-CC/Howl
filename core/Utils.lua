@@ -27,10 +27,12 @@ end
 -- @param ... Values to print
 local function PrintSuccess(...) PrintColor(colors.green, ...) end
 
---- Sets if verbose is on or not
--- @tparam bool verbose Should we print verbose output
-local function SetVerbose(verbose)
-	isVerbose = verbose
+--- Check if verbose is true
+-- @tparam ?|value If not nil, set verbose to true
+-- @treturn boolean Is verbose output on
+local function IsVerbose(value)
+	if value ~= nil then isVerbose = value end
+	return isVerbose
 end
 
 --- Prints a verbose string if verbose is turned on
@@ -179,7 +181,7 @@ return {
 	PrintColor = PrintColor,
 	WriteColor = WriteColor,
 
-	SetVerbose = SetVerbose,
+	IsVerbose = IsVerbose,
 	Verbose = Verbose,
 	VerboseLog = VerboseLog,
 

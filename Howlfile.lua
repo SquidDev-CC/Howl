@@ -22,6 +22,23 @@ do -- Setup options
 	Options:Option "with-interop"
 		:Description "Include the interop library"
 		:Alias "wi"
+
+	Options:Option "with-external"
+		:Description "Include external tools"
+		:Alias "we"
+
+	Options:Option "with-all"
+		:Description "Include all libraries"
+		:Alias "a"
+
+	-- If `with-all` is true, then include all libraries
+	if Options:Get("with-all") then
+		for name, _ in pairs(Options.settings) do
+			if name:sub(1, 5) =="with-" and name ~= "with-interop" then -- Don't include interop library
+				Options:Default(name)
+			end
+		end
+	end
 end
 
 Sources:Main "Howl.lua"
@@ -110,7 +127,7 @@ do -- Minification
 		:Depends "Rebuild"
 end
 
-do -- Minification
+do -- Files (Compilr)
 	Sources:File "files/Files.lua"
 		:Name "Files"
 		:Depends "Utils"
@@ -139,30 +156,51 @@ do -- Interop
 		:Depends "colors"
 end
 
-if Options:Get("with-dump") then
-	Sources:Depends "Dump"
-	Sources:FindFile "Utils"
-		:Depends "Dump"
+do -- External tools
+	Sources:File "external/Busted.lua"
+		:Alias "Busted"
+		:Depends "Utils"
+		:Depends "HowlFile"
 end
 
-if Options:Get("with-minify") then
-	Sources:Depends "Lexer.Tasks"
-end
+do -- Options parsing
+	if Options:Get("with-dump") then
+		Verbose("Including 'Dump'")
 
-if Options:Get("with-depends") then
-	Sources:Depends{"Bootstrap", "Combiner"}
-end
+		Sources:Depends "Dump"
+		Sources:FindFile "Utils"
+			:Depends "Dump"
+	end
 
-if Options:Get("with-files") then
-	Sources:Depends{"Compilr"}
-end
+	if Options:Get("with-minify") then
+		Verbose("Including Minify")
+		Sources:Depends "Lexer.Tasks"
+	end
 
-if Options:Get("with-interop") then
-	Sources
-		:Prerequisite "InteropGlobals"
-		:Prerequisite "shell"
-		:Prerequisite "fs"
-		:Prerequisite "term"
+	if Options:Get("with-depends") then
+		Verbose("Including Depends")
+		Sources:Depends{"Bootstrap", "Combiner"}
+	end
+
+	if Options:Get("with-files") then
+		Verbose("Including Files")
+		Sources:Depends{"Compilr"}
+	end
+
+	if Options:Get("with-interop") then
+		Verbose("Including Interop")
+		Sources
+			:Prerequisite "InteropGlobals"
+			:Prerequisite "shell"
+			:Prerequisite "fs"
+			:Prerequisite "term"
+	end
+
+	if Options:Get("with-external") then
+		Verbose("Including External")
+		Sources
+			:Depends{"Busted"}
+	end
 end
 
 Tasks:Clean("clean", "build")
@@ -172,6 +210,7 @@ Tasks:Minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 	:Description("Produces a minified version of the code")
 
 Tasks:CreateBootstrap("boot", Sources, "build/Boot.lua", {"clean"})
+	:Traceback()
 
 Tasks:Task "build"{"minify", "boot"}
 	:Description "Minify and bootstrap"

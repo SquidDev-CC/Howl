@@ -42,5 +42,5 @@ function Runner.Runner:MinifyAll(name, inputPattern, outputPattern)
 end
 
 HowlFile.EnvironmentHook(function(env)
-	env.Minify = Rebuild.MinifyFile
+	env.Minify = minifyFile
 end)

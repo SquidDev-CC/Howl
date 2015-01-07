@@ -51,20 +51,32 @@ end
 
 --- Run a task, and all its dependencies
 -- @tparam string name Name of the task to run
+-- @treturn Runner The current object for chaining
 function Runner:Run(name)
-	return Context.Factory(self):Start(name)
+	return self:RunMany({name})
 end
 
 --- Run a task, and all its dependencies
 -- @tparam table names Names of the tasks to run
--- @treturn Runner The current object for chaining
+-- @return The result of the last task
 function Runner:RunMany(names)
+	local oldTime = os.clock()
+	local value
+
 	local context = Context.Factory(self)
-	for _, name in ipairs(names) do
-		context:Start(name)
+	if #names == 0 then
+		context:Start()
+	else
+		for _, name in ipairs(names) do
+			value = context:Start(name)
+		end
 	end
 
-	return self
+	if context.ShowTime then
+		Utils.PrintColor(colors.orange, "Took " .. os.clock() - oldTime .. "s in total")
+	end
+
+	return value
 end
 
 --- Create a @{Runner} object

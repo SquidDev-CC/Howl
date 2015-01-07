@@ -91,10 +91,19 @@ local function Factory(path, parent)
 end
 
 --- Add a file to the dependency list
--- @tparam string path The path of the file relative to the PPI file
+-- @tparam string path The path of the file relative to the Dependencies' root
 -- @treturn File The created file object
 function Dependencies:File(path)
-	local file = setmetatable({
+	local file = self:_File(path)
+	self.files[path] = file
+	return file
+end
+
+--- Create a file
+-- @tparam string path The path of the file relative to the Dependencies' root
+-- @treturn File The created file object
+function Dependencies:_File(path)
+	return setmetatable({
 		dependencies = {},
 		name = nil, alias = nil,
 		path = path,
@@ -103,17 +112,14 @@ function Dependencies:File(path)
 		__isMain = false,
 		parent = self,
 	}, {__index = File})
-
-	self.files[path] = file
-	return file
 end
 
 --- Add a 'main' file to the dependency list. This is a file that will be executed (added to the end of a script)
 -- Nothing should depend on it.
--- @tparam string path The path of the file relative to the PPI file
+-- @tparam string path The path of the file relative to the Dependencies' root
 -- @treturn File The created file object
 function Dependencies:Main(path)
-	local file = self:FindFile(path) or self:File(path)
+	local file = self:FindFile(path) or self:_File(path)
 	file.__isMain = true
 	table.insert(self.mainFiles, file)
 	return file

@@ -23,7 +23,7 @@ local tasks = Runner.Factory()
 local taskList = options:Arguments()
 
 options:OnChanged(function(options)
-	Utils.SetVerbose(options:Get "verbose")
+	Utils.IsVerbose(options:Get("verbose") or false)
 	tasks.ShowTime = options:Get "time"
 	tasks.Traceback = options:Get "trace"
 
@@ -76,8 +76,4 @@ local environment = HowlFile.SetupEnvironment({
 environment.dofile(fs.combine(currentDirectory, howlFile))
 
 -- Run the task
-if #taskList == 0 then
-	tasks:Run()
-else
-	tasks:RunMany(taskList)
-end
+tasks:RunMany(taskList)

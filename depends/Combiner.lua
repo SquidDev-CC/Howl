@@ -27,7 +27,7 @@ function Depends.Dependencies:Combiner(outputFile, header, verify)
 	local loadstring = loadstring
 
 	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
-	assert(output, "Could not create" .. outputFile)
+	assert(output, "Could not create " .. outputFile)
 
 	-- If header == nil or header is true then include the header
 	if header ~= false then output.writeLine(functionLoader) end
@@ -79,9 +79,9 @@ function Depends.Dependencies:Combiner(outputFile, header, verify)
 		else -- We have no name so we can just export it normally
 			local noWrap = file.noWrap -- Don't wrap in do...end if noWrap is set
 
-			if noWrap then output.writeLine("do") end
+			if not noWrap then output.writeLine("do") end
 			output.writeLine(contents)
-			if noWrap then output.writeLine('end') end
+			if not noWrap then output.writeLine('end') end
 		end
 	end
 
@@ -118,7 +118,7 @@ end
 -- @tparam depends.Depends.Dependencies dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
 -- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
--- @treturn tasks.Runner.Runner The task runner (for chaining)
+-- @treturn CombinerTask The created task
 -- @see tasks.Runner.Runner
 function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
 	return self:InjectTask(Task.Factory(name, taskDepends, function(verify)
