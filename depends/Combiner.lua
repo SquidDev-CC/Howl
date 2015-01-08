@@ -12,11 +12,8 @@ local functionLoaderName = "_W"
 ]]
 local functionLoader = ("local function " .. functionLoaderName .. [[(f)
 	local e=setmetatable({}, {__index = getfenv()})
-	setfenv(f,e)
-	local r=f()
-	if r ~= nil then return r end
-	return e
-end]]):gsub("[\t ]+", " ")
+	return setfenv(f,e)() or e
+end]]):gsub("[\t\n ]+", " ")
 
 
 local lineMapper = {
@@ -27,35 +24,36 @@ local lineMapper = {
 				if k > 1 then return t[k-1] end
 			end
 		})
-		local moduleStarts = {{modulestarts}}
-		local programEnd = {{currentLine}}
+		local moduleStarts = {{moduleStarts}}
+		local programEnd = {{lastLine}}
 
 		-- Stores the current file, safer than shell.getRunningProgram()
-		local currentFile = pcall(error, "", 2):match("[^:]")
-	]]
+		local _, currentFile = pcall(error, "", 2)
+		currentFile = currentFile:match("[^:]+")
+	]],
 	updateError = [[
-		-- Something is really broken if we can't find a filename
-		-- If we can't find a line number than we must have `pcall:` or `xpcall`
-		-- This means, we shouldn't have an error, so we must be debugging somewhere
-		if not filename or not line then return end
-
 		-- If we are in the current file then we should map to the old modules
 		if filename == currentFile then
 
 			-- If this line is after the program end then
 			-- something is broken, and so we just roll with it
-			if line >= programEnd then return end
+			if line > programEnd then return end
 
 			-- convert to module lines
 			filename = lineToModule[line] or "<?>"
-			line = line - moduleStarts[filename] or -1
+			local newLine = moduleStarts[filename]
+			if newLine then
+				line = line - newLine + 1
+			else
+				line = -1
+			end
 		end
 	]]
 }
 
 local finalizer = {
 	header = [[
-		local finalizer = function() {{finalizer}} end
+		local finalizer = function(message, traceback) {{finalizer}} end
 	]],
 	parseTrace = [[
 		local ok, finaliserError = pcall(finalizer, message, traceback)
@@ -74,18 +72,25 @@ local currentTerm = term.current()
 local ok, returns = xpcall(
 	function() return {__program(unpack(args))} end,
 	function(message)
+		local _, err = pcall(function()
 		local error, pcall, printError, tostring,setmetatable = error, pcall, printError, tostring, setmetatable
 		{{header}}
 
 		local messageMeta = {
 			__tostring = function(self)
-				local msg = self.filename or "<?>"
-				if self.line then msg = msg .. ":" .. tostring(self.line) end
-				if self.message then msg = msg .. ":" .. tostring(self.message) end
+				local msg = self[1] or "<?>"
+				if self[2] then msg = msg .. ":" .. tostring(self[2]) end
+				if self[3] and self[3] ~= " " then msg = msg .. ":" .. tostring(self[3]) end
+				return msg
 			end
-		end}
+		}
 		local function updateError(err)
-			local filename, line, message = err:match("([^:]):(%d+):(.+)")
+			local filename, line, message = err:match("([^:]+):(%d+):?(.*)")
+			-- Something is really broken if we can't find a filename
+			-- If we can't find a line number than we must have `pcall:` or `xpcall`
+			-- This means, we shouldn't have an error, so we must be debugging somewhere
+			if not filename or not line then return end
+			line = tonumber(line)
 			{{updateError}}
 			return setmetatable({filename, line, message}, messageMeta)
 		end
@@ -96,7 +101,7 @@ local ok, returns = xpcall(
 		-- Build a traceback
 		local topError = updateError(message) or message
 		local traceback = {topError}
-		for i = 3, 3 + 18 do
+		for i = 6, 6 + 18 do
 			local _, err = pcall(error, "", i)
 			err = updateError(err)
 			if not err then break end
@@ -106,17 +111,21 @@ local ok, returns = xpcall(
 		{{parseTrace}}
 
 		printError(tostring(topError))
-		print("Raw Stack Trace:")
-		for i =2, #traceback do
-			print("  ", tostring(traceback[i]))
+		if #traceback > 1 then
+			printError("Raw Stack Trace:")
+			for i = 2, #traceback do
+				printError("  ", tostring(traceback[i]))
+			end
 		end
+		end)
+		if not _ then printError(err) end
 	end
 )
 
 if ok then
 	return unpack(returns)
 end
-]]):gsub("[\t ]+", " ")
+]]) -- :gsub("[\t ]+", " ")
 
 --- Counts the number of lines in a string
 -- @tparam string contents The string to count
@@ -130,6 +139,7 @@ local function countLines(contents)
 		if not start then break end
 		lineCount = lineCount + 1
 		position = newPosition + 1
+
 	end
 	return lineCount
 end
@@ -146,6 +156,11 @@ local function verifySource(contents, path)
 	end
 end
 
+local function replaceTemplate(source, replacers)
+	return source:gsub("{{(.-)}}", function(whole, ...)
+		return replacers[whole] or ""
+	end)
+end
 
 --- Combiner options
 -- @table CombinerOptions
@@ -159,12 +174,13 @@ end
 -- @tparam CombinerOptions options Options for combining
 -- @see Depends.Dependencies
 function Depends.Dependencies:Combiner(outputFile, header, options)
+	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport
 	local lineMapping = options.lineMapping
 	local loadstring = loadstring
 
-	local line, oldLine = 1, 1
+	local line, oldLine = 0, 0
 	local lineToModule, moduleStarts = {}, {}
 
 	local function setLines(mod, n1, n2)
@@ -185,6 +201,7 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 			min = math.min(n1, n2)
 		end
 
+
 		lineToModule[min] = mod
 	end
 
@@ -196,14 +213,18 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 		if lineMapping then
 			oldLine = line
 			line = line + countLines(contents)
-			setLines(name or outputFile, oldLine + 1, line - 1)
+			setLines(name or "file", oldLine + 1, line - 1)
 		end
 	end
 
-	-- If header == nil or header is true then include the header
-	writeLine("local __program = function(...)")
+	if self.finalizer then options.traceback = true end
 
-	if header ~= false then writeLine(functionLoader, "file") end
+	if options.traceback then
+		writeLine("local __program = function(...)")
+	end
+
+	-- If header == nil or header is true then include the header
+	if header ~= false then writeLine(functionLoader) end
 
 
 	local exports = {}
@@ -217,7 +238,6 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 
 		if verify then verifySource(contents, filePath) end
 
-		local beginline
 		Utils.Verbose("Adding " .. filePath)
 
 		local moduleName = file.name
@@ -252,21 +272,6 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 		end
 	end
 
-	local finalizerContents
-	if self.finalizer then
-		local path = fs.combine(path, self.finalizer.path)
-		local finalizer = assert(fs.open(path, "r"), "Finalizer " .. path .. " does not exist")
-
-		finalizerContents = r.readAll()
-		finalizer.close()
-
-		if #finalizerContents == 0 then
-			finalizerContents = nil
-		elseif verify then
-			verifySource(finalizerContents, path)
-		end
-	end
-
 	-- Should we export any values?
 	if shouldExport then
 		local exported = {}
@@ -276,7 +281,53 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 		writeLine("return {" .. table.concat(exported) .. "}")
 	end
 
-	output.writeLine(lineMapper)
+	if options.traceback then
+		local tracebackIncludes = {}
+		local replacers = {}
+		if self.finalizer then
+			local path = fs.combine(path, self.finalizer.path)
+			local finalizerFile = assert(fs.open(path, "r"), "Finalizer " .. path .. " does not exist")
+
+			finalizerContents = finalizerFile.readAll()
+			finalizerFile.close()
+
+			if #finalizerContents == 0 then
+				finalizerContents = nil
+			elseif verify then
+				verifySource(finalizerContents, path)
+
+			end
+
+			if finalizerContents then
+				tracebackIncludes[#tracebackIncludes + 1] = finalizer
+				replacers.finalizer = finalizerContents
+			end
+		end
+
+		if lineMapping then
+			tracebackIncludes[#tracebackIncludes + 1] = lineMapper
+
+			replacers.lineToModule = textutils.serialize(lineToModule)
+			replacers.moduleStarts = textutils.serialize(moduleStarts)
+			replacers.lastLine = line
+		end
+
+		toReplace = {}
+		for _, template in ipairs(tracebackIncludes) do
+			for part, contents in pairs(template) do
+				local current = toReplace[part]
+				if current then
+					current = current .. "\n"
+				else
+					current = ""
+				end
+				toReplace[part] = current .. contents
+			end
+		end
+
+		local traceback = replaceTemplate(replaceTemplate(traceback, toReplace), replacers)
+		output.writeLine(traceback)
+	end
 	output.close()
 end
 
@@ -293,8 +344,30 @@ function CombinerTask:Verify(verify)
 	return self
 end
 
+--- Include traceback code
+-- @tparam boolean traceback
+-- @treturn CombinerTask The current object (for chaining)
+function CombinerTask:Traceback(traceback)
+	if traceback == nil then traceback = true end
+	self.traceback = traceback
+	return self
+end
+
+--- Include line mapping code
+-- @tparam boolean lineMapping
+-- @treturn CombinerTask The current object (for chaining)
+function CombinerTask:LineMapping(lineMapping)
+	if lineMapping == nil then lineMapping = true end
+	self.lineMapping = lineMapping
+	return self
+end
+
 function CombinerTask:_RunAction(...)
-	return Task.Task._RunAction(self, self.verify, ...)
+	return Task.Task._RunAction(self, {
+		verify = self.verify,
+		traceback = self.traceback,
+		lineMapping = self.lineMapping,
+	}, ...)
 end
 
 --- A task for combining stuff
@@ -305,8 +378,8 @@ end
 -- @treturn CombinerTask The created task
 -- @see tasks.Runner.Runner
 function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(Task.Factory(name, taskDepends, function(verify)
-		dependencies:Combiner(outputFile, true, verify)
+	return self:InjectTask(Task.Factory(name, taskDepends, function(options)
+		dependencies:Combiner(outputFile, true, options)
 	end, CombinerTask))
 		:Description("Combines files into '" .. outputFile .. "'")
 		:Produces(outputFile)
