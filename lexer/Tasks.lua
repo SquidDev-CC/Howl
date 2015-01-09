@@ -41,6 +41,6 @@ function Runner.Runner:MinifyAll(name, inputPattern, outputPattern)
 		:Maps(inputPattern or "wild:*.lua", outputPattern or "wild:*.min.lua")
 end
 
-HowlFile.EnvironmentHook(function(env)
+Mediator.Subscribe({"HowlFile", "env"}, function(env)
 	env.Minify = minifyFile
 end)

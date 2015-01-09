@@ -96,7 +96,7 @@ local function Factory(path)
 	}, {__index = Files})
 end
 
-HowlFile.EnvironmentHook(function(env)
+Mediator.Subscribe({"HowlFile", "env"}, function(env)
 	env.Files = Factory
 end)
 

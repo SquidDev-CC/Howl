@@ -26,6 +26,7 @@ end
 
 local args = {...}
 xpcall(setfenv(function()
+	Mediator = doFile("core/Mediator.lua")
 	ArgParse = doFile("core/ArgParse.lua")
 	Utils = doFile("core/Utils.lua")
 	Dump = doFile("core/Dump.lua")

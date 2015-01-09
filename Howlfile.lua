@@ -42,18 +42,24 @@ do -- Setup options
 end
 
 Sources:Main "Howl.lua"
-	:Depends "Runner"
 	:Depends "ArgParse"
 	:Depends "HowlFile"
+	:Depends "Mediator"
+	:Depends "Runner"
 
 	-- Not needed but we include
-	:Depends "Task.Extensions"
-	:Depends "Combiner"
 	:Depends "Bootstrap"
+	:Depends "Combiner"
+	:Depends "Task.Extensions"
 
 do -- Core files
 	Sources:File "core/ArgParse.lua"
 		:Name "ArgParse"
+		:Depends "Mediator"
+		:Depends "Utils"
+
+	Sources:File "core/Mediator.lua"
+		:Name "Mediator"
 		:Depends "Utils"
 
 	Sources:File "core/Utils.lua"          :Name "Utils"
@@ -64,8 +70,8 @@ end
 do -- Task files
 	Sources:File "tasks/Context.lua"
 		:Name "Context"
-		:Depends "Utils"
 		:Depends "HowlFile"
+		:Depends "Utils"
 
 	Sources:File "tasks/Task.lua"
 		:Name "Task"
@@ -84,9 +90,10 @@ do -- Task files
 		:Depends "Utils"
 end
 
-do
+do -- Dependencies
 	Sources:File "depends/Depends.lua"
 		:Name "Depends"
+		:Depends "Mediator"
 
 	Sources:File "depends/Combiner.lua"
 		:Alias "Combiner"
@@ -119,26 +126,27 @@ do -- Minification
 		:Name "Scope"
 		:Depends "Scope"
 
-	Sources:File "lexer/TokenList.lua" :Name "TokenList"
-	Sources:File "lexer/Constants.lua" :Name "Constants"
-
 	Sources:File "lexer/Tasks.lua"
 		:Alias "Lexer.Tasks"
+		:Depends "Mediator"
 		:Depends "Rebuild"
+
+	Sources:File "lexer/TokenList.lua" :Name "TokenList"
+	Sources:File "lexer/Constants.lua" :Name "Constants"
 end
 
 do -- Files (Compilr)
 	Sources:File "files/Files.lua"
 		:Name "Files"
-		:Depends "Utils"
 		:Depends "HowlFile"
+		:Depends "Mediator"
+		:Depends "Utils"
 
 	Sources:File "files/Compilr.lua"
 		:Alias "Compilr"
 		:Depends "Files"
-		:Depends "Runner"
-		:Depends "Parse"
 		:Depends "Rebuild"
+		:Depends "Runner"
 end
 
 do -- Interop
@@ -205,6 +213,9 @@ end
 
 Tasks:Clean("clean", "build")
 Tasks:Combine("combine", Sources, "build/Howl.lua", {"clean"})
+	:Verify()
+	:Traceback()
+	:LineMapping()
 
 Tasks:Minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 	:Description("Produces a minified version of the code")

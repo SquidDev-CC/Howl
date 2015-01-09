@@ -146,21 +146,10 @@ function Parser:Arguments()
 	return self.arguments
 end
 
---- Adds an event listener to the options
--- @tparam function callback The function to call
--- @treturn Parser The current object
-function Parser:OnChanged(callback)
-	callback(self) -- Call the callback first
-	table.insert(self.onChanged, callback)
-	return self
-end
-
 --- Fires the on changed event
 -- @local
 function Parser:_Changed()
-	for _, callback in ipairs(self.onChanged) do
-		callback(self)
-	end
+	Mediator.Publish({"ArgParse", "changed"}, self)
 end
 
 --- Generates a help string
@@ -257,8 +246,6 @@ local function Options(args)
 			arguments = {}, -- Spare arguments
 
 			settings = {},  -- Settings for options
-
-			onChanged = {}, -- Event handler for when values are changed
 		}, {__index=Parser}):Parse(args)
 	end
 

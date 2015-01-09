@@ -29,7 +29,7 @@ local function findOneBusted(folder)
 	end
 
 	local path
-	for name in ipairs(names) do
+	for _, name in ipairs(names) do
 		path = combine(folder, name)
 		if exists(path) then
 			local bst = loadOneBusted(path)
@@ -98,7 +98,7 @@ function Runner.Runner:Busted(name, options, taskDepends)
 
 		local count, errors = busted.run(newOptions, getDefaults())
 		if count ~= 0 then
-			Log(messages)
+			Utils.VerboseLog(messages)
 			error("Not all tests passed")
 		end
 	end)

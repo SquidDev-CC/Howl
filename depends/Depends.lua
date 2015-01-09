@@ -234,8 +234,8 @@ function Dependencies:CloneDependencies(deep)
 	return result
 end
 
--- Setup a HowlFile hook
-HowlFile.EnvironmentHook(function(env)
+--- Add files to environment
+Mediator.Subscribe({"HowlFile", "env"}, function(env)
 	env.Dependencies = Factory
 	env.Sources = Factory()
 end)

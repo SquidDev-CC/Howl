@@ -243,8 +243,8 @@ function Files.Files:Compilr(output, options)
 		local contents = read.readAll()
 		read.close()
 
-		if options.minify then
-			contents = Rebuild.Minify(Parse.ParseLua(Parse.LexLua(contents)))
+		if options.minify and loadfile(contents) then -- This might contain non-lua files, ensure it doesn't
+			contents = Rebuild.MinifyString(contents)
 		end
 
 		resultFiles[file] = contents
@@ -253,7 +253,7 @@ function Files.Files:Compilr(output, options)
 	local result = header .. "local files = " .. textutils.serialize(resultFiles) .. "\n" .. string.format(footer, self.startup, self.startup)
 
 	if options.minify then
-		result = Rebuild.Minify(Parse.ParseLua(Parse.LexLua(result)))
+		result = Rebuild.MinifyString(result)
 	end
 
 	local outputFile = fs.open(fs.combine(HowlFile.CurrentDirectory, output), "w")

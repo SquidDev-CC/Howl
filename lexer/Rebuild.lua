@@ -352,6 +352,19 @@ end
 
 local push, pop = os.queueEvent, coroutine.yield
 
+--- Minify a string
+-- @tparam string input The input string
+-- @treturn string The minifyied string
+local function MinifyString(input)
+	local lex = Parse.LexLua(input)
+	push("sleep") pop("sleep") -- Minifying often takes too long
+
+	lex = Parse.ParseLua(lex)
+	push("sleep") pop("sleep")
+
+	return Minify(lex)
+end
+
 --- Minify a file
 -- @tparam string inputFile File to read from
 -- @tparam string outputFile File to write to (Defaults to inputFile)
@@ -363,13 +376,7 @@ local function MinifyFile(inputFile, outputFile)
 	local contents = input.readAll()
 	input.close()
 
-	local lex = Parse.LexLua(contents)
-	push("sleep") pop("sleep") -- Minifying often takes too long
-
-	lex = Parse.ParseLua(lex)
-	push("sleep") pop("sleep")
-
-	contents = Minify(lex)
+	contents = MinifyString(contents)
 
 	local result = fs.open(fs.combine(cd, outputFile), "w")
 	result.write(contents)
@@ -380,5 +387,6 @@ end
 return {
 	JoinStatements = JoinStatements,
 	Minify = Minify,
+	MinifyString = MinifyString,
 	MinifyFile = MinifyFile,
 }

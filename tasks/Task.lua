@@ -89,7 +89,7 @@ end
 
 --- Run the action with no bells or whistles
 function Task:_RunAction(...)
-	return self.action(...)
+	return self.action(self, ...)
 end
 
 --- Execute the task
@@ -161,6 +161,22 @@ function Task:Run(context, ...)
 	return true
 end
 
+--- A Task that can store options
+-- @type OptionTask
+local OptionTask = {
+	__index = function(self, key)
+		local normalFunction = Task[key]
+		if normalFunction then
+			return normalFunction
+		end
+		return function(self, value)
+			if value == nil then value = true end
+			self[(key:gsub("^%u", string.lower))] = value
+			return self
+		end
+	end
+}
+
 --- Create a task
 -- @tparam string name The name of the task
 -- @tparam table dependencies A list of tasks this task requires
@@ -182,11 +198,12 @@ local function Factory(name, dependencies, action, prototype)
 		maps = {},         -- Reads and produces list
 		requires = {},     -- Files this task requires
 		produces = {},     -- Files this task produces
-	}, {__index = prototype or Task})
+	}, prototype or {__index = Task})
 end
 
 --- @export
 return {
 	Factory = Factory,
 	Task = Task,
+	OptionTask = OptionTask,
 }

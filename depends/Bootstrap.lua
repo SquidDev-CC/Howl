@@ -1,5 +1,7 @@
 --- Creates a bootstrap file, which is used to run dependencies
 -- @module depends.Bootstrap
+
+local format = string.format
 local tracebackHeader = [[
 local args = {...}
 xpcall(function()
@@ -35,15 +37,15 @@ end
 --- Combines dependencies dynamically into one file
 -- These files are loaded using loadfile rather than loaded at compile time
 -- @tparam string outputFile The path of the output file
--- @tparam boolean traceback Include code to print the traceback
+-- @tparam table options Include code to print the traceback
 -- @see Depends.Dependencies
-function Depends.Dependencies:CreateBootstrap(outputFile, traceback)
+function Depends.Dependencies:CreateBootstrap(outputFile, options)
 	local path = self.path
 
 	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create" .. outputFile)
 
-	if traceback then
+	if options.traceback then
 		output.writeLine(tracebackHeader)
 	end
 
@@ -51,43 +53,25 @@ function Depends.Dependencies:CreateBootstrap(outputFile, traceback)
 
 	local exports = {}
 	for file in self:Iterate() do
-		local filePath = string.format("%q", fs.combine(path, file.path))
+		local filePath = format("%q", fs.combine(path, file.path))
 
 		local moduleName = file.name
 		if file.__isMain then -- If the file is a main file then execute it with the file's arguments
 			output.writeLine("doFile(" .. filePath .. ", ...)")
 
 		elseif moduleName then -- If the file has an module name then use that
-			output.writeLine("env[" .. string.format("%q", moduleName) .. "] = " .. (file.noWrap and "doFile" or "doWithResult") .. "(" .. filePath .. ")")
+			output.writeLine("env[" .. format("%q", moduleName) .. "] = " .. (file.noWrap and "doFile" or "doWithResult") .. "(" .. filePath .. ")")
 
 		else -- We have no name so we can just execute it normally
 			output.writeLine("doFile(" .. filePath .. ")")
 		end
 	end
 
-	if traceback then
+	if options.traceback then
 		output.writeLine(tracebackFooter)
 	end
 
 	output.close()
-end
-
---- A subclass of @{tasks.Task.Task} for bootstrappers
--- @type BootstrapTask
-local BootstrapTask = setmetatable({}, {__index = Task.Task})
-
---- Should we include code to print the traceback
--- @tparam boolean traceback
--- @treturn BootstrapTask The current object (for chaining)
-function BootstrapTask:Traceback(traceback)
-	if traceback == nil then traceback = true end
-	self.traceback = traceback
-	return self
-end
-
-
-function BootstrapTask:_RunAction(...)
-	return Task.Task._RunAction(self, self.traceback, ...)
 end
 
 --- A task creating a 'dynamic' combination of files
@@ -100,7 +84,7 @@ end
 function Runner.Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
 	return self:InjectTask(Task.Factory(name, taskDepends, function(traceback)
 		dependencies:CreateBootstrap(outputFile, traceback)
-	end, BootstrapTask))
+	end, Task.OptionTask))
 		:Description("Creates a 'dynamic' combination of files in '" .. outputFile .. "')")
 		:Produces(outputFile)
 end

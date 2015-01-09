@@ -125,7 +125,7 @@ local ok, returns = xpcall(
 if ok then
 	return unpack(returns)
 end
-]]) -- :gsub("[\t ]+", " ")
+]])
 
 --- Counts the number of lines in a string
 -- @tparam string contents The string to count
@@ -178,6 +178,7 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 	local path = self.path
 	local shouldExport = self.shouldExport
 	local lineMapping = options.lineMapping
+	local verify = options.verify
 	local loadstring = loadstring
 
 	local line, oldLine = 0, 0
@@ -295,7 +296,6 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 				finalizerContents = nil
 			elseif verify then
 				verifySource(finalizerContents, path)
-
 			end
 
 			if finalizerContents then
@@ -331,45 +331,6 @@ function Depends.Dependencies:Combiner(outputFile, header, options)
 	output.close()
 end
 
---- A subclass of @{tasks.Task.Task} for combiners
--- @type CombinerTask
-local CombinerTask = setmetatable({}, {__index = Task.Task})
-
---- Should files be verified on execution
--- @tparam boolean verify
--- @treturn CombinerTask The current object (for chaining)
-function CombinerTask:Verify(verify)
-	if verify == nil then verify = true end
-	self.verify = verify
-	return self
-end
-
---- Include traceback code
--- @tparam boolean traceback
--- @treturn CombinerTask The current object (for chaining)
-function CombinerTask:Traceback(traceback)
-	if traceback == nil then traceback = true end
-	self.traceback = traceback
-	return self
-end
-
---- Include line mapping code
--- @tparam boolean lineMapping
--- @treturn CombinerTask The current object (for chaining)
-function CombinerTask:LineMapping(lineMapping)
-	if lineMapping == nil then lineMapping = true end
-	self.lineMapping = lineMapping
-	return self
-end
-
-function CombinerTask:_RunAction(...)
-	return Task.Task._RunAction(self, {
-		verify = self.verify,
-		traceback = self.traceback,
-		lineMapping = self.lineMapping,
-	}, ...)
-end
-
 --- A task for combining stuff
 -- @tparam string name Name of the task
 -- @tparam depends.Depends.Dependencies dependencies The dependencies to compile
@@ -380,7 +341,7 @@ end
 function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
 	return self:InjectTask(Task.Factory(name, taskDepends, function(options)
 		dependencies:Combiner(outputFile, true, options)
-	end, CombinerTask))
+	end, Task.OptionTask))
 		:Description("Combines files into '" .. outputFile .. "'")
 		:Produces(outputFile)
 end

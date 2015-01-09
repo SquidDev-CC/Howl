@@ -2,6 +2,19 @@
 -- @script Howl
 
 local options = ArgParse.Options({...})
+local tasks = Runner.Factory()
+local taskList = options:Arguments()
+
+Mediator.Subscribe({"ArgParse", "changed"}, function(options)
+	Utils.IsVerbose(options:Get("verbose") or false)
+	tasks.ShowTime = options:Get "time"
+	tasks.Traceback = options:Get "trace"
+
+	if options:Get "help" then
+		taskList = {"help"}
+	end
+end)
+
 options
 	:Option "verbose"
 	:Alias "v"
@@ -18,19 +31,6 @@ options
 	:Alias "?"
 	:Alias "h"
 	:Description "Print this help"
-
-local tasks = Runner.Factory()
-local taskList = options:Arguments()
-
-options:OnChanged(function(options)
-	Utils.IsVerbose(options:Get("verbose") or false)
-	tasks.ShowTime = options:Get "time"
-	tasks.Traceback = options:Get "trace"
-
-	if options:Get "help" then
-		taskList = {"help"}
-	end
-end)
 
 -- Locate the howl file
 local howlFile, currentDirectory = HowlFile.FindHowl()
