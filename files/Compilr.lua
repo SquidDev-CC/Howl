@@ -243,11 +243,23 @@ function Files.Files:Compilr(output, options)
 		local contents = read.readAll()
 		read.close()
 
-		if options.minify and loadfile(contents) then -- This might contain non-lua files, ensure it doesn't
+		if options.minify and loadstring(contents) then -- This might contain non-lua files, ensure it doesn't
 			contents = Rebuild.MinifyString(contents)
 		end
 
-		resultFiles[file] = contents
+		local root = resultFiles
+		local nodes = {file:match((file:gsub("[^/]+/?", "([^/]+)/?")))}
+		nodes[#nodes] = nil
+		for _, node in pairs(nodes) do
+			local nRoot = root[node]
+			if not nRoot then
+				nRoot = {}
+				root[node] = nRoot
+			end
+			root = nRoot
+		end
+
+		root[fs.getName(file)] = contents
 	end
 
 	local result = header .. "local files = " .. textutils.serialize(resultFiles) .. "\n" .. string.format(footer, self.startup, self.startup)
