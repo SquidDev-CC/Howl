@@ -194,7 +194,7 @@ function Dependencies:Iterate()
 	local mainFiles = self.mainFiles
 	if #mainFiles == 0 then mainFiles = self.files end
 	return coroutine.wrap(function()
-		for _, file in ipairs(mainFiles) do
+		for _, file in pairs(mainFiles) do
 			internalLoop(file)
 		end
 	end)

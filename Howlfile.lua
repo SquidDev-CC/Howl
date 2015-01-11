@@ -115,6 +115,7 @@ do -- Minification
 		:Depends "Constants"
 		:Depends "Scope"
 		:Depends "TokenList"
+		:Depends "Utils"
 
 	Sources:File "lexer/Rebuild.lua"
 		:Name "Rebuild"
@@ -132,7 +133,9 @@ do -- Minification
 		:Depends "Rebuild"
 
 	Sources:File "lexer/TokenList.lua" :Name "TokenList"
-	Sources:File "lexer/Constants.lua" :Name "Constants"
+	Sources:File "lexer/Constants.lua"
+		:Name "Constants"
+		:Depends "Utils"
 end
 
 do -- Files (Compilr)
