@@ -165,14 +165,20 @@ end
 -- @type OptionTask
 local OptionTask = {
 	__index = function(self, key)
-		local normalFunction = Task[key]
-		if normalFunction then
-			return normalFunction
+		local parent = Task[key]
+		if parent then
+			return parent
 		end
-		return function(self, value)
-			if value == nil then value = true end
-			self[(key:gsub("^%u", string.lower))] = value
-			return self
+		if key:match("^%u") then
+			local normalFunction = Task[key]
+			if normalFunction then
+				return normalFunction
+			end
+			return function(self, value)
+				if value == nil then value = true end
+				self[(key:gsub("^%u", string.lower))] = value
+				return self
+			end
 		end
 	end
 }
