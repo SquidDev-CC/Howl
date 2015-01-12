@@ -99,18 +99,18 @@ function Channel:publish(result, ...)
 
 		-- if it doesn't have a predicate, or it does and it's true then run it
 		if not callback.options.predicate or callback.options.predicate(...) then
-			 -- just take the first result and insert it into the result table
-			local value, continue = callback.fn(...)
+			-- just take the first result and insert it into the result table
+			local continue, value = callback.fn(...)
 
-			if value then table.insert(result, value) end
-			if continue == false then return result end
+			if value then result[#result] = value end
+			if continue == false then return false, result end
 		end
 	end
 
 	if parent then
 		return parent:publish(result, ...)
 	else
-		return result
+		return true, result
 	end
 end
 
@@ -119,7 +119,11 @@ local function GetChannel(channelNamespace)
 	local channel = channel
 
 	if type(channelNamespace) == "string" then
-		channelNamespace = {channelNamespace:match((channelNamespace:gsub("[^:]+:?", "([^:]+):?")))}
+		if channelNamespace:find(":") then
+			channelNamespace = {channelNamespace:match((channelNamespace:gsub("[^:]+:?", "([^:]+):?")))}
+		else
+			channelNamespace = {channelNamespace}
+		end
 	end
 
 	for i=1, #channelNamespace do

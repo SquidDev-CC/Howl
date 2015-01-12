@@ -38,6 +38,8 @@ xpcall(setfenv(function()
 	Runner = doFile("tasks/Runner.lua")
 	doFile("tasks/Extensions.lua")
 
+	doFile("depends/modules/Verify.lua")
+	doFile("depends/modules/Traceback.lua")
 	doFile("depends/Combiner.lua")
 	doFile("depends/Bootstrap.lua")
 

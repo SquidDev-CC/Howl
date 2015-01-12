@@ -101,12 +101,21 @@ do -- Dependencies
 		:Depends "HowlFile"
 		:Depends "Runner"
 		:Depends "Task"
+		:Depends {"Combiner.Verify", "Combiner.Traceback"}
 
 	Sources:File "depends/Bootstrap.lua"
 		:Alias "Bootstrap"
 		:Depends "Depends"
 		:Depends "HowlFile"
 		:Depends "Runner"
+
+	Sources:File "depends/modules/Verify.lua"
+		:Alias "Combiner.Verify"
+		:Depends "Mediator"
+
+	Sources:File "depends/modules/Traceback.lua"
+		:Alias "Combiner.Traceback"
+		:Depends "Mediator"
 end
 
 do -- Minification
