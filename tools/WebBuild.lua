@@ -130,10 +130,8 @@ do
 	end
 end
 
-local howlPath = shell.resolveProgram("Howl") or "/H"
-if not howlPath then
-	error("Cannot find Howl installation")
-end
+-- Current Howl Path
+local howlPath
 
 -- Store the number of rebuilds
 local retries = 2
@@ -166,6 +164,9 @@ while index <= length do
 	elseif arg == "--task" or arg == "-task" or arg == "-t" then
 		index = index + 1
 		task = tostring(args[index]) or 2
+	elseif arg == "--howl" or arg == "-howl" or arg == "-h" then
+		index = index + 1
+		task = tostring(args[index]) or 2
 	elseif not repo then
 		repo = arg
 	elseif not branch then
@@ -177,15 +178,25 @@ while index <= length do
 	index = index + 1
 end
 
+local args = {}
+
 -- Use 'default task' if mentioned explicitly
-if task == "default" then
-	task = nil
+if task ~= "default" then
+	args[#args] = task
+end
+
+if doVerbose then
+	args[#args] = "-v"
+end
+
+howlPath = shell.resolveProgram(howlPath or "Howl") or "/Howl"
+if not howlPath or not fs.exists(howlPath) then
+	error("Cannot find Howl installation")
 end
 
 assert(repo, "Must specify a repo")
 
 local getRaw = 'https://raw.github.com/'..repo..'/'..branch..'/'
-local args = {...}
 
 local tree
 
@@ -432,4 +443,4 @@ env = {
 }
 
 verbose("Running with " .. task)
-setfenv(loadfile(howlPath), setmetatable(env, {__index = getfenv()}))(task, doVerbose and "-v" or nil)
+setfenv(loadfile(howlPath), setmetatable(env, {__index = getfenv()}))(unpack(args))
