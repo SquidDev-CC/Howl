@@ -226,8 +226,6 @@ end
 Tasks:Clean("clean", "build")
 Tasks:Combine("combine", Sources, "build/Howl.lua", {"clean"})
 	:Verify()
-	:Traceback()
-	:LineMapping()
 
 Tasks:Minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 	:Description("Produces a minified version of the code")

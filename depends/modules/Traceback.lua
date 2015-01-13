@@ -168,7 +168,7 @@ Mediator.Subscribe({"Combiner", "write"}, function(self, name, contents, options
 		local oldLine = options.line
 		options.oldLine = oldLine
 
-		local line = oldLine countLines(contents)
+		local line = oldLine + countLines(contents)
 		options.line = line
 
 		oldLine = oldLine + 1
@@ -219,8 +219,8 @@ Mediator.Subscribe({"Combiner", "end"}, function(self, outputFile, options)
 			tracebackIncludes[#tracebackIncludes + 1] = lineMapper
 
 			local dump = textutils.serialize
-			replacers.lineToModule = dump(lineToModule)
-			replacers.moduleStarts = dump(moduleStarts)
+			replacers.lineToModule = dump(options.lineToModule)
+			replacers.moduleStarts = dump(options.moduleStarts)
 			replacers.lastLine = options.line
 		end
 
