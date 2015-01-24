@@ -314,6 +314,7 @@ local function Minify(ast)
 			out = joinStatements(out, "end")
 
 		elseif statement.AstType == 'NumericForStatement' then
+			statement.Scope:ObfuscateLocals()
 			out = "for "
 			out = out..statement.Variable.Name.."="
 			out = out..formatExpr(statement.Start)..","..formatExpr(statement.End)
