@@ -204,7 +204,7 @@ Mediator.Subscribe({"Combiner", "end"}, function(self, outputFile, options)
 			if #finalizerContents == 0 then
 				finalizerContents = nil
 			else
-				Mediator.Publish({"Combiner", "include"}, self, finalizerPath, finalizerContents, options)
+				Mediator.Publish({"Combiner", "include"}, self, finalizer, finalizerContents, options)
 			end
 
 			-- Register template
@@ -242,3 +242,13 @@ Mediator.Subscribe({"Combiner", "end"}, function(self, outputFile, options)
 		outputFile.write(replaceTemplate(replaceTemplate(traceback, toReplace), replacers))
 	end
 end)
+
+
+--- Add a finalizer
+function Depends.Dependencies:Finalizer(path)
+	local file = self:FindFile(path) or self:File(path)
+	file.type = "Finalizer"
+	self.finalizer = file
+	Mediator.Publish({"Dependencies", "create"}, self, file)
+	return file
+end
