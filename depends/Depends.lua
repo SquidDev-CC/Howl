@@ -96,6 +96,18 @@ end
 function Dependencies:File(path)
 	local file = self:_File(path)
 	self.files[path] = file
+	Mediator.Publish({"Dependencies", "create"}, self, file)
+	return file
+end
+
+--- Add a resource to the file list. A resource is saved as a string instead
+-- @tparam string path The path of the file relative to the Dependencies' root
+-- @treturn File The created file object
+function Dependencies:Resource(path)
+	local file = self:_File(path)
+	file.type = "Resource"
+	self.files[path] = file
+	Mediator.Publish({"Dependencies", "create"}, self, file)
 	return file
 end
 
@@ -109,16 +121,9 @@ function Dependencies:_File(path)
 		path = path,
 		shouldExport = true,
 		noWrap = false,
-		__isMain = false,
-		__isFinalizer = false,
+		type = "File",
 		parent = self,
 	}, {__index = File})
-end
-
-function Dependencies:Finalizer(path)
-	local file = self:FindFile(path) or self:File(path)
-	file.__isFinalizer = true
-	self.finalizer = file
 end
 
 --- Add a 'main' file to the dependency list. This is a file that will be executed (added to the end of a script)
@@ -127,8 +132,9 @@ end
 -- @treturn File The created file object
 function Dependencies:Main(path)
 	local file = self:FindFile(path) or self:_File(path)
-	file.__isMain = true
+	file.type = "Main"
 	table.insert(self.mainFiles, file)
+	Mediator.Publish({"Dependencies", "create"}, self, file)
 	return file
 end
 

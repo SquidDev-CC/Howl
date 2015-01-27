@@ -29,7 +29,7 @@ function Depends.Dependencies:Combiner(outputFile, options)
 	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport
-	local loadstring = loadstring
+	local loadstring, format = loadstring, textutils.serialize
 
 	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
@@ -69,18 +69,26 @@ function Depends.Dependencies:Combiner(outputFile, options)
 		fileHandle.close()
 
 		-- Check if it is OK to include this file
-		local continue, result = includeChannel:publish({}, self, filePath, contents, options)
+		local continue, result = includeChannel:publish({}, self, file, contents, options)
 		if not continue then
 			output.close()
-			error(result[#result - 1] or "Unknown error")
+			error(result[#result] or "Unknown error")
 		end
 
 		Utils.Verbose("Adding " .. filePath)
 
 		local moduleName = file.name
-		if file.__isMain then -- If the file is a main file then just print it
+		if file.type == "Main" then -- If the file is a main file then just print it
 			write(contents, file.alias or file.path)
-
+		elseif file.type == "Resource" then
+			local line = assert(moduleName, "A name must be specified for resource " .. file.path) .. "="
+			if not file.shouldExport then
+				line = "local " .. line
+			elseif not shouldExport then
+				exports[#exports + 1] = moduleName
+				line = "local " .. line
+			end
+			write(line .. format(contents), file.alias or file.path) -- If the file is a resource then quote it and print it
 		elseif moduleName then -- If the file has an module name then use that
 			-- Check if we are prevented in setting a custom environment
 			local startFunc, endFunc = functionLoaderName .. '(function()', 'end)'

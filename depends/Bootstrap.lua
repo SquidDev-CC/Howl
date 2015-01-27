@@ -23,6 +23,12 @@ end)
 
 local header = [[
 local env = setmetatable({}, {__index = getfenv()})
+local openFile(filePath)
+	local f = assert(fs.open(filePath, "r"), "Cannot open " .. filePath)
+	local contents = f.readAll()
+	f.close()
+	return contents
+end
 local function doWithResult(file)
 	local currentEnv = setmetatable({}, {__index = env})
 	local result = setfenv(assert(loadfile(file), "Cannot find " .. file), currentEnv)()
@@ -56,8 +62,10 @@ function Depends.Dependencies:CreateBootstrap(outputFile, options)
 		local filePath = format("%q", fs.combine(path, file.path))
 
 		local moduleName = file.name
-		if file.__isMain then -- If the file is a main file then execute it with the file's arguments
+		if file.type == "Main" then -- If the file is a main file then execute it with the file's arguments
 			output.writeLine("doFile(" .. filePath .. ", ...)")
+		elseif file.type == "Resource" then -- If the file is a main file then execute it with the file's arguments
+			output.writeLine("env[" .. format("%q", moduleName) "] = openFile(" .. filePath .. ")")
 
 		elseif moduleName then -- If the file has an module name then use that
 			output.writeLine("env[" .. format("%q", moduleName) .. "] = " .. (file.noWrap and "doFile" or "doWithResult") .. "(" .. filePath .. ")")
