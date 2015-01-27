@@ -64,7 +64,7 @@ function Depends.Dependencies:CreateBootstrap(outputFile, options)
 		local moduleName = file.name
 		if file.type == "Main" then -- If the file is a main file then execute it with the file's arguments
 			output.writeLine("doFile(" .. filePath .. ", ...)")
-		if file.type == "Resource" then -- If the file is a main file then execute it with the file's arguments
+		elseif file.type == "Resource" then -- If the file is a main file then execute it with the file's arguments
 			output.writeLine("env[" .. format("%q", moduleName) "] = openFile(" .. filePath .. ")")
 
 		elseif moduleName then -- If the file has an module name then use that
