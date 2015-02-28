@@ -23,7 +23,7 @@ end)
 
 local header = [[
 local env = setmetatable({}, {__index = getfenv()})
-local openFile(filePath)
+local function openFile(filePath)
 	local f = assert(fs.open(filePath, "r"), "Cannot open " .. filePath)
 	local contents = f.readAll()
 	f.close()
