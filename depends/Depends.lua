@@ -210,6 +210,7 @@ end
 -- @tparam boolean shouldExport Should globals be exported
 -- @treturn Depencencies The current object (allows chaining)
 function Dependencies:Export(shouldExport)
+	if shouldExport == nil then shouldExport = true end
 	self.shouldExport = shouldExport
 	return self
 end
