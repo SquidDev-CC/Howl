@@ -24,7 +24,7 @@ function Runner.Runner:Minify(name, inputFile, outputFile, taskDepends)
 			minifyFile(inputFile, outputFile)
 		end
 	end)
-		:Description("Minifies '" .. fs.getName(inputFile) .. "'' into '" .. fs.getName(outputFile) .. "'")
+		:Description("Minifies '" .. fs.getName(inputFile) .. "' into '" .. fs.getName(outputFile) .. "'")
 		:Requires(inputFile)
 		:Produces(outputFile)
 end
