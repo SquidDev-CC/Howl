@@ -2,8 +2,8 @@
 -- @module HowlFile
 
 --- Finds the howl file
--- @treturn string The name of the howl file
--- @treturn string The path of the howl file
+-- @treturn string The name of the howl file or nil if not found
+-- @treturn string The path of the howl file or the error message if not found
 local function FindHowl()
 	local currentDirectory = Helpers.dir()
 	local howlFiles = {"Howlfile", "Howlfile.lua"}
@@ -23,7 +23,7 @@ local function FindHowl()
 	end
 
 
-	error("Cannot find HowlFile. Looking for '" .. table.concat(howlFiles, "', '") .. "'")
+	return nil, "Cannot find HowlFile. Looking for '" .. table.concat(howlFiles, "', '") .. "'"
 end
 
 local hooks = {}

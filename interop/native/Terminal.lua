@@ -77,6 +77,7 @@ local function setTextColor(color)
 	local col = colorMappings[color]
 	if not col then error("Cannot find color " .. tostring(color), 2) end
 	io.write(escapeBegin .. col .. "m")
+	io.flush()
 end
 
 local function setBackgroundColor(color)

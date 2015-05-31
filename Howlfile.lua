@@ -22,6 +22,7 @@ do -- Setup options
 	Options:Option "with-interop"
 		:Description "Include the interop library"
 		:Alias "wi"
+		:Default(not shell and not redstone)
 
 	Options:Option "with-external"
 		:Description "Include external tools"

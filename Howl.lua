@@ -34,6 +34,24 @@ options
 
 -- Locate the howl file
 local howlFile, currentDirectory = HowlFile.FindHowl()
+if not howlFile then
+	if options:Get("help") or (#taskList == 1 and taskList[1] == "help") then
+		Utils.PrintColor(colors.yellow, "Howl")
+		Utils.PrintColor(colors.lightGrey, "Howl is a simple build system for Lua")
+		Utils.PrintColor(colors.grey, "You can read the full documentation online: https://github.com/SquidDev-CC/Howl/wiki/")
+
+		Utils.PrintColor(colors.white, (([[
+			The key thing you are missing is a HowlFile. This can be "Howlfile" or "Howlfile.lua".
+			Then you need to define some tasks. Maybe something like this:
+		]]):gsub("\t", "")))
+
+		Utils.PrintColor(colors.pink, 'Tasks:Minify("minify", "Result.lua", "Result.min.lua")')
+
+		Utils.PrintColor(colors.white, "Now just run `Howl minify`!")
+	end
+	error(currentDirectory, 0)
+end
+
 HowlFile.CurrentDirectory = currentDirectory
 Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 
