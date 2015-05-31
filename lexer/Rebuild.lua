@@ -52,7 +52,7 @@ end
 local function Minify(ast)
 	local formatStatlist, formatExpr
 	local count = 0
-	local function joinStatements(left, right, set)
+	local function joinStatements(left, right, sep)
 		if count > 150 then
 			count = 0
 			return left .. "\n" .. right
@@ -345,6 +345,7 @@ local function Minify(ast)
 		for _, stat in pairs(statList.Body) do
 			out = joinStatements(out, formatStatement(stat), ';')
 		end
+		print(out)
 		return out
 	end
 
