@@ -8,11 +8,7 @@ require('pl')
 	fs.list(string path)	table files	Returns a list of all the files (including subdirectories but not their contents) contained in a directory, as a numerically indexed table.
 	fs.exists(string path)	boolean exists	Checks if a path refers to an existing file or directory.
 	fs.isDir(string path)	boolean isDirectory	Checks if a path refers to an existing directory.
-	fs.isReadOnly(string path)	boolean readonly	Checks if a path is read-only (i.e. cannot be modified).
 	fs.getName(string path)	string name	Gets the final component of a pathname.
-	fs.getDrive(string path)	string/nil drive	Gets the storage medium holding a path, or nil if the path does not exist.
-	fs.getSize(string path)	number size	Gets the size of a file in bytes.
-	fs.getFreeSpace(string path)	number space	Gets the remaining space on the drive containing the given directory.
 	fs.makeDir(string path)	nil	Makes a directory.
 	fs.move(string fromPath, string toPath)	nil	Moves a file or directory to a new location.
 	fs.copy(string fromPath, string toPath)	nil	Copies a file or directory to a new location.
@@ -22,12 +18,6 @@ require('pl')
 	fs.find(string wildcard)	table files	Searches the computer's files using wildcards. Requires version 1.6 or later.
 	fs.getDir(string path)	string parentDirectory	Returns the parent directory of path. Requires version 1.63 or later.
 ]]
-
-
-local function isReadOnly(path) return false end
-local function find(pattern) error("'find' Not implemented", 2) end
-local function getDrive(file) return "hdd" end
-local function getFreeSize(file) return 2^32 end
 
 local function list(dir)
 	local result = {}
@@ -116,21 +106,30 @@ local function combine(...)
 	return path.normpath(path.join(...))
 end
 
+local function delete(file)
+	if path.exists(file) then dir.rmtree(file) end
+end
+
+local function mkdir(dir)
+	if not path.exists(dir) then
+		builder = ''
+		for _, sub in ipairs(split(dir, '/')) do
+			builder = path.join(builder, sub)
+			path.mkdir(builder)
+		end
+	end
+end
+
 return {
 	list        = list,
 	exists      = path.exists,
 	isDir       = path.isdir,
-	isReadOnly  = isReadOnly,
 	getName     = path.basename,
-	getDrive    = getDrive,
-	getSize     = path.getsize,
-	getFreeSize = getFreeSize,
-	makeDir     = path.mkdir,
+	makeDir     = mkdir,
 	move        = file.move,
 	copy        = file.copy,
-	delete      = dir.rmtree,
+	delete      = delete,
 	combine     = combine,
 	open        = open,
-	find        = find,
 	getDir      = path.dirname,
 }

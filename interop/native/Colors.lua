@@ -20,23 +20,3 @@ black = 32768
 
 grey = gray
 lightGrey = lightGray
-
-function combine( ... )
-    local r = 0
-    for n,c in ipairs( { ... } ) do
-        r = bit.bor(r,c)
-    end
-    return r
-end
-
-function subtract( colors, ... )
-	local r = colors
-	for n,c in ipairs( { ... } ) do
-		r = bit.band(r, bit.bnot(c))
-	end
-	return r
-end
-
-function test( colors, color )
-    return ((bit.band(colors, color)) == color)
-end

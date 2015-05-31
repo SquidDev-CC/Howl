@@ -84,8 +84,7 @@ function Context:Run(name, ...)
 	self.ran[task] = true
 
 	-- Sleep before every task just in case
-	os.queueEvent("sleep")
-	os.pullEvent()
+	Helpers.refreshYield()
 
 	return task:Run(self, ...)
 end

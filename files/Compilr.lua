@@ -262,7 +262,7 @@ function Files.Files:Compilr(output, options)
 		root[fs.getName(file)] = contents
 	end
 
-	local result = header .. "local files = " .. textutils.serialize(resultFiles) .. "\n" .. string.format(footer, self.startup, self.startup)
+	local result = header .. "local files = " .. Helpers.serialize(resultFiles) .. "\n" .. string.format(footer, self.startup, self.startup)
 
 	if options.minify then
 		result = Rebuild.MinifyString(result)

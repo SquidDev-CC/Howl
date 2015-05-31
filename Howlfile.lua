@@ -63,13 +63,16 @@ do -- Core files
 		:Depends "Utils"
 
 	Sources:File "core/Utils.lua"          :Name "Utils"
+		:Depends "Helpers"
 	Sources:File "core/HowlFileLoader.lua" :Name "HowlFile"
+		:Depends "Helpers"
 	Sources:File "core/Dump.lua"           :Name "Dump"
 end
 
 do -- Task files
 	Sources:File "tasks/Context.lua"
 		:Name "Context"
+		:Depends "Helpers"
 		:Depends "HowlFile"
 		:Depends "Utils"
 
@@ -98,6 +101,7 @@ do -- Dependencies
 	Sources:File "depends/Combiner.lua"
 		:Alias "Combiner"
 		:Depends "Depends"
+		:Depends "Helpers"
 		:Depends "HowlFile"
 		:Depends "Runner"
 		:Depends "Task"
@@ -115,6 +119,7 @@ do -- Dependencies
 
 	Sources:File "depends/modules/Traceback.lua"
 		:Alias "Combiner.Traceback"
+		:Depends "Helpers"
 		:Depends "Mediator"
 end
 
@@ -129,6 +134,7 @@ do -- Minification
 	Sources:File "lexer/Rebuild.lua"
 		:Name "Rebuild"
 		:Depends "Constants"
+		:Depends "Helpers"
 		:Depends "HowlFile"
 		:Depends "Parse"
 
@@ -157,23 +163,22 @@ do -- Files (Compilr)
 	Sources:File "files/Compilr.lua"
 		:Alias "Compilr"
 		:Depends "Files"
+		:Depends "Helpers"
 		:Depends "Rebuild"
 		:Depends "Runner"
 end
 
-do -- Interop
-	Sources:File "interop/Colors.lua"     :Name "colors"
-	Sources:File "interop/FileSystem.lua" :Name "fs"
-	Sources:File "interop/Shell.lua"      :Name "shell"
-
-	Sources:File "interop/Terminal.lua"
+if Options:Get("with-interop") then
+	Sources:File "interop/native/Colors.lua"     :Name "colors"
+	Sources:File "interop/native/FileSystem.lua" :Name "fs"
+	Sources:File "interop/native/Terminal.lua"
 		:Name "term"
 		:Depends "colors"
-
-	Sources:File "interop/Globals.lua"
-		:Alias "InteropGlobals"
-		:Depends "term"
-		:Depends "colors"
+	Sources:File "interop/native/Helpers.lua"
+		:Name "Helpers"
+		:Prerequisite { "colors", "fs", "term" }
+else
+	Sources:File "interop/CC.lua" :Name "Helpers"
 end
 
 do -- External tools
@@ -205,15 +210,6 @@ do -- Options parsing
 	if Options:Get("with-files") then
 		Verbose("Including Files")
 		Sources:Depends{"Compilr"}
-	end
-
-	if Options:Get("with-interop") then
-		Verbose("Including Interop")
-		Sources
-			:Prerequisite "InteropGlobals"
-			:Prerequisite "shell"
-			:Prerequisite "fs"
-			:Prerequisite "term"
 	end
 
 	if Options:Get("with-external") then

@@ -19,13 +19,17 @@ end
 local function WriteColor(color, text)
 	local isColor = term.isColor()
 	if isColor then term.setTextColor(color) end
-	write(text)
+	io.write(text)
 	if isColor then term.setTextColor(colors.white) end
 end
 
 --- Prints a string in green if colour is supported
 -- @param ... Values to print
 local function PrintSuccess(...) PrintColor(colors.green, ...) end
+
+--- Prints a string in red if colour is supported
+-- @param ... Values to print
+local function PrintError(...) PrintColor(colors.red, ...) end
 
 --- Check if verbose is true
 -- @tparam ?|value If not nil, set verbose to true
@@ -56,7 +60,7 @@ local function VerboseLog(...)
 		for _, value in ipairs({...}) do
 			local t = type(value)
 			if t == "table" then
-				local dmp = Dump or textutils.serialize
+				local dmp = Dump or Helpers.serialize
 				value = dmp(value)
 			else
 				value = tostring(value)
@@ -170,8 +174,6 @@ end
 
 --- Print messages
 local Print = print
---- Print error messages
-local PrintError = printError
 
 --- @export
 return {

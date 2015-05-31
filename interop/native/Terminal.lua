@@ -22,20 +22,20 @@ local escapeBegin = string.char(27) .. '['
 
 local write, format = io.write, string.format
 
-local function clear() write(escapeBegin .. "2J") end
-local function clearLine() write(escapeBegin .. "2K") end
+local function clear() io.write(escapeBegin .. "2J") end
+local function clearLine() io.write(escapeBegin .. "2K") end
 
 local function getCursorPos() return 1, 1 end
 
 local function setCursorPos(x, y)
-	write(format(escapeBegin .. "%d;%dH", x, y))
+	io.write(format(escapeBegin .. "%d;%dH", x, y))
 end
 
 local function setCursorBlink(blink)
 	if blink then
-		write(escapeBegin .. "5m")
+		io.write(escapeBegin .. "5m")
 	else
-		write(escapeBegin .. "25m")
+		io.write(escapeBegin .. "25m")
 	end
 end
 
@@ -44,9 +44,9 @@ local function getSize() return 80, 25 end
 
 local function scroll(n)
 	if n > 0 then
-		write(format(escapeBegin .. '%dS', n))
+		io.write(format(escapeBegin .. '%dS', n))
 	elseif n < 0 then
-		write(format(escapeBegin .. '%dT', -n))
+		io.write(format(escapeBegin .. '%dT', -n))
 	end
 end
 
@@ -76,13 +76,13 @@ colorMappings = {
 local function setTextColor(color)
 	local col = colorMappings[color]
 	if not col then error("Cannot find color " .. tostring(color), 2) end
-	write(escapeBegin .. col .. "m")
+	io.write(escapeBegin .. col .. "m")
 end
 
 local function setBackgroundColor(color)
 	local col = colorMappings[color]
 	if not col then error("Cannot find color " .. tostring(color), 2) end
-	write(escapeBegin .. (col + 10) .. "m")
+	io.write(escapeBegin .. (col + 10) .. "m")
 end
 
 --- @export

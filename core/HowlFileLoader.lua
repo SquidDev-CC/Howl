@@ -5,7 +5,7 @@
 -- @treturn string The name of the howl file
 -- @treturn string The path of the howl file
 local function FindHowl()
-	local currentDirectory = shell.dir()
+	local currentDirectory = Helpers.dir()
 	local howlFiles = {"Howlfile", "Howlfile.lua"}
 
 	while true do

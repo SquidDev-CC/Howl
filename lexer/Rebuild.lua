@@ -351,17 +351,15 @@ local function Minify(ast)
 	return formatStatlist(ast)
 end
 
-local push, pop = os.queueEvent, coroutine.yield
-
 --- Minify a string
 -- @tparam string input The input string
 -- @treturn string The minifyied string
 local function MinifyString(input)
 	local lex = Parse.LexLua(input)
-	push("sleep") pop("sleep") -- Minifying often takes too long
+	Helpers.refreshYield()
 
 	lex = Parse.ParseLua(lex)
-	push("sleep") pop("sleep")
+	Helpers.refreshYield()
 
 	return Minify(lex)
 end

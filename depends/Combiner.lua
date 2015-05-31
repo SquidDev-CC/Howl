@@ -29,7 +29,7 @@ function Depends.Dependencies:Combiner(outputFile, options)
 	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport
-	local loadstring, format = loadstring, textutils.serialize
+	local loadstring, format = loadstring, Helpers.serialize
 
 	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
