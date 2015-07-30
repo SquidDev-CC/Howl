@@ -11,8 +11,9 @@ local functionLoaderName = "_W"
 	This probably need some work as a function but...
 ]]
 local functionLoader = ("local function " .. functionLoaderName .. [[(f)
-	local e=setmetatable({}, {__index = getfenv()})
-	return setfenv(f,e)() or e
+	local e=setmetatable({}, {__index = _ENV or getfenv()})
+	if setfenv then setfenv(f, e) end
+	return f(e) or e
 end]]):gsub("[\t\n ]+", " ")
 
 --- Combiner options
@@ -91,9 +92,9 @@ function Depends.Dependencies:Combiner(outputFile, options)
 			write(line .. format(contents), file.alias or file.path) -- If the file is a resource then quote it and print it
 		elseif moduleName then -- If the file has an module name then use that
 			-- Check if we are prevented in setting a custom environment
-			local startFunc, endFunc = functionLoaderName .. '(function()', 'end)'
+			local startFunc, endFunc = functionLoaderName .. '(function(_ENV, ...)', 'end)'
 			if file.noWrap then
-				startFunc, endFunc = '(function()', 'end)()'
+				startFunc, endFunc = '(function(...)', 'end)()'
 			end
 
 			local line = moduleName .. '=' .. startFunc
