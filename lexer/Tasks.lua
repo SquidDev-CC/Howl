@@ -1,6 +1,7 @@
 --- Tasks for the lexer
 -- @module lexer.Tasks
 local minifyFile = Rebuild.MinifyFile
+local minifyDiscard = function(self, i, o) return minifyFile(i, o) end
 
 --- A task that minifies a source file
 -- @tparam string name Name of the task
@@ -36,7 +37,7 @@ end
 -- @treturn tasks.Runner.Runner The task runner (for chaining)
 function Runner.Runner:MinifyAll(name, inputPattern, outputPattern)
 	name = name or "_minify"
-	return self:AddTask(name, {}, minifyFile)
+	return self:AddTask(name, {}, minifyDiscard)
 		:Description("Minifies files")
 		:Maps(inputPattern or "wild:*.lua", outputPattern or "wild:*.min.lua")
 end

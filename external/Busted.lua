@@ -1,7 +1,7 @@
 --- Tasks for the lexer
 -- @module external.Busted
 
-local combine, resolve, exists, isDir, loadfile, verbose = fs.combine, shell.resolve, fs.exists, fs.isDir, loadfile, Utils.Verbose
+local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, Utils.Verbose
 local busted = busted
 
 local names = {"busted.api.lua", "../lib/busted.api.lua", "busted.api", "../lib/busted.api", "busted", "../lib/busted"}
@@ -11,18 +11,16 @@ local function loadOneBusted(path)
 	local file = loadfile(path)
 	if file then
 		verbose("Busted loading at " .. path)
-		local env = setmetatable({}, {__index = getfenv()})
-		setfenv(file, env)()
-		if env.run then
-			verbose("Busted found at" .. path)
-			return env
+		local bst = setfenv(file, getfenv())()
+		bst = bst.api or bst
+		if bst.run then
+			verbose("Busted found at " .. path)
+			return bst
 		end
 	end
 end
 
 local function findOneBusted(folder)
-	local absolute = resolve(folder)
-
 	if not exists(folder) then return end
 	if not isDir(folder) then
 		return loadOneBusted(folder)

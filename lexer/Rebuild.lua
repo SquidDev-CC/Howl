@@ -345,7 +345,6 @@ local function Minify(ast)
 		for _, stat in pairs(statList.Body) do
 			out = joinStatements(out, formatStatement(stat), ';')
 		end
-		print(out)
 		return out
 	end
 

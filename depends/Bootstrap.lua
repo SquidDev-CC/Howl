@@ -95,4 +95,5 @@ function Runner.Runner:CreateBootstrap(name, dependencies, outputFile, taskDepen
 	end, Task.OptionTask))
 		:Description("Creates a 'dynamic' combination of files in '" .. outputFile .. "')")
 		:Produces(outputFile)
+		:Requires(dependencies:Paths())
 end

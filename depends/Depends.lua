@@ -241,6 +241,14 @@ function Dependencies:CloneDependencies(deep)
 	return result
 end
 
+function Dependencies:Paths()
+	local i, t = table.insert, {}
+	for _, file in pairs(self.files) do
+		i(t, file.path)
+	end
+	return t
+end
+
 --- Add files to environment
 Mediator.Subscribe({"HowlFile", "env"}, function(env)
 	env.Dependencies = Factory

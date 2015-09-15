@@ -119,7 +119,7 @@ function Depends.Dependencies:Combiner(outputFile, options)
 	end
 
 	-- Should we export any values?
-	if shouldExport then
+	if #exports > 0 and #self.mainFiles == 0 then
 		local exported = {}
 		for _, export in ipairs(exports) do
 			exported[#exported+1] = export .. "=" .. export ..", "
@@ -144,4 +144,5 @@ function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
 	end, Task.OptionTask))
 		:Description("Combines files into '" .. outputFile .. "'")
 		:Produces(outputFile)
+		:Requires(dependencies:Paths())
 end

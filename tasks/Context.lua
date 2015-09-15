@@ -62,6 +62,15 @@ function Context:DoRequire(path, quite)
 	return false
 end
 
+local function arrayEquals(x, y)
+	local len = #x
+	if #x ~= #y then return false end
+
+	for i = 1, len do
+		if x[i] ~= y[i] then return false end
+	end
+	return true
+end
 --- Run a task
 -- @tparam string|Task.Task name The name of the task or a Task object
 -- @param ... The arguments to pass to it
@@ -80,8 +89,18 @@ function Context:Run(name, ...)
 		return false
 	end
 
-	if self.ran[task] then return true end
-	self.ran[task] = true
+	-- Search if this task has been run with the given arguments
+	local args = {...}
+	local ran = self.ran[task]
+	if not ran then
+		ran = {args}
+		self.ran[task] = ran
+	else
+		for i = 1, #ran do
+			if arrayEquals(args, ran[i]) then return true end
+		end
+		ran[#ran + 1] = args
+	end
 
 	-- Sleep before every task just in case
 	Helpers.refreshYield()

@@ -152,7 +152,7 @@ function Task:Run(context, ...)
 		end
 
 		if context.ShowTime then
-			Utils.Print("\t", "Took " .. os.clock() - oldTime .. "s")
+			Utils.Print(" ", "Took " .. os.clock() - oldTime .. "s")
 		end
 
 		return s

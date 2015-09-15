@@ -59,6 +59,6 @@ end, env), function(err)
 	for i = 3, 15 do
 		local s, msg = pcall(error, "", i)
 		if msg:match("_Bootstrap.lua") then break end
-		print("\t", msg)
+		print(" ", msg)
 	end
 end)
