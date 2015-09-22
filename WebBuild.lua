@@ -1,5 +1,6 @@
 local tries = 2
 local branch = "master"
+local once = false
 local task, repo
 
 -- Parse the arguments
@@ -22,6 +23,8 @@ while index <= length do
 		elseif tries <= 0 then
 			error("Tries must be >= 1", 0)
 		end
+	elseif arg == "--once" then
+		once = true
 	elseif arg == "--task" or arg == "-task" or arg == "-t" then
 		index = index + 1
 		task = args[index]
@@ -95,7 +98,7 @@ while #errored > 0 do
 	end
 end
 
-local settings
+local settings = {}
 do
 	local howlSettings = files['.howl']
 	if howlSettings then
@@ -104,11 +107,15 @@ do
 	end
 end
 
+if not task then
+	task = settings.defaultTask
+end
+
 local env = vfs(shell.dir(), files)
 local howl
 
 do
-	local howlBin = settings and settings.howl or "http://pastebin.com/raw.php?i=uHRTm9hp"
+	local howlBin = settings.howl or "http://pastebin.com/raw.php?i=uHRTm9hp"
 	local handle
 	if howlBin:sub(1, 7) == "http://" or howlBin:sub(1, 8) == "https://" then
 		print("Downloading Howl...")
@@ -152,6 +159,8 @@ while true do
 		print("Running task failed:")
 		printError(result)
 	end
+
+	if once then break end
 
 	term.write("Task > ")
 	args = tokenise(read())
