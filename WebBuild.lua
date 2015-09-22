@@ -61,7 +61,7 @@ end
 
 local function fetch(tree)
 	local errored = {}
-	print("Downloading...")
+	write("Downloading...")
 	local function callback(success, path, file, count, total)
 		if not success then
 			errored[#errored + 1] = file
@@ -104,29 +104,34 @@ do
 	end
 end
 
+local env = vfs(shell.dir(), files)
 local howl
+
 do
 	local howlBin = settings and settings.howl or "http://pastebin.com/raw.php?i=uHRTm9hp"
-	local handle = http.get(howlBin)
+	local handle
+	if howlBin:sub(1, 7) == "http://" or howlBin:sub(1, 8) == "https://" then
+		print("Downloading Howl...")
+		handle = http.get(howlBin)
+	else
+		handle = env.fs.open(howlBin)
+	end
 	if not handle then error("Cannot find Howl at " .. howlBin, 0) end
 
 	howl = handle.readAll()
 	handle.close()
 end
 
-local env = vfs(shell.dir(), files)
-
 local howlFunc = assert(load(howl, "Howl", nil, setmetatable(env, { __index = _ENV})))
 
-local function tokenise(...)
-	local line = table.concat({ ... }, " ")
+local function tokenise(line)
 	local words = {}
 	local bQuoted = false
-	for match in string.gmatch(line .. "\"", "(.-)\"") do
+	for match in (line .. "\""):gmatch("(.-)\"") do
 		if bQuoted then
 			words[#words + 1] = match
 		else
-			for m in string.gmatch( match, "[^ \t]+" ) do
+			for m in match:gmatch("[^ \t]+") do
 				words[#words + 1] = m
 			end
 		end

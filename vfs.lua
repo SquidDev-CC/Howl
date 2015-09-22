@@ -23,14 +23,8 @@ local function escapePattern(pattern)
 	return (pattern:gsub(".", matches))
 end
 
-local function resolveLocal(root, path)
-	path = fs.combine(path, "")
-	if path == root or path:sub(1, #root + 1) == root .. "/" then
-		return path:sub(#root + 2)
-	end
-
-	return nil
-end
+local function matchesLocal(root, path) return path == root or path:sub(1, #root + 1) == root .. "/" end
+local function extractLocal(root, path) return path:sub(#root + 2) end
 
 --[[
 Emulates a basic file system.
@@ -47,11 +41,11 @@ return function(root, files)
 	env = {
 		fs = {
 			list = function(path)
+				path = fs.combine(path, "")
 				local list = fs.isDir(path) and fs.list(path) or {}
 
-				path = resolveLocal(root, path)
-				if path ~= nil then
-					local pattern = "^" .. escapePattern(path)
+				if matchesLocal(root, path) then
+					local pattern = "^" .. escapePattern(extractLocal(root, path))
 					if path ~= "" then pattern = pattern .. '/' end
 					pattern = pattern .. '([^/]+)$'
 
@@ -66,26 +60,29 @@ return function(root, files)
 			end,
 
 			exists = function(path)
+				path = fs.combine(path, "")
 				if fs.exists(path) then
 					return true
-				else
-					path = resolveLocal(root, path)
-					return path ~= nil and files[fs.combine(path, '')] ~= nil
+				elseif matchesLocal(root, path) then
+					return files[extractLocal(root, path)] ~= nil
 				end
 			end,
 
 			isDir = function(path)
+				path = fs.combine(path, "")
 				if fs.isDir(path) then
 					return true
-				else
-					path = resolveLocal(root, path)
-					return path ~= nil and files[fs.combine(path, '')] == true
+				elseif matchesLocal(root, path) then
+					return files[extractLocal(root, path)] == true
 				end
 			end,
 
 			isReadOnly = function(path)
+				path = fs.combine(path, "")
 				if fs.exists(path) then
 					return fs.isReadOnly(path)
+				elseif matchesLocal(root, path) and files[extractLocal(root, path)] ~= nil then
+					return true
 				else
 					return false
 				end
@@ -104,14 +101,13 @@ return function(root, files)
 			copy = fs.copy,
 
 			open = function(path, mode)
-				if fs.exists(path) then
-					return fs.open(path, mode)
-				else
-					path = resolveLocal(root, path)
-					if path and type(files[subPath]) == 'string' then
+				path = fs.combine(path, "")
+				if matchesLocal(root, path) then
+					local localPath = extractLocal(root, path)
+					if type(files[localPath]) == 'string' then
 						local handle = {close = function()end}
 						if mode == 'r' then
-							local content = files[subPath]
+							local content = files[localPath]
 							handle.readAll = function()
 								return content
 							end

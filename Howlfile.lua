@@ -11,8 +11,8 @@ Sources:Main "WebBuild.lua"
 Tasks:Clean("clean", "build")
 Tasks:Combine("combine", Sources, "build/WebBuild.lua", {"clean"})
 	:Verify()
-	:Traceback()
-	:LineMapping()
+	--:Traceback()
+	--:LineMapping()
 
 Tasks:Minify("minify", "build/WebBuild.lua", "build/WebBuild.min.lua")
 
