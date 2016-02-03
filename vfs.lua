@@ -26,17 +26,32 @@ end
 local function matchesLocal(root, path) return path == root or path:sub(1, #root + 1) == root .. "/" end
 local function extractLocal(root, path) return path:sub(#root + 2) end
 
+
+local function matchesPreserve(root, preserve, path)
+	if matchesLocal(root, path) then
+		if preserve then
+			for k, item in pairs()
+		end
+	end
+end
+local function copy(old)
+	local new = {}
+	for k, v in pairs(old) do new[k] = v print(k) end
+	return new
+end
+
 --[[
-Emulates a basic file system.
-This doesn't have to be too advanced as it is only for Howl's use
+	Emulates a basic file system.
+	This doesn't have to be too advanced as it is only for Howl's use
 
-The files is a list of paths to file contents, or true if the file
-is a directory. Each file must start with the "/"
+	The files is a list of paths to file contents, or true if the file
+	is a directory.
 
-TODO: Override IO
+	TODO: Override IO
 ]]
-return function(root, files)
+return function(root, files, public)
 	-- Emulated filesystem (partially based of Oeed's)
+	files = copy(files)
 	local env
 	env = {
 		fs = {
@@ -92,13 +107,15 @@ return function(root, files)
 			getDir = fs.getDir,
 			getSize = fs.getSize,
 			getFreespace = fs.getFreespace,
-			makeDir = fs.makeDir,
-			delete = fs.delete,
 			combine = fs.combine,
 
 			-- TODO: This should be implemented
 			move = fs.move,
 			copy = fs.copy,
+			makeDir = function(dir)
+
+			end,
+			delete = fs.delete,
 
 			open = function(path, mode)
 				path = fs.combine(path, "")
