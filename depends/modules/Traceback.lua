@@ -7,10 +7,14 @@ local find = string.find
 local lineMapper = {
 	header = [[
 		-- Maps
-		local lineToModule = setmetatable({{lineToModule}}, {
-			__index = function(t, k)
-				if k > 1 then return t[k-1] end
+		local lineToModule = {{lineToModule}}
+		local getLine(line)
+			while line >= 0 do
+				local l = lineToModule[line]
+				if l then return l end
+				line = line - 1
 			end
+			return -1
 		})
 		local moduleStarts = {{moduleStarts}}
 		local programEnd = {{lastLine}}
@@ -28,7 +32,7 @@ local lineMapper = {
 			if line > programEnd then return end
 
 			-- convert to module lines
-			filename = lineToModule[line] or "<?>"
+			filename = getLine(line) or "<?>"
 			local newLine = moduleStarts[filename]
 			if newLine then
 				line = line - newLine + 1
