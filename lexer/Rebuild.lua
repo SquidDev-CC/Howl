@@ -364,12 +364,12 @@ local function MinifyString(input)
 end
 
 --- Minify a file
+-- @tparam string cd Current directory
 -- @tparam string inputFile File to read from
 -- @tparam string outputFile File to write to (Defaults to inputFile)
-local function MinifyFile(inputFile, outputFile)
+local function MinifyFile(cd, inputFile, outputFile)
 	outputFile = outputFile or inputFile
 
-	local cd = HowlFile.CurrentDirectory
 	local input = fs.open(fs.combine(cd, inputFile), "r")
 	local contents = input.readAll()
 	input.close()

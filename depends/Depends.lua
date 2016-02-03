@@ -78,12 +78,13 @@ local Dependencies = {}
 
 --- Create a new Dependencies object
 -- @tparam string path The base path of the dependencies
+-- @tparam Dependencies parent The parent dependencies
 -- @treturn Dependencies The new Dependencies object
 local function Factory(path, parent)
 	return setmetatable({
 		mainFiles = {},
 		files = {},
-		path = path or HowlFile.CurrentDirectory,
+		path = path,
 		namespaces = {},
 		shouldExport = false,
 		parent = parent,
@@ -251,8 +252,8 @@ end
 
 --- Add files to environment
 Mediator.Subscribe({ "HowlFile", "env" }, function(env)
-	env.Dependencies = Factory
-	env.Sources = Factory()
+	env.Dependencies = function(...) return Factory(env.CurrentDirectory, ...) end
+	env.Sources = Factory(env.CurrentDirectory)
 end)
 
 --- @export

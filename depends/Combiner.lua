@@ -23,16 +23,17 @@ end]]):gsub("[\t\n ]+", " ")
 -- @tfield boolean traceback Print the traceback out
 
 --- Combines Dependencies into one file
+-- @tparam env env The current environment
 -- @tparam string outputFile The path of the output file
 -- @tparam CombinerOptions options Options for combining
 -- @see Depends.Dependencies
-function Depends.Dependencies:Combiner(outputFile, options)
+function Depends.Dependencies:Combiner(env, outputFile, options)
 	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport
 	local format = Helpers.serialize
 
-	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
+	local output = fs.open(fs.combine(env.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
 
 	local includeChannel = combinerMediator:getChannel("include")
@@ -139,8 +140,8 @@ end
 -- @treturn CombinerTask The created task
 -- @see tasks.Runner.Runner
 function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(Task.Factory(name, taskDepends, function(options)
-		dependencies:Combiner(outputFile, options)
+	return self:InjectTask(Task.Factory(name, taskDepends, function(options, env)
+		dependencies:Combiner(env, outputFile, options)
 	end, Task.OptionTask))
 		:Description("Combines files into '" .. outputFile .. "'")
 		:Produces(outputFile)

@@ -80,9 +80,14 @@ function Runner:RunMany(names)
 end
 
 --- Create a @{Runner} object
+-- @tparam env env The current environment
 -- @treturn Runner The created runner object
-local function Factory()
-	return setmetatable({ tasks = {}, default = nil }, { __index = Runner })
+local function Factory(env)
+	return setmetatable({
+		tasks = {},
+		default = nil,
+		env = env,
+	}, { __index = Runner })
 end
 
 --- @export

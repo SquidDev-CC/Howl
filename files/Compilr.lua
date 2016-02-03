@@ -228,7 +228,7 @@ else
 end
 ]]
 
-function Files.Files:Compilr(output, options)
+function Files.Files:Compilr(env, output, options)
 	local path = self.path
 	options = options or {}
 
@@ -268,14 +268,14 @@ function Files.Files:Compilr(output, options)
 		result = Rebuild.MinifyString(result)
 	end
 
-	local outputFile = fs.open(fs.combine(HowlFile.CurrentDirectory, output), "w")
+	local outputFile = fs.open(fs.combine(env.CurrentDirectory, output), "w")
 	outputFile.write(result)
 	outputFile.close()
 end
 
 function Runner.Runner:Compilr(name, files, outputFile, taskDepends)
-	return self:AddTask(name, taskDepends, function()
-		files:Compilr(outputFile)
+	return self:AddTask(name, taskDepends, function(task, env)
+		files:Compilr(env, outputFile)
 	end)
 		:Description("Combines multiple files using Compilr")
 		:Produces(outputFile)

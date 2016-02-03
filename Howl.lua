@@ -2,18 +2,6 @@
 -- @script Howl
 
 local options = ArgParse.Options({ ... })
-local tasks = Runner.Factory()
-local taskList = options:Arguments()
-
-Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
-	Utils.IsVerbose(options:Get("verbose") or false)
-	tasks.ShowTime = options:Get "time"
-	tasks.Traceback = options:Get "trace"
-
-	if options:Get "help" then
-		taskList = { "help" }
-	end
-end)
 
 options
 	:Option "verbose"
@@ -52,10 +40,22 @@ if not howlFile then
 	error(currentDirectory, 0)
 end
 
-HowlFile.CurrentDirectory = currentDirectory
 Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 
 -- SETUP TASKS
+local tasks = Runner.Factory({ CurrentDirectory = currentDirectory })
+local taskList = options:Arguments()
+
+Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
+	Utils.IsVerbose(options:Get("verbose") or false)
+	tasks.ShowTime = options:Get "time"
+	tasks.Traceback = options:Get "trace"
+
+	if options:Get "help" then
+		taskList = { "help" }
+	end
+end)
+
 -- Basic list tasks
 tasks:Task "list" (function()
 	tasks:ListTasks()

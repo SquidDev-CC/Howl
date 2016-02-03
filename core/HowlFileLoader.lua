@@ -52,6 +52,5 @@ end
 --- @export
 return {
 	FindHowl = FindHowl,
-	SetupEnvironment = SetupEnvironment,
-	CurrentDirectory = ""
+	SetupEnvironment = SetupEnvironment
 }

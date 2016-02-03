@@ -57,9 +57,9 @@ local function findBusted()
 	end
 end
 
-local function getDefaults()
+local function getDefaults(cwd)
 	return {
-		cwd = HowlFile.CurrentDirectory,
+		cwd = cwd,
 		output = 'colorTerminal',
 		seed = os.time(),
 		verbose = Utils.IsVerbose(),
@@ -80,7 +80,7 @@ end
 -- @treturn Runner.Runner The task runner (for chaining)
 -- @see tasks.Runner.Runner
 function Runner.Runner:Busted(name, options, taskDepends)
-	return self:AddTask(name, taskDepends, function()
+	return self:AddTask(name, taskDepends, function(task, env)
 		local busted
 		if options and options.busted then
 			busted = findOneBusted(options.busted)
@@ -89,12 +89,12 @@ function Runner.Runner:Busted(name, options, taskDepends)
 		end
 		if not busted then error("Cannot find busted") end
 
-		local newOptions = getDefaults()
+		local newOptions = getDefaults(env.CurrentDirectory)
 		for k, v in pairs(options or {}) do
 			newOptions[k] = v
 		end
 
-		local count, errors = busted.run(newOptions, getDefaults())
+		local count, errors = busted.run(newOptions, getDefaults(env.CurrentDirectory))
 		if count ~= 0 then
 			Utils.VerboseLog(errors)
 			error("Not all tests passed")

@@ -42,13 +42,14 @@ end
 
 --- Combines dependencies dynamically into one file
 -- These files are loaded using loadfile rather than loaded at compile time
+-- @tparam env env The current environment
 -- @tparam string outputFile The path of the output file
 -- @tparam table options Include code to print the traceback
 -- @see Depends.Dependencies
-function Depends.Dependencies:CreateBootstrap(outputFile, options)
+function Depends.Dependencies:CreateBootstrap(env, outputFile, options)
 	local path = self.path
 
-	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
+	local output = fs.open(fs.combine(env.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create" .. outputFile)
 
 	if options.traceback then
@@ -89,8 +90,8 @@ end
 -- @treturn Bootstrap The created task
 -- @see tasks.Runner.Runner
 function Runner.Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(Task.Factory(name, taskDepends, function(traceback)
-		dependencies:CreateBootstrap(outputFile, traceback)
+	return self:InjectTask(Task.Factory(name, taskDepends, function(traceback, env)
+		dependencies:CreateBootstrap(env, outputFile, traceback)
 	end, Task.OptionTask))
 		:Description("Creates a 'dynamic' combination of files in '" .. outputFile .. "')")
 		:Produces(outputFile)

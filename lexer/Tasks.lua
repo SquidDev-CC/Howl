@@ -1,7 +1,9 @@
 --- Tasks for the lexer
 -- @module lexer.Tasks
 local minifyFile = Rebuild.MinifyFile
-local minifyDiscard = function(self, i, o) return minifyFile(i, o) end
+local minifyDiscard = function(self, env, i, o)
+	return minifyFile(env.CurrentDirectory, i, o)
+end
 
 --- A task that minifies a source file
 -- @tparam string name Name of the task
@@ -11,7 +13,7 @@ local minifyDiscard = function(self, i, o) return minifyFile(i, o) end
 -- @treturn Runner.Runner The task runner (for chaining)
 -- @see tasks.Runner.Runner
 function Runner.Runner:Minify(name, inputFile, outputFile, taskDepends)
-	return self:AddTask(name, taskDepends, function()
+	return self:AddTask(name, taskDepends, function(task, env)
 		if type(inputFile) == "table" then
 			assert(type(outputFile) == "table", "Output File must be a table too")
 
@@ -19,10 +21,10 @@ function Runner.Runner:Minify(name, inputFile, outputFile, taskDepends)
 			assert(lenIn == #outputFile, "Tables must be the same length")
 
 			for i = 1, lenIn do
-				minifyFile(inputFile[i], outputFile[i])
+				minifyFile(env.CurrentDirectory, inputFile[i], outputFile[i])
 			end
 		else
-			minifyFile(inputFile, outputFile)
+			minifyFile(env.CurrentDirectory, inputFile, outputFile)
 		end
 	end)
 		:Description("Minifies '" .. fs.getName(inputFile) .. "' into '" .. fs.getName(outputFile) .. "'")

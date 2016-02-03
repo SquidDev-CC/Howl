@@ -39,8 +39,8 @@ end
 -- @tparam table taskDepends A list of tasks this task requires
 -- @treturn Runner.Runner The task runner (for chaining)
 function Runner.Runner:Clean(name, directory, taskDepends)
-	return self:AddTask(name, taskDepends, function()
+	return self:AddTask(name, taskDepends, function(task, env)
 		Utils.Verbose("Emptying directory '" .. directory .. "'")
-		fs.delete(fs.combine(HowlFile.CurrentDirectory, directory))
+		fs.delete(fs.combine(env.CurrentDirectory, directory))
 	end):Description("Clean the '" .. directory .. "' directory")
 end

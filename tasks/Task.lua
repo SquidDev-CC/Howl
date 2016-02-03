@@ -88,8 +88,8 @@ function Task:Description(text)
 end
 
 --- Run the action with no bells or whistles
-function Task:_RunAction(...)
-	return self.action(self, ...)
+function Task:_RunAction(env, ...)
+	return self.action(self, env, ...)
 end
 
 --- Execute the task
@@ -131,7 +131,7 @@ function Task:Run(context, ...)
 		local oldTime = os.clock()
 		local s, err = true, nil
 		if context.Traceback then
-			xpcall(function() self:_RunAction(unpack(args)) end, function(msg)
+			xpcall(function() self:_RunAction(context.env, unpack(args)) end, function(msg)
 				for i = 5, 15 do
 					local _, err = pcall(function() error("", i) end)
 					if msg:match("Howlfile") then break end
@@ -142,7 +142,7 @@ function Task:Run(context, ...)
 				s = false
 			end)
 		else
-			s, err = pcall(self._RunAction, self, ...)
+			s, err = pcall(self._RunAction, self, context.env, ...)
 		end
 
 		if s then

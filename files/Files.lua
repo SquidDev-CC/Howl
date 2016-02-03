@@ -85,11 +85,11 @@ function Files:_Parse(match)
 end
 
 --- Create a new @{Files|files object}
--- @tparam ?|string path The path
+-- @tparam string path The path
 -- @treturn Files The resulting object
 local function Factory(path)
 	return setmetatable({
-		path = path or HowlFile.CurrentDirectory,
+		path = path,
 		include = {},
 		exclude = {},
 		startup = 'startup'
@@ -97,7 +97,9 @@ local function Factory(path)
 end
 
 Mediator.Subscribe({ "HowlFile", "env" }, function(env)
-	env.Files = Factory
+	env.Files = function(path)
+		return Factory(path or env.CurrentDirectory)
+	end
 end)
 
 --- @export

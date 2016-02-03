@@ -34,7 +34,7 @@ end
 do -- Task files
 	Sources:File "tasks/Context.lua"
 		:Name "Context"
-		:Depends { "Helpers", "HowlFile", "Utils" }
+		:Depends { "Helpers", "Utils" }
 	Sources:File "tasks/Task.lua"
 		:Name "Task"
 		:Depends "Utils"
@@ -44,7 +44,7 @@ do -- Task files
 
 	Sources:File "tasks/Extensions.lua"
 		:Alias "Task.Extensions"
-		:Depends { "HowlFile", "Runner", "Utils" }
+		:Depends { "Runner", "Utils" }
 end
 
 do -- Dependencies
@@ -54,7 +54,7 @@ do -- Dependencies
 
 	Sources:File "depends/Combiner.lua"
 		:Alias "Depends.Combiner"
-		:Depends { "Depends", "Helpers", "HowlFile", "Runner", "Task", "Combiner.Verify", "Combiner.Traceback"}
+		:Depends { "Depends", "Helpers", "Runner", "Task", "Combiner.Verify", "Combiner.Traceback"}
 
 	Sources:File "depends/modules/Verify.lua"
 		:Alias "Combiner.Verify"
@@ -66,7 +66,7 @@ do -- Dependencies
 
 	Sources:File "depends/Bootstrap.lua"
 		:Alias "Depends.Bootstrap"
-		:Depends { "Depends", "HowlFile", "Runner" }
+		:Depends { "Depends", "Runner" }
 end
 
 do -- Minification
@@ -76,7 +76,7 @@ do -- Minification
 
 	Sources:File "lexer/Rebuild.lua"
 		:Name "Rebuild"
-		:Depends { "Constants", "Helpers", "HowlFile", "Parse" }
+		:Depends { "Constants", "Helpers", "Parse" }
 
 	Sources:File "lexer/Scope.lua"
 		:Name "Scope"
@@ -95,7 +95,7 @@ end
 do -- Files (Compilr)
 	Sources:File "files/Files.lua"
 		:Name "Files"
-		:Depends { "HowlFile", "HowlFile", "Utils" }
+		:Depends "Utils"
 
 	Sources:File "files/Compilr.lua"
 		:Alias "Compilr"
@@ -105,7 +105,7 @@ end
 do -- External tools
 	Sources:File "external/Busted.lua"
 		:Alias "Busted"
-		:Depends { "HowlFile", "Utils"}
+		:Depends "Utils"
 end
 
 

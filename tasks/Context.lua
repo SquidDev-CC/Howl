@@ -51,7 +51,7 @@ function Context:DoRequire(path, quite)
 		return self:Run(name, from, to)
 	end
 
-	if fs.exists(fs.combine(HowlFile.CurrentDirectory, path)) then
+	if fs.exists(fs.combine(self.env.CurrentDirectory , path)) then
 		self.filesProduced[path] = true
 		return true
 	end
@@ -183,6 +183,7 @@ local function Factory(runner)
 
 		Traceback = runner.Traceback,
 		ShowTime = runner.ShowTime,
+		env = runner.env,
 	}, { __index = Context }):BuildCache()
 end
 
