@@ -57,7 +57,6 @@ function Depends.Dependencies:CreateBootstrap(outputFile, options)
 
 	output.writeLine(header)
 
-	local exports = {}
 	for file in self:Iterate() do
 		local filePath = format("%q", fs.combine(path, file.path))
 

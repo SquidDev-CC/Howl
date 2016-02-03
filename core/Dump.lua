@@ -70,7 +70,7 @@ end
 -- @tparam ?|string indent The indent to use
 local function Dump(object, meta, indent)
 	if meta == nil then meta = true end
-	return InternalDump(object, indent or "", {length = 0}, meta)
+	return InternalDump(object, indent or "", { length = 0 }, meta)
 end
 
 return Dump

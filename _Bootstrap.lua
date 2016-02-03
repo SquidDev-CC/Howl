@@ -5,7 +5,7 @@
 local howlDirectory = fs.getDir(shell.getRunningProgram())
 
 local fileLoader = loadfile
-local env = setmetatable({}, {__index = getfenv()})
+local env = setmetatable({}, { __index = getfenv() })
 local function loadLocal(path)
 	local file = fileLoader(fs.combine(howlDirectory, path))
 	assert(file, "Cannot load file at " .. fs.combine(howlDirectory, path))
@@ -13,9 +13,9 @@ local function loadLocal(path)
 end
 
 local function doFunction(f)
-	local e=setmetatable({}, {__index = env})
-	setfenv(f,e)
-	local r=f()
+	local e = setmetatable({}, { __index = env })
+	setfenv(f, e)
+	local r = f()
 	if r ~= nil then return r end
 	return e
 end
@@ -24,7 +24,7 @@ local function doFile(path)
 	return doFunction(loadLocal(path))
 end
 
-local args = {...}
+local args = { ... }
 xpcall(setfenv(function()
 	Helpers = doFile("interop/CC.lua")
 	Mediator = doFile("core/Mediator.lua")
@@ -58,7 +58,7 @@ xpcall(setfenv(function()
 end, env), function(err)
 	printError(err)
 	for i = 3, 15 do
-		local s, msg = pcall(error, "", i)
+		local _, msg = pcall(error, "", i)
 		if msg:match("_Bootstrap.lua") then break end
 		print(" ", msg)
 	end

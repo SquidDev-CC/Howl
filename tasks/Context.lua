@@ -71,6 +71,7 @@ local function arrayEquals(x, y)
 	end
 	return true
 end
+
 --- Run a task
 -- @tparam string|Task.Task name The name of the task or a Task object
 -- @param ... The arguments to pass to it
@@ -81,7 +82,7 @@ function Context:Run(name, ...)
 		task = self.tasks[name]
 
 		if not task then
-			Utils.PrintError("Cannot find a task called '" .. name .."'")
+			Utils.PrintError("Cannot find a task called '" .. name .. "'")
 			return false
 		end
 	elseif not task or not task.Run then
@@ -90,10 +91,10 @@ function Context:Run(name, ...)
 	end
 
 	-- Search if this task has been run with the given arguments
-	local args = {...}
+	local args = { ... }
 	local ran = self.ran[task]
 	if not ran then
-		ran = {args}
+		ran = { args }
 		self.ran[task] = ran
 	else
 		for i = 1, #ran do
@@ -162,7 +163,7 @@ function Context:BuildCache()
 				if existing then
 					error(string.format("Both '%s' and '%s' match '%s'", existing, name, match))
 				end
-				toMap[match] = {Name = name, Pattern = pattern}
+				toMap[match] = { Name = name, Pattern = pattern }
 			end
 		end
 	end
@@ -182,7 +183,7 @@ local function Factory(runner)
 
 		Traceback = runner.Traceback,
 		ShowTime = runner.ShowTime,
-	}, {__index = Context}):BuildCache()
+	}, { __index = Context }):BuildCache()
 end
 
 --- @export

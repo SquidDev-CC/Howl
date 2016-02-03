@@ -9,7 +9,7 @@ local function ParsePattern(from, to)
 	local newType = fromParsed.Type
 	assert(newType == toParsed.Type, "Both from and to must be the same type " .. newType .. " and " .. fromParsed.Type)
 
-	return {Type = newType, From = fromParsed.Text, To = toParsed.Text}
+	return { Type = newType, From = fromParsed.Text, To = toParsed.Text }
 end
 
 --- A single task: actions, dependencies and metadata
@@ -115,12 +115,12 @@ function Task:Run(context, ...)
 
 	-- Technically we don't need to specify an action
 	if self.action then
-		local args = {...}
+		local args = { ... }
 		local description = ""
 
 		-- Get a list of arguments
 		if #args > 0 then
-			newArgs = {}
+			local newArgs = {}
 			for _, arg in ipairs(args) do
 				table.insert(newArgs, tostring(arg))
 			end
@@ -197,14 +197,14 @@ local function Factory(name, dependencies, action, prototype)
 	end
 
 	return setmetatable({
-		name = name,       -- The name of the function
-		action = action,   -- The action to call
+		name = name, -- The name of the function
+		action = action, -- The action to call
 		dependencies = dependencies or {}, -- Task dependencies
 		description = nil, -- Description of the task
-		maps = {},         -- Reads and produces list
-		requires = {},     -- Files this task requires
-		produces = {},     -- Files this task produces
-	}, prototype or {__index = Task})
+		maps = {}, -- Reads and produces list
+		requires = {}, -- Files this task requires
+		produces = {}, -- Files this task produces
+	}, prototype or { __index = Task })
 end
 
 --- @export

@@ -37,7 +37,7 @@ function Scope:CreateLocal(name)
 
 	variable = {
 		Scope = self,
-		Name= name,
+		Name = name,
 		IsGlobal = false,
 		CanRename = true,
 		References = 1,
@@ -51,7 +51,7 @@ end
 -- @tparam string name The name of the local
 -- @treturn ?|Variable The variable
 function Scope:GetLocal(name)
-	for k, var in pairs(self.Locals) do
+	for _, var in pairs(self.Locals) do
 		if var.Name == name then return var end
 	end
 
@@ -102,7 +102,7 @@ function Scope:CreateGlobal(name)
 
 	variable = {
 		Scope = self,
-		Name= name,
+		Name = name,
 		IsGlobal = true,
 		CanRename = true,
 		References = 1,
@@ -116,7 +116,7 @@ end
 -- @tparam string name The name of the global
 -- @treturn ?|Variable The variable
 function Scope:GetGlobal(name)
-	for k, v in pairs(self.Globals) do
+	for _, v in pairs(self.Globals) do
 		if v.Name == name then return v end
 	end
 
@@ -193,14 +193,14 @@ end
 function Scope:getVars(top, ret)
 	local ret = ret or {}
 	if top then
-		for k, v in pairs(self.Children) do
+		for _, v in pairs(self.Children) do
 			v:getVars(true, ret)
 		end
 	else
-		for k, v in pairs(self.Locals) do
+		for _, v in pairs(self.Locals) do
 			table.insert(ret, v)
 		end
-		for k, v in pairs(self.Globals) do
+		for _, v in pairs(self.Globals) do
 			table.insert(ret, v)
 		end
 		if self.Parent then
@@ -263,11 +263,11 @@ end
 local function NewScope(parent)
 	local scope = setmetatable({
 		Parent = parent,
-		Locals = { },
-		Globals = { },
-		oldLocalNamesMap = { },
-		oldGlobalNamesMap = { },
-		Children = { },
+		Locals = {},
+		Globals = {},
+		oldLocalNamesMap = {},
+		oldGlobalNamesMap = {},
+		Children = {},
 	}, { __index = Scope })
 
 	if parent then

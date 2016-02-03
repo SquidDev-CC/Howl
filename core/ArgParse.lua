@@ -4,13 +4,13 @@
 --- Simple wrapper for Options
 -- @type Option
 local Option = {
-	__index = function(object, func)
+	__index = function(self, func)
 		return function(self, ...)
 			local parser = self.parser
 			local value = parser[func](parser, self.name, ...)
 
 			if value == parser then return self end -- Allow chaining
-			return value -- Return the value
+			return value
 		end
 	end
 }
@@ -80,12 +80,12 @@ function Parser:Alias(name, alias)
 	if currentSettings then
 		local currentAliases = currentSettings.aliases
 		if currentAliases == nil then
-			currentSettings.aliases = {alias}
+			currentSettings.aliases = { alias }
 		else
 			table.insert(currentAliases, alias)
 		end
 	else
-		settings[name] = {aliases = {alias}}
+		settings[name] = { aliases = { alias } }
 	end
 
 	self:_Changed()
@@ -124,7 +124,7 @@ function Parser:_SetSetting(name, key, value)
 	if thisSettings then
 		thisSettings[key] = value
 	else
-		settings[name] = {[key] = value}
+		settings[name] = { [key] = value }
 	end
 
 	return self
@@ -149,7 +149,7 @@ end
 --- Fires the on changed event
 -- @local
 function Parser:_Changed()
-	Mediator.Publish({"ArgParse", "changed"}, self)
+	Mediator.Publish({ "ArgParse", "changed" }, self)
 end
 
 --- Generates a help string
@@ -241,13 +241,13 @@ end
 -- @tparam table args The command line arguments passed
 -- @treturn Parser The resulting parser
 local function Options(args)
-		return setmetatable({
-			options = {},   -- The resulting values
-			arguments = {}, -- Spare arguments
+	return setmetatable({
+		options = {}, -- The resulting values
+		arguments = {}, -- Spare arguments
 
-			settings = {},  -- Settings for options
-		}, {__index=Parser}):Parse(args)
-	end
+		settings = {}, -- Settings for options
+	}, { __index = Parser }):Parse(args)
+end
 
 --- @export
 return {

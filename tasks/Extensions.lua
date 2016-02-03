@@ -12,7 +12,7 @@ function Runner.Runner:ListTasks(indent, all)
 	for name, task in pairs(self.tasks) do
 		local start = name:sub(1, 1)
 		if all or (start ~= "_" and start ~= ".") then
-			local description =  task.description or ""
+			local description = task.description or ""
 			local length = #name
 			if length > maxLength then
 				maxLength = length

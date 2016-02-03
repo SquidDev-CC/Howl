@@ -40,12 +40,10 @@ local function open(p, mode)
 				if not isOpen then error("Stream closed", 2) end
 				handle:write(tostring(msg))
 			end,
-
 			writeLine = function(msg)
 				if not isOpen then error("Stream closed", 2) end
 				handle:write(tostring(msg) .. "\n")
 			end,
-
 			flush = function()
 				if not isOpen then return end
 				handle:flush()
@@ -60,7 +58,6 @@ local function open(p, mode)
 				if not isOpen then return end
 				handle:write(string.char(number))
 			end,
-
 			flush = function()
 				if not isOpen then return end
 				handle:flush()
@@ -72,7 +69,6 @@ local function open(p, mode)
 				if not isOpen then return end
 				return handle:read("*l")
 			end,
-
 			readAll = function()
 				if not isOpen then return end
 				return handle:read("*a")
@@ -82,7 +78,7 @@ local function open(p, mode)
 		result = {
 			read = function()
 				if not isOpen then return end
-				local char =  handle:read(1)
+				local char = handle:read(1)
 				if char ~= nil then return string.byte(char) end
 				return nil
 			end,
@@ -112,7 +108,7 @@ end
 
 local function mkdir(dir)
 	if not path.exists(dir) then
-		builder = ''
+		local builder = ''
 		for _, sub in ipairs(split(dir, '/')) do
 			builder = path.join(builder, sub)
 			path.mkdir(builder)

@@ -129,7 +129,6 @@ local function countLines(contents)
 		if not start then break end
 		lineCount = lineCount + 1
 		position = newPosition + 1
-
 	end
 	return lineCount
 end
@@ -143,7 +142,7 @@ local function replaceTemplate(source, replacers)
 	end)
 end
 
-Mediator.Subscribe({"Combiner", "start"}, function(self, outputFile, options)
+Mediator.Subscribe({ "Combiner", "start" }, function(self, outputFile, options)
 	if self.finalizer then
 		options.traceback = true
 	end
@@ -161,7 +160,7 @@ Mediator.Subscribe({"Combiner", "start"}, function(self, outputFile, options)
 end)
 
 local min = math.min
-Mediator.Subscribe({"Combiner", "write"}, function(self, name, contents, options)
+Mediator.Subscribe({ "Combiner", "write" }, function(self, name, contents, options)
 	if options.lineMapping then
 		name = name or "file"
 
@@ -187,7 +186,7 @@ Mediator.Subscribe({"Combiner", "write"}, function(self, name, contents, options
 	end
 end)
 
-Mediator.Subscribe({"Combiner", "end"}, function(self, outputFile, options)
+Mediator.Subscribe({ "Combiner", "end" }, function(self, outputFile, options)
 	if options.traceback then
 		local tracebackIncludes = {}
 		local replacers = {}
@@ -198,13 +197,13 @@ Mediator.Subscribe({"Combiner", "end"}, function(self, outputFile, options)
 			local path = fs.combine(self.path, finalizerPath)
 			local finalizerFile = assert(fs.open(path, "r"), "Finalizer " .. path .. " does not exist")
 
-			finalizerContents = finalizerFile.readAll()
+			local finalizerContents = finalizerFile.readAll()
 			finalizerFile.close()
 
 			if #finalizerContents == 0 then
 				finalizerContents = nil
 			else
-				Mediator.Publish({"Combiner", "include"}, self, finalizer, finalizerContents, options)
+				Mediator.Publish({ "Combiner", "include" }, self, finalizer, finalizerContents, options)
 			end
 
 			-- Register template
@@ -225,7 +224,7 @@ Mediator.Subscribe({"Combiner", "end"}, function(self, outputFile, options)
 		end
 
 		-- And handle replacing
-		toReplace = {}
+		local toReplace = {}
 		for _, template in ipairs(tracebackIncludes) do
 			for part, contents in pairs(template) do
 				local current = toReplace[part]
@@ -249,6 +248,6 @@ function Depends.Dependencies:Finalizer(path)
 	local file = self:FindFile(path) or self:File(path)
 	file.type = "Finalizer"
 	self.finalizer = file
-	Mediator.Publish({"Dependencies", "create"}, self, file)
+	Mediator.Publish({ "Dependencies", "create" }, self, file)
 	return file
 end

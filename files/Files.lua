@@ -30,7 +30,7 @@ Files.Exclude = Files.Remove
 --- Find all files
 -- @treturn table List of files, the keys are their names
 function Files:Files()
-	if  not self.files then
+	if not self.files then
 		self.files = {}
 
 		for _, match in ipairs(self.include) do
@@ -93,10 +93,10 @@ local function Factory(path)
 		include = {},
 		exclude = {},
 		startup = 'startup'
-	}, {__index = Files})
+	}, { __index = Files })
 end
 
-Mediator.Subscribe({"HowlFile", "env"}, function(env)
+Mediator.Subscribe({ "HowlFile", "env" }, function(env)
 	env.Files = Factory
 end)
 

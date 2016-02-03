@@ -43,7 +43,7 @@ end
 -- @param ... Values to print
 local function Verbose(...)
 	if isVerbose then
-		local s, m = pcall(function() error("", 4) end)
+		local _, m = pcall(function() error("", 4) end)
 		WriteColor(colors.gray, m)
 		PrintColor(colors.lightGray, ...)
 	end
@@ -53,11 +53,11 @@ end
 -- @param ... Values to print
 local function VerboseLog(...)
 	if isVerbose then
-		local s, m = pcall(function() error("", 4) end)
+		local _, m = pcall(function() error("", 4) end)
 		WriteColor(colors.gray, m)
 
 		local hasPrevious = false
-		for _, value in ipairs({...}) do
+		for _, value in ipairs({ ... }) do
 			local t = type(value)
 			if t == "table" then
 				local dmp = Dump or Helpers.serialize
@@ -140,9 +140,9 @@ local function ParsePattern(text, invert)
 			end
 		end
 
-		return {Type = "Pattern", Text = text}
+		return { Type = "Pattern", Text = text }
 	else
-		return {Type = "Normal", Text = text}
+		return { Type = "Normal", Text = text }
 	end
 end
 
@@ -164,7 +164,7 @@ local function MatchTables(a, b)
 	local length = #a
 	if length ~= #b then return false end
 
-	for i=1, length do
+	for i = 1, length do
 		if a[i] ~= b[i] then return false end
 	end
 	return true
@@ -182,11 +182,9 @@ return {
 	PrintSuccess = PrintSuccess,
 	PrintColor = PrintColor,
 	WriteColor = WriteColor,
-
 	IsVerbose = IsVerbose,
 	Verbose = Verbose,
 	VerboseLog = VerboseLog,
-
 	EscapePattern = EscapePattern,
 	ParsePattern = ParsePattern,
 	CreateLookup = CreateLookup,

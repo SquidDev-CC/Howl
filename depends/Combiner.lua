@@ -2,7 +2,7 @@
 -- Extends @{depends.Depends.Dependencies} and @{tasks.Runner.Runner} classes
 -- @module depends.Combiner
 
-local combinerMediator = Mediator.GetChannel {"Combiner"}
+local combinerMediator = Mediator.GetChannel { "Combiner" }
 
 local functionLoaderName = "_W"
 --[[
@@ -30,7 +30,7 @@ function Depends.Dependencies:Combiner(outputFile, options)
 	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport
-	local loadstring, format = loadstring, Helpers.serialize
+	local format = Helpers.serialize
 
 	local output = fs.open(fs.combine(HowlFile.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
@@ -122,7 +122,7 @@ function Depends.Dependencies:Combiner(outputFile, options)
 	if #exports > 0 and #self.mainFiles == 0 then
 		local exported = {}
 		for _, export in ipairs(exports) do
-			exported[#exported+1] = export .. "=" .. export ..", "
+			exported[#exported + 1] = export .. "=" .. export .. ", "
 		end
 		write("return {" .. table.concat(exported) .. "}")
 	end

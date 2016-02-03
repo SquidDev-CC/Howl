@@ -13,7 +13,7 @@ local TokenList = {}
 function TokenList:Peek(offset)
 	local tokens = self.tokens
 	offset = offset or 0
-	return tokens[math.min(#tokens, self.pointer+offset)]
+	return tokens[math.min(#tokens, self.pointer + offset)]
 end
 
 --- Get the next token in the list
@@ -59,8 +59,8 @@ end
 --- Check if the next token is a symbol and return it
 -- @tparam string symbol Symbol to check (Optional)
 -- @tparam table tokenList Add the token onto this table
--- @treturn[0] ?|token If symbol is not specified, return the token
--- @treturn[1] boolean If symbol is specified, return true if it matches
+-- @treturn [ 0 ] ?|token If symbol is not specified, return the token
+-- @treturn [ 1 ] boolean If symbol is specified, return true if it matches
 function TokenList:ConsumeSymbol(symbol, tokenList)
 	local token = self:Peek()
 	if token.Type == 'Symbol' then
@@ -83,8 +83,8 @@ end
 --- Check if the next token is a keyword and return it
 -- @tparam string kw Keyword to check (Optional)
 -- @tparam table tokenList Add the token onto this table
--- @treturn[0] ?|token If kw is not specified, return the token
--- @treturn[1] boolean If kw is specified, return true if it matches
+-- @treturn [ 0 ] ?|token If kw is not specified, return the token
+-- @treturn [ 1 ] boolean If kw is specified, return true if it matches
 function TokenList:ConsumeKeyword(kw, tokenList)
 	local token = self:Peek()
 	if token.Type == 'Keyword' and token.Data == kw then

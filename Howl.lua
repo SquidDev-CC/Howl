@@ -1,17 +1,17 @@
 --- Core script for Howl
 -- @script Howl
 
-local options = ArgParse.Options({...})
+local options = ArgParse.Options({ ... })
 local tasks = Runner.Factory()
 local taskList = options:Arguments()
 
-Mediator.Subscribe({"ArgParse", "changed"}, function(options)
+Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
 	Utils.IsVerbose(options:Get("verbose") or false)
 	tasks.ShowTime = options:Get "time"
 	tasks.Traceback = options:Get "trace"
 
 	if options:Get "help" then
-		taskList = {"help"}
+		taskList = { "help" }
 	end
 end)
 

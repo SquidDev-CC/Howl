@@ -4,7 +4,7 @@
 local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, Utils.Verbose
 local busted = busted
 
-local names = {"busted.api.lua", "../lib/busted.api.lua", "busted.api", "../lib/busted.api", "busted", "../lib/busted"}
+local names = { "busted.api.lua", "../lib/busted.api.lua", "busted.api", "../lib/busted.api", "busted", "../lib/busted" }
 
 local function loadOneBusted(path)
 	verbose("Busted at " .. path)
@@ -67,7 +67,7 @@ local function getDefaults()
 		tags = {},
 		['exclude-tags'] = {},
 		pattern = '_spec',
-		loaders = {'lua'},
+		loaders = { 'lua' },
 		helper = '',
 	}
 end
@@ -90,13 +90,13 @@ function Runner.Runner:Busted(name, options, taskDepends)
 		if not busted then error("Cannot find busted") end
 
 		local newOptions = getDefaults()
-		for k,v in pairs(options or {}) do
+		for k, v in pairs(options or {}) do
 			newOptions[k] = v
 		end
 
 		local count, errors = busted.run(newOptions, getDefaults())
 		if count ~= 0 then
-			Utils.VerboseLog(messages)
+			Utils.VerboseLog(errors)
 			error("Not all tests passed")
 		end
 	end)

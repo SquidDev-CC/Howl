@@ -248,7 +248,7 @@ function Files.Files:Compilr(output, options)
 		end
 
 		local root = resultFiles
-		local nodes = {file:match((file:gsub("[^/]+/?", "([^/]+)/?")))}
+		local nodes = { file:match((file:gsub("[^/]+/?", "([^/]+)/?"))) }
 		nodes[#nodes] = nil
 		for _, node in pairs(nodes) do
 			local nRoot = root[node]

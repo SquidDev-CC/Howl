@@ -38,8 +38,8 @@ function Runner:Default(task)
 	if task == nil then
 		self.default = nil
 	elseif type(task) == "string" then
-		self.default  = self.tasks[task]
-		if not self.default  then
+		self.default = self.tasks[task]
+		if not self.default then
 			error("Cannot find task " .. task)
 		end
 	else
@@ -53,7 +53,7 @@ end
 -- @tparam string name Name of the task to run
 -- @treturn Runner The current object for chaining
 function Runner:Run(name)
-	return self:RunMany({name})
+	return self:RunMany({ name })
 end
 
 --- Run a task, and all its dependencies
@@ -82,7 +82,7 @@ end
 --- Create a @{Runner} object
 -- @treturn Runner The created runner object
 local function Factory()
-	return setmetatable({tasks = {}, default = nil}, {__index = Runner})
+	return setmetatable({ tasks = {}, default = nil }, { __index = Runner })
 end
 
 --- @export

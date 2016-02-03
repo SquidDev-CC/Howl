@@ -20,7 +20,7 @@
 
 local escapeBegin = string.char(27) .. '['
 
-local write, format = io.write, string.format
+local format = string.format
 
 local function clear() io.write(escapeBegin .. "2J") end
 local function clearLine() io.write(escapeBegin .. "2K") end

@@ -965,7 +965,7 @@ local function ParseLua(tok)
 				GenerateError("`until` expected.")
 			end
 
-			cond = ParseExpr(body.Scope)
+			local cond = ParseExpr(body.Scope)
 
 			stat = {
 				AstType   = 'RepeatStatement',

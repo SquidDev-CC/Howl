@@ -14,7 +14,7 @@ local function SubscriberFactory(fn, options)
 		fn = fn,
 		channel = nil,
 		id = math.random(1000000000), -- sounds reasonable, rite?
-	}, {__index = Subscriber})
+	}, { __index = Subscriber })
 end
 
 local Channel = {}
@@ -25,7 +25,7 @@ local function ChannelFactory(namespace, parent)
 		callbacks = {},
 		channels = {},
 		parent = parent,
-	}, { __index = Channel})
+	}, { __index = Channel })
 end
 
 function Channel:addSubscriber(fn, options)
@@ -38,7 +38,7 @@ function Channel:addSubscriber(fn, options)
 		options.priority >= 0 and
 		options.priority < priority
 	then
-			priority = options.priority
+		priority = options.priority
 	end
 
 	table.insert(self.callbacks, priority, callback)
@@ -47,7 +47,7 @@ function Channel:addSubscriber(fn, options)
 end
 
 function Channel:getSubscriber(id)
-	for i=1, #self.callbacks do
+	for i = 1, #self.callbacks do
 		local callback = self.callbacks[i]
 		if callback.id == id then return { index = i, value = callback } end
 	end
@@ -120,13 +120,13 @@ local function GetChannel(channelNamespace)
 
 	if type(channelNamespace) == "string" then
 		if channelNamespace:find(":") then
-			channelNamespace = {channelNamespace:match((channelNamespace:gsub("[^:]+:?", "([^:]+):?")))}
+			channelNamespace = { channelNamespace:match((channelNamespace:gsub("[^:]+:?", "([^:]+):?"))) }
 		else
-			channelNamespace = {channelNamespace}
+			channelNamespace = { channelNamespace }
 		end
 	end
 
-	for i=1, #channelNamespace do
+	for i = 1, #channelNamespace do
 		channel = channel:getChannel(channelNamespace[i])
 	end
 

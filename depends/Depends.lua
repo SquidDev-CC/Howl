@@ -87,7 +87,7 @@ local function Factory(path, parent)
 		namespaces = {},
 		shouldExport = false,
 		parent = parent,
-	}, {__index=Dependencies})
+	}, { __index = Dependencies })
 end
 
 --- Add a file to the dependency list
@@ -96,7 +96,7 @@ end
 function Dependencies:File(path)
 	local file = self:_File(path)
 	self.files[path] = file
-	Mediator.Publish({"Dependencies", "create"}, self, file)
+	Mediator.Publish({ "Dependencies", "create" }, self, file)
 	return file
 end
 
@@ -107,7 +107,7 @@ function Dependencies:Resource(path)
 	local file = self:_File(path)
 	file.type = "Resource"
 	self.files[path] = file
-	Mediator.Publish({"Dependencies", "create"}, self, file)
+	Mediator.Publish({ "Dependencies", "create" }, self, file)
 	return file
 end
 
@@ -117,13 +117,14 @@ end
 function Dependencies:_File(path)
 	return setmetatable({
 		dependencies = {},
-		name = nil, alias = nil,
+		name = nil,
+		alias = nil,
 		path = path,
 		shouldExport = true,
 		noWrap = false,
 		type = "File",
 		parent = self,
-	}, {__index = File})
+	}, { __index = File })
 end
 
 --- Add a 'main' file to the dependency list. This is a file that will be executed (added to the end of a script)
@@ -134,7 +135,7 @@ function Dependencies:Main(path)
 	local file = self:FindFile(path) or self:_File(path)
 	file.type = "Main"
 	table.insert(self.mainFiles, file)
-	Mediator.Publish({"Dependencies", "create"}, self, file)
+	Mediator.Publish({ "Dependencies", "create" }, self, file)
 	return file
 end
 
@@ -228,10 +229,9 @@ function Dependencies:Namespace(name, path, generator)
 end
 
 --- Clone dependencies, whilst ignoring the main file
--- @tparam boolean deep Deep clone dependencies
 -- @tparam Dependencies The cloned dependencies object
-function Dependencies:CloneDependencies(deep)
-	local result = setmetatable({ }, {__index=Dependencies})
+function Dependencies:CloneDependencies()
+	local result = setmetatable({}, { __index = Dependencies })
 
 	for k, v in pairs(self) do
 		result[k] = v
@@ -250,7 +250,7 @@ function Dependencies:Paths()
 end
 
 --- Add files to environment
-Mediator.Subscribe({"HowlFile", "env"}, function(env)
+Mediator.Subscribe({ "HowlFile", "env" }, function(env)
 	env.Dependencies = Factory
 	env.Sources = Factory()
 end)
