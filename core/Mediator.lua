@@ -1,3 +1,8 @@
+--- Mediator pattern implementation for pub-sub management
+--
+-- [Taken from Olivine Labs](http://olivinelabs.com/mediator_lua/)
+-- @module Mediator
+
 local type, pairs = type, pairs
 
 local Subscriber = {}

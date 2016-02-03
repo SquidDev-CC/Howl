@@ -32,7 +32,7 @@ local function PrintSuccess(...) PrintColor(colors.green, ...) end
 local function PrintError(...) PrintColor(colors.red, ...) end
 
 --- Check if verbose is true
--- @tparam ?|value If not nil, set verbose to true
+-- @tparam ?|boolean value If not nil, set verbose to true
 -- @treturn boolean Is verbose output on
 local function IsVerbose(value)
 	if value ~= nil then isVerbose = value end

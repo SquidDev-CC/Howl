@@ -2,8 +2,7 @@
 -- @module HowlFile
 
 --- Names to test when searching for Howlfiles
--- @tfield string names
-local names = { "Howlfile", "Howlfile.lua" }
+local Names = { "Howlfile", "Howlfile.lua" }
 
 --- Finds the howl file
 -- @treturn string The name of the howl file or nil if not found
@@ -12,7 +11,7 @@ local function FindHowl()
 	local currentDirectory = Helpers.dir()
 
 	while true do
-		for _, file in ipairs(names) do
+		for _, file in ipairs(Names) do
 			local howlFile = fs.combine(currentDirectory, file)
 			if fs.exists(howlFile) and not fs.isDir(howlFile) then
 				return file, currentDirectory
@@ -83,10 +82,11 @@ local function SetupTasks(currentDirectory, howlFile, options)
 	return tasks
 end
 
+
 --- @export
 return {
 	FindHowl = FindHowl,
 	SetupEnvironment = SetupEnvironment,
 	SetupTasks = SetupTasks,
-	Names = names,
+	Names = Names,
 }

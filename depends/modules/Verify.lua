@@ -23,6 +23,8 @@ Mediator.Subscribe({ "Dependencies", "create" }, function(depends, file)
 end)
 
 --- Verify this file on inclusion
+-- @tparam ?|boolean verify If this source should be verified. Defaults to true
+-- @treturn depends.Depends.File The current file to allow chaining
 function Depends.File:Verify(verify)
 	if verify == nil then verify = true end
 	self.verify = verify

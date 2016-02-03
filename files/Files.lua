@@ -91,7 +91,7 @@ end
 --- Parse a pattern
 -- @tparam string match The pattern to parse
 -- @treturn Utils.Pattern The created pattern
--- @tlocal
+-- @local
 function Files:_Parse(match)
 	match = Utils.ParsePattern(match)
 	local text = match.Text

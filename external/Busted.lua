@@ -74,10 +74,9 @@ end
 
 --- A task that minifies a source file
 -- @tparam string name Name of the task
--- @tparam string inputFile The input file
--- @tparam string outputFile The file to save to
+-- @tparam table options Options to pass to busted
 -- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
--- @treturn Runner.Runner The task runner (for chaining)
+-- @treturn tasks.Task.Task The task runner (for chaining)
 -- @see tasks.Runner.Runner
 function Runner.Runner:Busted(name, options, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)

@@ -1,4 +1,4 @@
---- Handles finalizers and tracebacks
+--- Adds finalizers and tracebacks
 -- @module depends.modules.Traceback
 
 local find = string.find
@@ -138,7 +138,8 @@ local function countLines(contents)
 end
 
 --- Create a template, replacing {{...}} with replacers
--- @tparam string contents The string to count
+-- @tparam string source The string to count
+-- @tparam table replacers Lookup for variables to replace
 -- @treturn int The line count
 local function replaceTemplate(source, replacers)
 	return source:gsub("{{(.-)}}", function(whole)
@@ -248,6 +249,8 @@ end)
 
 
 --- Add a finalizer
+-- @tparam string path Path to the finalizer
+-- @treturn depends.Depends.File The finalizer file
 function Depends.Dependencies:Finalizer(path)
 	local file = self:FindFile(path) or self:File(path)
 	file.type = "Finalizer"

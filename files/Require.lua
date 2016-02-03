@@ -1,6 +1,7 @@
---- [Compilr](https://github.com/oeed/Compilr) by Oeed ported to Howl by SquidDev
--- Combines files and emulates the fs API
--- @module files.Compilr
+--- Emulate Lua standard requires
+--
+-- Combines multiple files, loading them into an emulated `package.preload`.
+-- @module files.Require
 
 local header = [=[
 local loading = {}
