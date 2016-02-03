@@ -9,8 +9,14 @@ local Files = {}
 -- @tparam string match The match to include
 -- @treturn Files The current object (allows chaining)
 function Files:Add(match)
-	table.insert(self.include, self:_Parse(match))
-	self.files = nil
+	if type(match) == "table" then
+		for _, v in ipairs(match) do
+			self:Add(v)
+		end
+	else
+		table.insert(self.include, self:_Parse(match))
+		self.files = nil
+	end
 	return self
 end
 
@@ -18,14 +24,28 @@ end
 -- @tparam string match The file/wildcard to exclude
 -- @treturn Files The current object (allows chaining)
 function Files:Remove(match)
-	table.insert(self.exclude, self:_Parse(match))
-	self.files = nil
+	if type(match) == "table" then
+		for _, v in ipairs(match) do
+			self:Remove(v)
+		end
+	else
+		table.insert(self.exclude, self:_Parse(match))
+		self.files = nil
+	end
 
 	return self
 end
 
 Files.Include = Files.Add
 Files.Exclude = Files.Remove
+
+--- Path to the startup file
+-- @tparam string file The file to startup with
+-- @treturn Files The current object (allows chaining)
+function Files:Startup(file)
+	self.startup = file
+	return self
+end
 
 --- Find all files
 -- @treturn table List of files, the keys are their names
@@ -37,7 +57,7 @@ function Files:Files()
 			if match.Type == "Normal" then
 				self:_Include(match.Text)
 			else
-				self:_Include("", match.Text)
+				self:_Include("", match)
 			end
 		end
 	end
@@ -63,7 +83,7 @@ function Files:_Include(path, pattern)
 		for _, file in ipairs(fs.list(realPath)) do
 			self:_Include(fs.combine(path, file), pattern)
 		end
-	elseif not pattern or pattern:match(path) then
+	elseif not pattern or pattern.Match(path) then
 		self.files[path] = true
 	end
 end
@@ -76,7 +96,7 @@ function Files:_Parse(match)
 	match = Utils.ParsePattern(match)
 	local text = match.Text
 
-	if Utils.Type == "Normal" then
+	if match.Type == "Normal" then
 		function match.Match(toMatch) return text == toMatch end
 	else
 		function match.Match(toMatch) return toMatch:match(text) end
@@ -94,6 +114,7 @@ local function Factory(path)
 		exclude = {},
 		startup = 'startup'
 	}, { __index = Files })
+		:Remove { ".git", ".idea", "Howlfile.lua", "Howlfile", "build" }
 end
 
 Mediator.Subscribe({ "HowlFile", "env" }, function(env)

@@ -1,15 +1,18 @@
 --- Handles loading and creation of HowlFiles
 -- @module HowlFile
 
+--- Names to test when searching for Howlfiles
+-- @tfield string names
+local names = { "Howlfile", "Howlfile.lua" }
+
 --- Finds the howl file
 -- @treturn string The name of the howl file or nil if not found
 -- @treturn string The path of the howl file or the error message if not found
 local function FindHowl()
 	local currentDirectory = Helpers.dir()
-	local howlFiles = { "Howlfile", "Howlfile.lua" }
 
 	while true do
-		for _, file in ipairs(howlFiles) do
+		for _, file in ipairs(names) do
 			local howlFile = fs.combine(currentDirectory, file)
 			if fs.exists(howlFile) and not fs.isDir(howlFile) then
 				return file, currentDirectory
@@ -46,11 +49,44 @@ local function SetupEnvironment(variables)
 	return env
 end
 
---- The current howlfile location
--- @tfield string CurrentDirectory
+--- Setup tasks
+-- @tparam string currentDirectory Current directory
+-- @tparam string howlFile location of Howlfile relative to current directory
+-- @tparam Options options Command line options
+-- @treturn Runner The task runner
+local function SetupTasks(currentDirectory, howlFile, options)
+	local tasks = Runner.Factory({
+		CurrentDirectory = currentDirectory,
+		Options = options,
+	})
+
+	Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
+		tasks.ShowTime = options:Get "time"
+		tasks.Traceback = options:Get "trace"
+	end)
+
+	-- Setup an environment
+	local environment = SetupEnvironment({
+		-- Core globals
+		CurrentDirectory = currentDirectory,
+		Tasks = tasks,
+		Options = options,
+		-- Helper functions
+		Verbose = Utils.Verbose,
+		Log = Utils.VerboseLog,
+		File = function(...) return fs.combine(currentDirectory, ...) end,
+	})
+
+	-- Load the file
+	environment.dofile(fs.combine(currentDirectory, howlFile))
+
+	return tasks
+end
 
 --- @export
 return {
 	FindHowl = FindHowl,
-	SetupEnvironment = SetupEnvironment
+	SetupEnvironment = SetupEnvironment,
+	SetupTasks = SetupTasks,
+	Names = names,
 }

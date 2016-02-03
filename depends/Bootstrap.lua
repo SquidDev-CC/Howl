@@ -90,8 +90,8 @@ end
 -- @treturn Bootstrap The created task
 -- @see tasks.Runner.Runner
 function Runner.Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(Task.Factory(name, taskDepends, function(traceback, env)
-		dependencies:CreateBootstrap(env, outputFile, traceback)
+	return self:InjectTask(Task.Factory(name, taskDepends, function(task, env)
+		dependencies:CreateBootstrap(env, outputFile, task)
 	end, Task.OptionTask))
 		:Description("Creates a 'dynamic' combination of files in '" .. outputFile .. "')")
 		:Produces(outputFile)

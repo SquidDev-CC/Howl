@@ -12,7 +12,7 @@ Sources:Main "Howl.lua"
 	-- Primiary dependencies
 	:Depends { "ArgParse", "HowlFile", "Mediator", "Runner" }
 	-- Modules
-	:Depends { "Task.Extensions", "Depends.Bootstrap", "Depends.Combiner", "Lexer.Tasks", "Busted", "Compilr" }
+	:Depends { "Task.Extensions", "Depends.Bootstrap", "Depends.Combiner", "Lexer.Tasks", "Busted", "Compilr", "Require" }
 
 do -- Core files
 	Sources:File "core/ArgParse.lua"
@@ -26,7 +26,7 @@ do -- Core files
 		:Depends { "Dump", "Helpers" }
 	Sources:File "core/HowlFileLoader.lua"
 		:Name "HowlFile"
-		:Depends "Helpers"
+		:Depends { "Runner", "Utils", "Mediator", "Helpers" }
 	Sources:File "core/Dump.lua"
 		:Name "Dump"
 end
@@ -92,7 +92,7 @@ do -- Minification
 		:Depends "Utils"
 end
 
-do -- Files (Compilr)
+do -- Files
 	Sources:File "files/Files.lua"
 		:Name "Files"
 		:Depends "Utils"
@@ -100,6 +100,9 @@ do -- Files (Compilr)
 	Sources:File "files/Compilr.lua"
 		:Alias "Compilr"
 		:Depends { "Files", "Helpers", "Rebuild", "Runner" }
+	Sources:File "files/Require.lua"
+		:Alias "Require"
+		:Depends { "Files", "Runner" }
 end
 
 do -- External tools

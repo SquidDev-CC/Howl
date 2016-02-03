@@ -43,18 +43,16 @@ end
 Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 
 -- SETUP TASKS
-local tasks = Runner.Factory({ CurrentDirectory = currentDirectory })
 local taskList = options:Arguments()
 
 Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
 	Utils.IsVerbose(options:Get("verbose") or false)
-	tasks.ShowTime = options:Get "time"
-	tasks.Traceback = options:Get "trace"
-
 	if options:Get "help" then
 		taskList = { "help" }
 	end
 end)
+
+local tasks = HowlFile.SetupTasks(currentDirectory, howlFile, options)
 
 -- Basic list tasks
 tasks:Task "list" (function()
@@ -77,21 +75,6 @@ tasks:Default(function()
 	Utils.PrintColor(colors.orange, "Choose from: ")
 	tasks:ListTasks("  ")
 end)
-
--- Setup an environment
-local environment = HowlFile.SetupEnvironment({
-	-- Core globals
-	CurrentDirectory = currentDirectory,
-	Tasks = tasks,
-	Options = options,
-	-- Helper functions
-	Verbose = Utils.Verbose,
-	Log = Utils.VerboseLog,
-	File = function(...) return fs.combine(currentDirectory, ...) end,
-})
-
--- Load the file
-environment.dofile(fs.combine(currentDirectory, howlFile))
 
 -- Run the task
 tasks:RunMany(taskList)
