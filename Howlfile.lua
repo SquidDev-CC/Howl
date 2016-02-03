@@ -2,96 +2,49 @@ do -- Setup options
 	-- By default we want to include the minify and depends library
 	-- and print a trace on errors
 	Options:Default "trace"
-	Options:Option "with-minify"
-		:Description "Include the minify library"
-		:Alias "wm"
-		:Default()
-
-	Options:Option "with-depends"
-		:Description "Include the dependencies library"
-		:Alias "wd"
-		:Default()
-
-	Options:Option "with-dump"
-		:Description "Include the dumper"
-
-	Options:Option "with-files"
-		:Description "Include the files library"
-		:Alias "wf"
-
 	Options:Option "with-interop"
 		:Description "Include the interop library"
 		:Alias "wi"
 		:Default(not shell and not redstone)
-
-	Options:Option "with-external"
-		:Description "Include external tools"
-		:Alias "we"
-
-	Options:Option "with-all"
-		:Description "Include all libraries"
-		:Alias "a"
-
-	-- If `with-all` is true, then include all libraries
-	if Options:Get("with-all") then
-		for name, _ in pairs(Options.settings) do
-			if name:sub(1, 5) =="with-" and name ~= "with-interop" then -- Don't include interop library
-				Options:Default(name)
-			end
-		end
-	end
 end
 
 Sources:Main "Howl.lua"
-	:Depends "ArgParse"
-	:Depends "HowlFile"
-	:Depends "Mediator"
-	:Depends "Runner"
-
-	-- Not needed but we include
-	:Depends "Bootstrap"
-	:Depends "Combiner"
-	:Depends "Task.Extensions"
+	-- Primiary dependencies
+	:Depends { "ArgParse", "HowlFile", "Mediator", "Runner" }
+	-- Modules
+	:Depends { "Task.Extensions", "Depends.Bootstrap", "Depends.Combiner", "Lexer.Tasks", "Busted", "Compilr" }
 
 do -- Core files
 	Sources:File "core/ArgParse.lua"
 		:Name "ArgParse"
-		:Depends "Mediator"
-		:Depends "Utils"
-
+		:Depends { "Mediator", "Utils" }
 	Sources:File "core/Mediator.lua"
 		:Name "Mediator"
 		:Depends "Utils"
-
-	Sources:File "core/Utils.lua"          :Name "Utils"
+	Sources:File "core/Utils.lua"
+		:Name "Utils"
+		:Depends { "Dump", "Helpers" }
+	Sources:File "core/HowlFileLoader.lua"
+		:Name "HowlFile"
 		:Depends "Helpers"
-	Sources:File "core/HowlFileLoader.lua" :Name "HowlFile"
-		:Depends "Helpers"
-	Sources:File "core/Dump.lua"           :Name "Dump"
+	Sources:File "core/Dump.lua"
+		:Name "Dump"
 end
 
 do -- Task files
 	Sources:File "tasks/Context.lua"
 		:Name "Context"
-		:Depends "Helpers"
-		:Depends "HowlFile"
-		:Depends "Utils"
-
+		:Depends { "Helpers", "HowlFile", "Utils" }
 	Sources:File "tasks/Task.lua"
 		:Name "Task"
 		:Depends "Utils"
-
 	Sources:File "tasks/Runner.lua"
 		:Name "Runner"
-		:Depends "Context"
-		:Depends "Task"
-		:Depends "Utils"
+		:Depends { "Context", "Task", "Utils"}
 
 	Sources:File "tasks/Extensions.lua"
 		:Alias "Task.Extensions"
-		:Depends "HowlFile"
-		:Depends "Runner"
-		:Depends "Utils"
+		:Depends { "HowlFile", "Runner", "Utils" }
 end
 
 do -- Dependencies
@@ -100,19 +53,8 @@ do -- Dependencies
 		:Depends "Mediator"
 
 	Sources:File "depends/Combiner.lua"
-		:Alias "Combiner"
-		:Depends "Depends"
-		:Depends "Helpers"
-		:Depends "HowlFile"
-		:Depends "Runner"
-		:Depends "Task"
-		:Depends {"Combiner.Verify", "Combiner.Traceback"}
-
-	Sources:File "depends/Bootstrap.lua"
-		:Alias "Bootstrap"
-		:Depends "Depends"
-		:Depends "HowlFile"
-		:Depends "Runner"
+		:Alias "Depends.Combiner"
+		:Depends { "Depends", "Helpers", "HowlFile", "Runner", "Task", "Combiner.Verify", "Combiner.Traceback"}
 
 	Sources:File "depends/modules/Verify.lua"
 		:Alias "Combiner.Verify"
@@ -120,24 +62,21 @@ do -- Dependencies
 
 	Sources:File "depends/modules/Traceback.lua"
 		:Alias "Combiner.Traceback"
-		:Depends "Helpers"
-		:Depends "Mediator"
+		:Depends { "Helpers", "Mediator" }
+
+	Sources:File "depends/Bootstrap.lua"
+		:Alias "Depends.Bootstrap"
+		:Depends { "Depends", "HowlFile", "Runner" }
 end
 
 do -- Minification
 	Sources:File "lexer/Parse.lua"
 		:Name "Parse"
-		:Depends "Constants"
-		:Depends "Scope"
-		:Depends "TokenList"
-		:Depends "Utils"
+		:Depends { "Constants", "Scope", "TokenList", "Utils" }
 
 	Sources:File "lexer/Rebuild.lua"
 		:Name "Rebuild"
-		:Depends "Constants"
-		:Depends "Helpers"
-		:Depends "HowlFile"
-		:Depends "Parse"
+		:Depends { "Constants", "Helpers", "HowlFile", "Parse" }
 
 	Sources:File "lexer/Scope.lua"
 		:Name "Scope"
@@ -145,8 +84,7 @@ do -- Minification
 
 	Sources:File "lexer/Tasks.lua"
 		:Alias "Lexer.Tasks"
-		:Depends "Mediator"
-		:Depends "Rebuild"
+		:Depends { "Mediator", "Rebuild" }
 
 	Sources:File "lexer/TokenList.lua" :Name "TokenList"
 	Sources:File "lexer/Constants.lua"
@@ -157,17 +95,19 @@ end
 do -- Files (Compilr)
 	Sources:File "files/Files.lua"
 		:Name "Files"
-		:Depends "HowlFile"
-		:Depends "Mediator"
-		:Depends "Utils"
+		:Depends { "HowlFile", "HowlFile", "Utils" }
 
 	Sources:File "files/Compilr.lua"
 		:Alias "Compilr"
-		:Depends "Files"
-		:Depends "Helpers"
-		:Depends "Rebuild"
-		:Depends "Runner"
+		:Depends { "Files", "Helpers", "Rebuild", "Runner" }
 end
+
+do -- External tools
+	Sources:File "external/Busted.lua"
+		:Alias "Busted"
+		:Depends { "HowlFile", "Utils"}
+end
+
 
 if Options:Get("with-interop") then
 	Sources:File "interop/native/Colors.lua"     :Name "colors"
@@ -182,44 +122,6 @@ else
 	Sources:File "interop/CC.lua" :Name "Helpers"
 end
 
-do -- External tools
-	Sources:File "external/Busted.lua"
-		:Alias "Busted"
-		:Depends "Utils"
-		:Depends "HowlFile"
-end
-
-do -- Options parsing
-	if Options:Get("with-dump") then
-		Verbose("Including 'Dump'")
-
-		Sources:Depends "Dump"
-		Sources:FindFile "Utils"
-			:Depends "Dump"
-	end
-
-	if Options:Get("with-minify") then
-		Verbose("Including Minify")
-		Sources:Depends "Lexer.Tasks"
-	end
-
-	if Options:Get("with-depends") then
-		Verbose("Including Depends")
-		Sources:Depends{"Bootstrap", "Combiner"}
-	end
-
-	if Options:Get("with-files") then
-		Verbose("Including Files")
-		Sources:Depends{"Compilr"}
-	end
-
-	if Options:Get("with-external") then
-		Verbose("Including External")
-		Sources
-			:Depends{"Busted"}
-	end
-end
-
 Tasks:Clean("clean", "build")
 Tasks:Combine("combine", Sources, "build/Howl.lua", {"clean"})
 	:Verify()
@@ -230,5 +132,5 @@ Tasks:Minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 Tasks:CreateBootstrap("boot", Sources, "build/Boot.lua", {"clean"})
 	:Traceback()
 
-Tasks:Task "build"{"minify", "boot"}
+Tasks:Task "build" { "minify", "boot" }
 	:Description "Minify and bootstrap"
