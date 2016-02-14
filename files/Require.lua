@@ -34,11 +34,15 @@ local function require(name)
 end
 ]=]
 
+local function toModule(file)
+	return file:gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
+end
+
 
 function Files.Files:AsRequire(env, output, options)
 	local path = self.path
 	options = options or {}
-	local link = options.Link
+	local link = options.link
 
 	local files = self:Files()
 	if not files[self.startup] then
@@ -49,7 +53,7 @@ function Files.Files:AsRequire(env, output, options)
 	for file, _ in pairs(files) do
 		Utils.Verbose("Including " .. file)
 		local whole = fs.combine(path, file)
-		result[#result + 1] = "preload[\"" .. file:gsub("%.lua$", ""):gsub("/", ".") .. "\"] = "
+		result[#result + 1] = "preload[\"" .. toModule(file) .. "\"] = "
 		if link then
 			assert(fs.exists(whole), "Cannot find " .. file)
 			result[#result + 1] = "loadfile(\"" .. whole .. "\")\n"
@@ -62,7 +66,7 @@ function Files.Files:AsRequire(env, output, options)
 		end
 	end
 
-	result[#result + 1] = "return preload[\"" .. self.startup:gsub("%.lua$", ""):gsub("/", ".") .. "\"](...)"
+	result[#result + 1] = "return preload[\"" .. toModule(self.startup) .. "\"](...)"
 
 	local outputFile = fs.open(fs.combine(env.CurrentDirectory, output), "w")
 	outputFile.write(table.concat(result))
