@@ -12,7 +12,7 @@ local function require(name)
 
 	if result ~= nil then
 		if result == loading then
-			error("loop or previous error loading module ' " .. name .. "'", 2)
+			error("loop or previous error loading module '" .. name .. "'", 2)
 		end
 
 		return result
@@ -22,10 +22,10 @@ local function require(name)
 	local contents = preload[name]
 	if contents then
 		result = contents()
-	elseif require then
-		result = require(name)
+	elseif oldRequire then
+		result = oldRequire(name)
 	else
-		error("cannot load '" + name + "'")
+		error("cannot load '" .. name .. "'")
 	end
 
 	if result == nil then result = true end
@@ -33,6 +33,8 @@ local function require(name)
 	return result
 end
 ]=]
+
+local envSetup = "local env = setmetatable({ require = require }, { __index = getfenv() })\n"
 
 local function toModule(file)
 	return file:gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
@@ -50,13 +52,17 @@ function Files.Files:AsRequire(env, output, options)
 	end
 
 	local result = {header}
+
+	if link then
+		result[#result + 1] = envSetup
+	end
 	for file, _ in pairs(files) do
 		Utils.Verbose("Including " .. file)
 		local whole = fs.combine(path, file)
 		result[#result + 1] = "preload[\"" .. toModule(file) .. "\"] = "
 		if link then
 			assert(fs.exists(whole), "Cannot find " .. file)
-			result[#result + 1] = "loadfile(\"" .. whole .. "\")\n"
+			result[#result + 1] = "setfenv(assert(loadfile(\"" .. whole .. "\")), env)\n"
 		else
 			local read = fs.open(whole, "r")
 			local contents = read.readAll()
