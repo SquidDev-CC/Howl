@@ -1,6 +1,7 @@
 local tries = 2
 local branch = "master"
 local once = false
+local localHowl
 local task, repo
 
 -- Parse the arguments
@@ -25,6 +26,17 @@ while index <= length do
 		end
 	elseif arg == "--once" then
 		once = true
+	elseif arg == "--local" or arg == "-l" then
+		index = index + 1
+		localHowl = args[index]
+		if localHowl == nil then
+			error("Invalid Howl path", 0)
+		else
+			localHowl = shell.resolve(localHowl)
+			if not fs.exists(localHowl) then
+				error("Cannot find Howl", 0)
+			end
+		end
 	elseif arg == "--task" or arg == "-task" or arg == "-t" then
 		index = index + 1
 		task = args[index]
@@ -112,9 +124,12 @@ if not task then
 end
 
 local env = vfs(shell.dir(), files)
-local howl
 
-do
+local howlFunc
+if localHowl then
+	howlFunc = setfenv(assert(loadfile("/H")), setmetatable(env, { __index = _ENV}))
+else
+	local howl
 	local howlBin = settings.howl or "http://pastebin.com/raw.php?i=uHRTm9hp"
 	local handle
 	if howlBin:sub(1, 7) == "http://" or howlBin:sub(1, 8) == "https://" then
@@ -127,9 +142,8 @@ do
 
 	howl = handle.readAll()
 	handle.close()
+	howlFunc = assert(load(howl, "Howl", nil, setmetatable(env, { __index = _ENV})))
 end
-
-local howlFunc = assert(load(howl, "Howl", nil, setmetatable(env, { __index = _ENV})))
 
 local function tokenise(line)
 	local words = {}

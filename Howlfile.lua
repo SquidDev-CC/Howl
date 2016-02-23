@@ -16,5 +16,7 @@ Tasks:Combine("combine", Sources, "build/WebBuild.lua", {"clean"})
 
 Tasks:Minify("minify", "build/WebBuild.lua", "build/WebBuild.min.lua")
 
-Tasks:Task "build" { "combine", "minify" }
+Tasks:CreateBootstrap("boot", Sources, "build/Boot.lua")
+
+Tasks:Task "build" { "combine", "minify", "boot" }
 Tasks:Default "build"

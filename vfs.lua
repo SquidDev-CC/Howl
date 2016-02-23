@@ -27,16 +27,16 @@ local function matchesLocal(root, path) return path == root or path:sub(1, #root
 local function extractLocal(root, path) return path:sub(#root + 2) end
 
 
-local function matchesPreserve(root, preserve, path)
-	if matchesLocal(root, path) then
-		if preserve then
-			for k, item in pairs()
-		end
-	end
-end
+-- local function matchesPreserve(root, preserve, path)
+-- 	if matchesLocal(root, path) then
+-- 		if preserve then
+-- 			for k, item in pairs()
+-- 		end
+-- 	end
+-- end
 local function copy(old)
 	local new = {}
-	for k, v in pairs(old) do new[k] = v print(k) end
+	for k, v in pairs(old) do new[k] = v end
 	return new
 end
 
@@ -66,7 +66,6 @@ return function(root, files, public)
 
 					for file, _ in pairs(files) do
 						local name = file:match(pattern)
-						print(name, " ", file, " ", pattern)
 						if name then list[#list + 1] = name end
 					end
 				end
