@@ -76,10 +76,7 @@ local function SetupTasks(currentDirectory, howlFile, options)
 		File = function(...) return fs.combine(currentDirectory, ...) end,
 	})
 
-	-- Load the file
-	environment.dofile(fs.combine(currentDirectory, howlFile))
-
-	return tasks
+	return tasks, environment
 end
 
 

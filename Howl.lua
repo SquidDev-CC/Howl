@@ -52,7 +52,7 @@ Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
 	end
 end)
 
-local tasks = HowlFile.SetupTasks(currentDirectory, howlFile, options)
+local tasks, environment = HowlFile.SetupTasks(currentDirectory, howlFile, options)
 
 -- Basic list tasks
 tasks:Task "list" (function()
@@ -75,6 +75,8 @@ tasks:Default(function()
 	Utils.PrintColor(colors.orange, "Choose from: ")
 	tasks:ListTasks("  ")
 end)
+
+environment.dofile(fs.combine(currentDirectory, howlFile))
 
 -- Run the task
 tasks:RunMany(taskList)
