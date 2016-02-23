@@ -20,30 +20,30 @@ options
 	:Alias "h"
 	:Description "Print this help"
 
+-- SETUP TASKS
+local taskList = options:Arguments()
+
 -- Locate the howl file
 local howlFile, currentDirectory = HowlFile.FindHowl()
 if not howlFile then
 	if options:Get("help") or (#taskList == 1 and taskList[1] == "help") then
-		Utils.PrintColor(colors.yellow, "Howl")
-		Utils.PrintColor(colors.lightGrey, "Howl is a simple build system for Lua")
-		Utils.PrintColor(colors.grey, "You can read the full documentation online: https://github.com/SquidDev-CC/Howl/wiki/")
+		Utils.PrintColor(colours.yellow, "Howl")
+		Utils.PrintColor(colours.lightGrey, "Howl is a simple build system for Lua")
+		Utils.PrintColor(colours.grey, "You can read the full documentation online: https://github.com/SquidDev-CC/Howl/wiki/")
 
-		Utils.PrintColor(colors.white, (([[
+		Utils.PrintColor(colours.white, (([[
 			The key thing you are missing is a HowlFile. This can be "Howlfile" or "Howlfile.lua".
 			Then you need to define some tasks. Maybe something like this:
-		]]):gsub("\t", "")))
+		]]):gsub("\t", ""):gsub("\n+$", "")))
 
-		Utils.PrintColor(colors.pink, 'Tasks:Minify("minify", "Result.lua", "Result.min.lua")')
+		Utils.PrintColor(colours.magenta, 'Tasks:Minify("minify", "Result.lua", "Result.min.lua")')
 
-		Utils.PrintColor(colors.white, "Now just run `Howl minify`!")
+		Utils.PrintColor(colours.white, "Now just run `Howl minify`!")
 	end
 	error(currentDirectory, 0)
 end
 
 Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
-
--- SETUP TASKS
-local taskList = options:Arguments()
 
 Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
 	Utils.IsVerbose(options:Get("verbose") or false)
