@@ -49,7 +49,7 @@ end
 
 	TODO: Override IO
 ]]
-return function(root, files, public)
+return function(root, files)
 	-- Emulated filesystem (partially based of Oeed's)
 	files = copy(files)
 	local env
@@ -61,7 +61,7 @@ return function(root, files, public)
 
 				if matchesLocal(root, path) then
 					local pattern = "^" .. escapePattern(extractLocal(root, path))
-					if path ~= "" then pattern = pattern .. '/' end
+					if pattern ~= "^" then pattern = pattern .. '/' end
 					pattern = pattern .. '([^/]+)$'
 
 					for file, _ in pairs(files) do
