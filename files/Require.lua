@@ -25,7 +25,7 @@ local function require(name)
 	elseif oldRequire then
 		result = oldRequire(name)
 	else
-		error("cannot load '" .. name .. "'")
+		error("cannot load '" .. name .. "'", 2)
 	end
 
 	if result == nil then result = true end
