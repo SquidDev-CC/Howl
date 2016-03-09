@@ -1,6 +1,10 @@
 --- Rebuild source code from an AST
 -- Does not preserve whitespace
--- @module lexer.Rebuild
+-- @module howl.lexer.Rebuild
+
+local Constants = require "howl.lexer.constants"
+local Parse = require "howl.lexer.parse"
+local Helpers = require "howl.lib.helpers"
 
 local lowerChars = Constants.LowerChars
 local upperChars = Constants.UpperChars

@@ -1,5 +1,7 @@
 --- Specify multiple dependencies
--- @module depends.Depends
+-- @module howl.depends
+
+local Mediator = require "howl.lib.mediator"
 
 --- Stores a file and the dependencies of the file
 -- @type File

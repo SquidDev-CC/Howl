@@ -1,5 +1,8 @@
 --- Verify a source file
--- @module depends.modules.Verify
+-- @module howl.depends.modules.verify
+
+local Mediator = require "howl.lib.mediator"
+local Depends = require "howl.depends"
 
 local loadstring = loadstring
 -- Verify a source file

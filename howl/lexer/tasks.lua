@@ -1,5 +1,9 @@
 --- Tasks for the lexer
--- @module lexer.Tasks
+-- @module howl.lexer.Tasks
+local Rebuild = require "howl.lexer.rebuild"
+local Runner = require "howl.tasks.runner"
+local Mediator = require "howl.lib.mediator"
+
 local minifyFile = Rebuild.MinifyFile
 local minifyDiscard = function(self, env, i, o)
 	return minifyFile(env.CurrentDirectory, i, o)

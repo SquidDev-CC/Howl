@@ -2,9 +2,11 @@
 -- LexLua returns a Lua token stream, with tokens that preserve
 -- all whitespace formatting information.
 -- ParseLua returns an AST, internally relying on LexLua.
--- @module lexer.Parse
+-- @module howl.lexer.parse
 
-local createLookup = Utils.CreateLookup
+local Constants = require "howl.lexer.constants"
+local Scope = require "howl.lexer.Scope"
+local TokenList = require "howl.lexer.TokenList"
 
 local lowerChars = Constants.LowerChars
 local upperChars = Constants.UpperChars

@@ -1,5 +1,8 @@
 --- Creates a bootstrap file, which is used to run dependencies
--- @module depends.Bootstrap
+-- @module howl.depends.bootstrap
+
+local Depends = require "howl.depends"
+local Runner = require "howl.tasks.runner"
 
 local format = string.format
 local tracebackHeader = [[

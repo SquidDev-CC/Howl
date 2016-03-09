@@ -1,5 +1,5 @@
 --- Provides utilities for reading tokens from a 'stream'
--- @module lexer.TokenList
+-- @module howl.lexer.TokenList
 
 --- Stores a list of tokens
 -- @type TokenList

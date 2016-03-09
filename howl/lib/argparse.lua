@@ -1,5 +1,8 @@
 --- Parses command line arguments
--- @module ArgParse
+-- @module howl.lib.argparse
+
+local Mediator = require "howl.lib.argparse"
+local Utils = require "howl.lib.utils"
 
 --- Simple wrapper for Options
 -- @type Option

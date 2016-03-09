@@ -1,7 +1,7 @@
 --- Mediator pattern implementation for pub-sub management
 --
 -- [Taken from Olivine Labs](http://olivinelabs.com/mediator_lua/)
--- @module Mediator
+-- @module howl.lib.mediator
 
 local type, pairs = type, pairs
 

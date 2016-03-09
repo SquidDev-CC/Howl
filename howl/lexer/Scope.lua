@@ -1,9 +1,9 @@
 --- Holds variables for one scope
 -- This implementation is inefficient. Instead of using hashes,
 -- a linear search is used instead to look up variables
--- @module lexer.Scope
+-- @module howl.lexer.Scope
 
-local keywords = Constants.Keywords
+local keywords = require "howl.lexer.constants".Keywords
 
 --- Holds the data for one variable
 -- @table Variable

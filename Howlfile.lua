@@ -15,20 +15,9 @@ Sources:Main "Howl.lua"
 	:Depends { "Task.Extensions", "Depends.Bootstrap", "Depends.Combiner", "Lexer.Tasks", "Busted", "Compilr", "Require" }
 
 do -- Core files
-	Sources:File "core/ArgParse.lua"
-		:Name "ArgParse"
-		:Depends { "Mediator", "Utils" }
-	Sources:File "core/Mediator.lua"
-		:Name "Mediator"
-		:Depends "Utils"
-	Sources:File "core/Utils.lua"
-		:Name "Utils"
-		:Depends { "Dump", "Helpers" }
 	Sources:File "core/HowlFileLoader.lua"
 		:Name "HowlFile"
 		:Depends { "Runner", "Utils", "Mediator", "Helpers" }
-	Sources:File "core/Dump.lua"
-		:Name "Dump"
 end
 
 do -- Task files
@@ -48,48 +37,9 @@ do -- Task files
 end
 
 do -- Dependencies
-	Sources:File "depends/Depends.lua"
-		:Name "Depends"
-		:Depends "Mediator"
-
 	Sources:File "depends/Combiner.lua"
 		:Alias "Depends.Combiner"
 		:Depends { "Depends", "Helpers", "Runner", "Task", "Combiner.Verify", "Combiner.Traceback"}
-
-	Sources:File "depends/modules/Verify.lua"
-		:Alias "Combiner.Verify"
-		:Depends "Mediator"
-
-	Sources:File "depends/modules/Traceback.lua"
-		:Alias "Combiner.Traceback"
-		:Depends { "Helpers", "Mediator" }
-
-	Sources:File "depends/Bootstrap.lua"
-		:Alias "Depends.Bootstrap"
-		:Depends { "Depends", "Runner" }
-end
-
-do -- Minification
-	Sources:File "lexer/Parse.lua"
-		:Name "Parse"
-		:Depends { "Constants", "Scope", "TokenList", "Utils" }
-
-	Sources:File "lexer/Rebuild.lua"
-		:Name "Rebuild"
-		:Depends { "Constants", "Helpers", "Parse" }
-
-	Sources:File "lexer/Scope.lua"
-		:Name "Scope"
-		:Depends "Scope"
-
-	Sources:File "lexer/Tasks.lua"
-		:Alias "Lexer.Tasks"
-		:Depends { "Mediator", "Rebuild" }
-
-	Sources:File "lexer/TokenList.lua" :Name "TokenList"
-	Sources:File "lexer/Constants.lua"
-		:Name "Constants"
-		:Depends "Utils"
 end
 
 do -- Files

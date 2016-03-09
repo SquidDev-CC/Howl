@@ -1,5 +1,5 @@
 --- Handles loading and creation of HowlFiles
--- @module HowlFile
+-- @module howl.core.HowlFile
 
 --- Names to test when searching for Howlfiles
 local Names = { "Howlfile", "Howlfile.lua" }

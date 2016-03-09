@@ -1,5 +1,7 @@
 --- Useful little helpers for things
--- @module Utils
+-- @module howl.lib.utils
+
+local dump = require "howl.lib.dump".dump
 
 local isVerbose = false
 
@@ -60,8 +62,7 @@ local function VerboseLog(...)
 		for _, value in ipairs({ ... }) do
 			local t = type(value)
 			if t == "table" then
-				local dmp = Dump or Helpers.serialize
-				value = dmp(value)
+				value = dump(value)
 			else
 				value = tostring(value)
 			end

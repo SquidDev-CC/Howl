@@ -1,7 +1,11 @@
 --- Adds finalizers and tracebacks
--- @module depends.modules.Traceback
+-- @module howl.depends.modules.Traceback
 
 local find = string.find
+
+local dump = require "howl.lib.dump".serialize
+local Mediator = require "howl.lib.mediator"
+local Depends = require "howl.depends"
 
 --- LineMapper template
 local lineMapper = {
@@ -222,7 +226,6 @@ Mediator.Subscribe({ "Combiner", "end" }, function(self, outputFile, options)
 		if options.lineMapping then
 			tracebackIncludes[#tracebackIncludes + 1] = lineMapper
 
-			local dump = Helpers.serialize
 			replacers.lineToModule = dump(options.lineToModule)
 			replacers.moduleStarts = dump(options.moduleStarts)
 			replacers.lastLine = options.line
