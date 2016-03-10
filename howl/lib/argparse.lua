@@ -1,7 +1,6 @@
 --- Parses command line arguments
 -- @module howl.lib.argparse
 
-local Mediator = require "howl.lib.mediator"
 local Utils = require "howl.lib.utils"
 
 --- Simple wrapper for Options
@@ -152,7 +151,7 @@ end
 --- Fires the on changed event
 -- @local
 function Parser:_Changed()
-	Mediator:publish({ "ArgParse", "changed" }, self)
+	self.mediator:publish({ "ArgParse", "changed" }, self)
 end
 
 --- Generates a help string
@@ -243,10 +242,11 @@ end
 --- Create a new options parser
 -- @tparam table args The command line arguments passed
 -- @treturn Parser The resulting parser
-local function Options(args)
+local function Options(mediator, args)
 	return setmetatable({
 		options = {}, -- The resulting values
 		arguments = {}, -- Spare arguments
+		mediator = mediator,
 
 		settings = {}, -- Settings for options
 	}, { __index = Parser }):Parse(args)

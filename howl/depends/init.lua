@@ -248,9 +248,9 @@ function Dependencies:Paths()
 end
 
 --- Add files to environment
-Mediator:subscribe({ "HowlFile", "env" }, function(env)
-	env.Dependencies = function(...) return Dependencies(env.CurrentDirectory, ...) end
-	env.Sources = Dependencies(env.CurrentDirectory)
+Mediator:subscribe({ "HowlFile", "env" }, function(env, context)
+	env.Dependencies = function(...) return Dependencies(context.root, ...) end
+	env.Sources = Dependencies(context.root)
 end)
 
 --- @export

@@ -46,7 +46,7 @@ local function toModule(file)
 end
 
 
-function Files:AsRequire(env, output, options)
+function Files:AsRequire(context, output, options)
 	local path = self.path
 	options = options or {}
 	local link = options.link
@@ -79,14 +79,14 @@ function Files:AsRequire(env, output, options)
 
 	result[#result + 1] = "return preload[\"" .. toModule(self.startup) .. "\"](...)"
 
-	local outputFile = fs.open(fs.combine(env.CurrentDirectory, output), "w")
+	local outputFile = fs.open(fs.combine(context.root, output), "w")
 	outputFile.write(table.concat(result))
 	outputFile.close()
 end
 
 function Runner:AsRequire(name, files, outputFile, taskDepends)
-	return self:InjectTask(Task.OptionTask(name, taskDepends, function(task, env)
-		files:AsRequire(env, outputFile, task)
+	return self:InjectTask(Task.OptionTask(name, taskDepends, function(task, context)
+		files:AsRequire(context, outputFile, task)
 	end))
 		:Description("Packages files together to allow require")
 		:Produces(outputFile)

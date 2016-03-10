@@ -273,7 +273,7 @@ function Files:Compilr(env, output, options)
 		result = Rebuild.MinifyString(result)
 	end
 
-	local outputFile = fs.open(fs.combine(env.CurrentDirectory, output), "w")
+	local outputFile = fs.open(fs.combine(env.root, output), "w")
 	outputFile.write(result)
 	outputFile.close()
 end

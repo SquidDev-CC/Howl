@@ -6,7 +6,7 @@ local Mediator = require "howl.lib.mediator"
 
 local minifyFile = Rebuild.MinifyFile
 local minifyDiscard = function(self, env, i, o)
-	return minifyFile(env.CurrentDirectory, i, o)
+	return minifyFile(env.root, i, o)
 end
 
 --- A task that minifies a source file
@@ -25,10 +25,10 @@ function Runner:Minify(name, inputFile, outputFile, taskDepends)
 			assert(lenIn == #outputFile, "Tables must be the same length")
 
 			for i = 1, lenIn do
-				minifyFile(env.CurrentDirectory, inputFile[i], outputFile[i])
+				minifyFile(env.root, inputFile[i], outputFile[i])
 			end
 		else
-			minifyFile(env.CurrentDirectory, inputFile, outputFile)
+			minifyFile(env.root, inputFile, outputFile)
 		end
 	end)
 		:Description("Minifies '" .. fs.getName(inputFile) .. "' into '" .. fs.getName(outputFile) .. "'")

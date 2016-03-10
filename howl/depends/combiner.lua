@@ -42,7 +42,7 @@ function Depends.Dependencies:Combiner(env, outputFile, options)
 	local path = self.path
 	local shouldExport = self.shouldExport
 
-	local output = fs.open(fs.combine(env.CurrentDirectory, outputFile), "w")
+	local output = fs.open(fs.combine(env.root, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
 
 	local includeChannel = combinerMediator:getChannel("include")

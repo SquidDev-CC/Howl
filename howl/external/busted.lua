@@ -93,12 +93,12 @@ function Runner:Busted(name, options, taskDepends)
 		end
 		if not busted then error("Cannot find busted") end
 
-		local newOptions = getDefaults(env.CurrentDirectory)
+		local newOptions = getDefaults(env.root)
 		for k, v in pairs(options or {}) do
 			newOptions[k] = v
 		end
 
-		local count, errors = busted.run(newOptions, getDefaults(env.CurrentDirectory))
+		local count, errors = busted.run(newOptions, getDefaults(env.root))
 		if count ~= 0 then
 			Utils.VerboseLog(errors)
 			error("Not all tests passed")

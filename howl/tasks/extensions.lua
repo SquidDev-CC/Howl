@@ -44,7 +44,7 @@ end
 function Runner:Clean(name, directory, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)
 		Utils.Verbose("Emptying directory '" .. directory .. "'")
-		local file = fs.combine(env.CurrentDirectory, directory)
+		local file = fs.combine(env.root, directory)
 		if fs.isDir(file) then
 			for _, sub in pairs(fs.list(file)) do
 				fs.delete(fs.combine(file, sub))

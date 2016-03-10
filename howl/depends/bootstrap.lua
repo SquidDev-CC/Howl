@@ -53,7 +53,7 @@ end
 function Depends.Dependencies:CreateBootstrap(env, outputFile, options)
 	local path = self.path
 
-	local output = fs.open(fs.combine(env.CurrentDirectory, outputFile), "w")
+	local output = fs.open(fs.combine(env.root, outputFile), "w")
 	assert(output, "Could not create" .. outputFile)
 
 	if options.traceback then

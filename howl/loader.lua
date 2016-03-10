@@ -40,7 +40,6 @@ end
 local function SetupEnvironment(variables)
 	local env = setmetatable(variables or {}, { __index = getfenv() })
 
-	env._G = _G
 	function env.loadfile(path)
 		return setfenv(loadfile(path), env)
 	end
@@ -49,23 +48,17 @@ local function SetupEnvironment(variables)
 		return env.loadfile(path)()
 	end
 
-	Mediator:publish({ "HowlFile", "env" }, env)
-
 	return env
 end
 
 --- Setup tasks
--- @tparam string currentDirectory Current directory
+-- @tparam howl.Context context The current environment
 -- @tparam string howlFile location of Howlfile relative to current directory
--- @tparam Options options Command line options
 -- @treturn Runner The task runner
-local function SetupTasks(currentDirectory, howlFile, options)
-	local tasks = Runner({
-		CurrentDirectory = currentDirectory,
-		Options = options,
-	})
+local function SetupTasks(context, howlFile)
+	local tasks = Runner(context)
 
-	Mediator:subscribe({ "ArgParse", "changed" }, function(options)
+	context.mediator:subscribe({ "ArgParse", "changed" }, function(options)
 		tasks.ShowTime = options:Get "time"
 		tasks.Traceback = options:Get "trace"
 	end)
@@ -73,14 +66,16 @@ local function SetupTasks(currentDirectory, howlFile, options)
 	-- Setup an environment
 	local environment = SetupEnvironment({
 		-- Core globals
-		CurrentDirectory = currentDirectory,
+		CurrentDirectory = context.root,
 		Tasks = tasks,
-		Options = options,
+		Options = context.arguments,
 		-- Helper functions
 		Verbose = Utils.Verbose,
 		Log = Utils.VerboseLog,
-		File = function(...) return fs.combine(currentDirectory, ...) end,
+		File = function(...) return fs.combine(context.root, ...) end,
 	})
+
+	context.mediator:publish({ "HowlFile", "env" }, environment, context)
 
 	return tasks, environment
 end

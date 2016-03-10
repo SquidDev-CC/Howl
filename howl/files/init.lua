@@ -3,6 +3,7 @@
 
 local Mediator = require "howl.lib.mediator"
 local Utils = require "howl.lib.utils"
+local assert = require "howl.lib.assert"
 local class = require "howl.lib.middleclass"
 local mixin = require "howl.lib.mixin"
 
@@ -113,6 +114,7 @@ end
 -- @tparam string path The path
 -- @treturn Files The resulting object
 function Files:initialize(path)
+	assert.type(path, "string", "bad argument #1 for Files expected string, got %s")
 	self.path = path
 	self.include = {}
 	self.exclude = {}
@@ -121,9 +123,9 @@ function Files:initialize(path)
 	self:Remove { ".git", ".idea", "Howlfile.lua", "Howlfile", "build" }
 end
 
-Mediator:subscribe({ "HowlFile", "env" }, function(env)
+Mediator:subscribe({ "HowlFile", "env" }, function(env, context)
 	env.Files = function(path)
-		return Files(path or env.CurrentDirectory)
+		return Files(path or context.root)
 	end
 end)
 

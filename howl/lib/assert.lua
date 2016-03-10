@@ -3,10 +3,6 @@
 
 local type, error = type, error
 
-local function format(message, args)
-	return message:format("%%(%w+)", args)
-end
-
 local nativeAssert = assert
 local assert = setmetatable(
 	{ assert = nativeAssert },
@@ -15,9 +11,9 @@ local assert = setmetatable(
 
 local function typeError(type, expected, message)
 	if message then
-		return error(message:format("%s", t))
+		return error(message:format(type))
 	else
-		return error(expected .. " expected, got " .. t)
+		return error(expected .. " expected, got " .. type)
 	end
 end
 

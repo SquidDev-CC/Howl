@@ -14,7 +14,9 @@ require "howl.external.busted"
 require "howl.files.compilr"
 require "howl.files.require"
 
-local options = ArgParse.Options({ ... })
+local howlFile, currentDirectory = HowlFile.FindHowl()
+local context = require "howl.context"(currentDirectory or shell.dir(), {... })
+local options = context.arguments
 
 options
 	:Option "verbose"
@@ -37,7 +39,6 @@ options
 local taskList = options:Arguments()
 
 -- Locate the howl file
-local howlFile, currentDirectory = HowlFile.FindHowl()
 if not howlFile then
 	if options:Get("help") or (#taskList == 1 and taskList[1] == "help") then
 		Utils.PrintColor(colours.yellow, "Howl")
@@ -53,7 +54,7 @@ if not howlFile then
 
 		Utils.PrintColor(colours.white, "Now just run `Howl minify`!")
 	end
-	error(currentDirectory, 0)
+	error("Cannot find Howlfile", 0)
 end
 
 Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
@@ -65,7 +66,7 @@ Mediator:subscribe({ "ArgParse", "changed" }, function(options)
 	end
 end)
 
-local tasks, environment = HowlFile.SetupTasks(currentDirectory, howlFile, options)
+local tasks, environment = HowlFile.SetupTasks(context, howlFile)
 
 -- Basic list tasks
 tasks:Task "list" (function()
