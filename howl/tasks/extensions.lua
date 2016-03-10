@@ -5,11 +5,11 @@ local Runner = require "howl.tasks.runner"
 local Utils = require "howl.lib.utils"
 
 --- Prints all tasks in a TaskRunner
--- Extends the @{Runner.Runner} class
+-- Extends the @{howl.tasks.Runner} class
 -- @tparam string indent The indent to print at
 -- @tparam boolean all Include all tasks (otherwise exclude ones starting with _)
--- @treturn Runner.Runner The current task runner (allows chaining)
-function Runner.Runner:ListTasks(indent, all)
+-- @treturn howl.tasks.task.Task The created task
+function Runner:ListTasks(indent, all)
 	local taskNames = {}
 	local maxLength = 0
 	for name, task in pairs(self.tasks) do
@@ -36,12 +36,12 @@ function Runner.Runner:ListTasks(indent, all)
 end
 
 --- A task for cleaning a directory
--- Extends the @{Runner.Runner} class
+-- Extends the @{howl.tasks.Runner} class
 -- @tparam string name Name of the task
 -- @tparam string directory The directory to clean
 -- @tparam table taskDepends A list of tasks this task requires
--- @treturn Runner.Runner The task runner (for chaining)
-function Runner.Runner:Clean(name, directory, taskDepends)
+-- @treturn howl.tasks.task.Task The created task
+function Runner:Clean(name, directory, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)
 		Utils.Verbose("Emptying directory '" .. directory .. "'")
 		local file = fs.combine(env.CurrentDirectory, directory)

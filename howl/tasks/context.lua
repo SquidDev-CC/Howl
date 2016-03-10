@@ -1,12 +1,13 @@
 --- Manages the running of tasks
--- @module tasks.Context
+-- @classmod howl.tasks.Context
 
 local Helpers = require "howl.lib.helpers"
 local Utils = require "howl.lib.utils"
+local class = require "howl.lib.middleclass"
+local mixin = require "howl.lib.mixin"
 
 --- Holds task contexts
--- @type Context
-local Context = {}
+local Context = class("howl.tasks.Context"):include(mixin.sealed)
 
 function Context:DoRequire(path, quite)
 	if self.filesProduced[path] then return true end
@@ -177,21 +178,16 @@ end
 --- Create a new task context
 -- @tparam Runner.Runner runner The task runner to run tasks from
 -- @treturn Context The resulting context
-local function Factory(runner)
-	return setmetatable({
-		ran = {}, -- List of task already run
-		filesProduced = {},
-		tasks = runner.tasks,
-		default = runner.default,
+function Context:initialize(runner)
+	self.ran = {} -- List of task already run
+	self.filesProduced = {}
+	self.tasks = runner.tasks
+	self.default = runner.default
 
-		Traceback = runner.Traceback,
-		ShowTime = runner.ShowTime,
-		env = runner.env,
-	}, { __index = Context }):BuildCache()
+	self.Traceback = runner.Traceback
+	self.ShowTime = runner.ShowTime
+	self.env = runner.env
+	self:BuildCache()
 end
 
---- @export
-return {
-	Factory = Factory,
-	Context = Context,
-}
+return Context

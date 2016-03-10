@@ -1,7 +1,8 @@
 --- The main task class
--- @module tasks.Task
+-- @module howl.tasks.task
 
 local Utils = require "howl.lib.utils"
+local class = require "howl.lib.middleclass"
 
 --- Convert a pattern
 local function ParsePattern(from, to)
@@ -16,7 +17,7 @@ end
 
 --- A single task: actions, dependencies and metadata
 -- @type Task
-local Task = {}
+local Task = class("howl.tasks.tasks.Task")
 
 --- Define what this task depends on
 -- @tparam string|table name Name/list of dependencies
@@ -163,55 +164,51 @@ function Task:Run(context, ...)
 	return true
 end
 
---- A Task that can store options
--- @type OptionTask
-local OptionTask = {
-	__index = function(self, key)
-		local parent = Task[key]
-		if parent then
-			return parent
-		end
-		if key:match("^%u") then
-			local normalFunction = Task[key]
-			if normalFunction then
-				return normalFunction
-			end
-			return function(self, value)
-				if value == nil then value = true end
-				self[(key:gsub("^%u", string.lower))] = value
-				return self
-			end
-		end
-	end
-}
-
 --- Create a task
 -- @tparam string name The name of the task
 -- @tparam table dependencies A list of tasks this task requires
 -- @tparam function action The action to run
--- @tparam table prototype The base class of the Task
 -- @treturn Task The created task
-local function Factory(name, dependencies, action, prototype)
+function Task:initialize(name, dependencies, action)
 	-- Check calling with no dependencies
 	if type(dependencies) == "function" then
 		action = dependencies
 		dependencies = {}
 	end
 
-	return setmetatable({
-		name = name, -- The name of the function
-		action = action, -- The action to call
-		dependencies = dependencies or {}, -- Task dependencies
-		description = nil, -- Description of the task
-		maps = {}, -- Reads and produces list
-		requires = {}, -- Files this task requires
-		produces = {}, -- Files this task produces
-	}, prototype or { __index = Task })
+	self.name = name -- The name of the function
+	self.action = action -- The action to call
+	self.dependencies = dependencies or {} -- Task dependencies
+	self.description = nil -- Description of the task
+	self.maps = {} -- Reads and produces list
+	self.requires = {} -- Files this task requires
+	self.produces = {} -- Files this task produces
 end
+
+--- A Task that can store options
+-- @type OptionTask
+local OptionTask = Task:subclass("OptionTask")
+function OptionTask:__index(key)
+	local parent = Task[key]
+	if parent then
+		return parent
+	end
+	if key:match("^%u") then
+		local normalFunction = Task[key]
+		if normalFunction then
+			return normalFunction
+		end
+		return function(self, value)
+			if value == nil then value = true end
+			self[(key:gsub("^%u", string.lower))] = value
+			return self
+		end
+	end
+end
+
 
 --- @export
 return {
-	Factory = Factory,
 	Task = Task,
 	OptionTask = OptionTask,
 }

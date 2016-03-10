@@ -84,10 +84,10 @@ function Files:AsRequire(env, output, options)
 	outputFile.close()
 end
 
-function Runner.Runner:AsRequire(name, files, outputFile, taskDepends)
-	return self:InjectTask(Task.Factory(name, taskDepends, function(task, env)
+function Runner:AsRequire(name, files, outputFile, taskDepends)
+	return self:InjectTask(Task.OptionTask(name, taskDepends, function(task, env)
 		files:AsRequire(env, outputFile, task)
-	end, Task.OptionTask))
+	end))
 		:Description("Packages files together to allow require")
 		:Produces(outputFile)
 end

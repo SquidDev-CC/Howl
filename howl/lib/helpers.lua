@@ -1,3 +1,6 @@
+--- Various helper methods
+-- @module howl.lib.helpers
+
 local refreshYield, dir
 if fs then
 	local push, pull = os.queueEvent, coroutine.yield

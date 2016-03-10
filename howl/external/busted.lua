@@ -1,4 +1,4 @@
---- Tasks for the lexer
+--- Execute busted tests
 -- @module howl.external.busted
 
 -- TODO: Replace with BSRocks
@@ -77,13 +77,13 @@ local function getDefaults(cwd)
 	}
 end
 
---- A task that minifies a source file
+--- A task that executes tests
 -- @tparam string name Name of the task
 -- @tparam table options Options to pass to busted
--- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
--- @treturn tasks.Task.Task The task runner (for chaining)
--- @see tasks.Runner.Runner
-function Runner.Runner:Busted(name, options, taskDepends)
+-- @tparam table taskDepends A list of @{tasks.task.Task|tasks} this task requires
+-- @treturn tasks.task.Task The task (for chaining)
+-- @see howl.tasks.Runner
+function Runner:Busted(name, options, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)
 		local busted
 		if options and options.busted then

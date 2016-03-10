@@ -278,7 +278,7 @@ function Files:Compilr(env, output, options)
 	outputFile.close()
 end
 
-function Runner.Runner:Compilr(name, files, outputFile, taskDepends)
+function Runner:Compilr(name, files, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)
 		files:Compilr(env, outputFile)
 	end)

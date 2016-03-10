@@ -4,10 +4,11 @@
 local Mediator = require "howl.lib.mediator"
 local Utils = require "howl.lib.utils"
 local class = require "howl.lib.middleclass"
+local mixin = require "howl.lib.mixin"
 
 --- Handles a list of files
 -- @type Files
-local Files = class.sealed("howl.files.Files")
+local Files = class("howl.files.Files"):include(mixin.sealed)
 
 --- Include a series of files/folders
 -- @tparam string match The match to include

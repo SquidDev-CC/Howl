@@ -1,5 +1,5 @@
 --- Lexer constants
--- @module howl.lexer.Constants
+-- @module howl.lexer.constants
 
 local createLookup = require "howl.lib.utils".CreateLookup
 

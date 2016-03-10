@@ -3,10 +3,11 @@
 
 local Mediator = require "howl.lib.mediator"
 local class = require "howl.lib.middleclass"
+local mixin = require "howl.lib.mixin"
 
 --- Stores a file and the dependencies of the file
 -- @type File
-local File = class.sealed("howl.depends.Files")
+local File = class("howl.depends.Files"):include(mixin.sealed)
 
 --- Define the name of this file
 -- @tparam string name The name of this file
@@ -88,7 +89,7 @@ end
 
 --- Stores an entire list of dependencies and handles resolving them
 -- @type Dependencies
-local Dependencies = class.sealed("howl.depends.Dependencies")
+local Dependencies = class("howl.depends.Dependencies"):include(mixin.sealed)
 
 --- Create a new Dependencies object
 -- @tparam string path The base path of the dependencies

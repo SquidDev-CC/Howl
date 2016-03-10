@@ -1,6 +1,6 @@
 --- Rebuild source code from an AST
 -- Does not preserve whitespace
--- @module howl.lexer.Rebuild
+-- @module howl.lexer.rebuild
 
 local Constants = require "howl.lexer.constants"
 local Parse = require "howl.lexer.parse"

@@ -1,13 +1,15 @@
 --- Handles tasks and dependencies
--- @module tasks.Runner
+-- @classmod howl.tasks.Runner
 
 local Task = require "howl.tasks.task"
 local Context = require "howl.tasks.context"
 local Utils = require "howl.lib.utils"
+local class = require "howl.lib.middleclass"
+local mixin = require "howl.lib.mixin"
 
 --- Handles a collection of tasks and running them
 -- @type Runner
-local Runner = {}
+local Runner = class("howl.tasks.Runner"):include(mixin.sealed)
 
 --- Create a task
 -- @tparam string name The name of the task to create
@@ -22,7 +24,7 @@ end
 -- @tparam function action The action to run
 -- @treturn Task The created task
 function Runner:AddTask(name, dependencies, action)
-	return self:InjectTask(Task.Factory(name, dependencies, action))
+	return self:InjectTask(Task.Task(name, dependencies, action))
 end
 
 --- Add a Task object to the collection
@@ -47,7 +49,7 @@ function Runner:Default(task)
 			error("Cannot find task " .. task)
 		end
 	else
-		self.default = Task.Factory("<default>", {}, task)
+		self.default = Task.Task("<default>", {}, task)
 	end
 
 	return self
@@ -67,7 +69,7 @@ function Runner:RunMany(names)
 	local oldTime = os.clock()
 	local value
 
-	local context = Context.Factory(self)
+	local context = Context(self)
 	if #names == 0 then
 		context:Start()
 	else
@@ -86,16 +88,10 @@ end
 --- Create a @{Runner} object
 -- @tparam env env The current environment
 -- @treturn Runner The created runner object
-local function Factory(env)
-	return setmetatable({
-		tasks = {},
-		default = nil,
-		env = env,
-	}, { __index = Runner })
+function Runner:initialize(env)
+	self.tasks = {}
+	self.default = nil
+	self.env = env
 end
 
---- @export
-return {
-	Factory = Factory,
-	Runner = Runner
-}
+return Runner

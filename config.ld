@@ -1,9 +1,8 @@
 project = 'Howl'
 description = 'Howl'
-file = {'.', exclude = {'build', 'Howlfile.lua'}}
+file = {'howl', exclude = {'howl/interop'}}
+dir = 'build/doc'
 full_description = [[
-These are the built-in libraries of Lua 5.1
-
-Plus documentation for lpeg and luafilesystem.
+A Lua buildsystem
 ]]
 format = 'discount'

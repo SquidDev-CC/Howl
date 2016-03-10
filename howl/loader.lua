@@ -60,7 +60,7 @@ end
 -- @tparam Options options Command line options
 -- @treturn Runner The task runner
 local function SetupTasks(currentDirectory, howlFile, options)
-	local tasks = Runner.Factory({
+	local tasks = Runner({
 		CurrentDirectory = currentDirectory,
 		Options = options,
 	})

@@ -49,7 +49,7 @@ end
 -- @tparam env env The current environment
 -- @tparam string outputFile The path of the output file
 -- @tparam table options Include code to print the traceback
--- @see Depends.Dependencies
+-- @see howl.depends.Dependencies
 function Depends.Dependencies:CreateBootstrap(env, outputFile, options)
 	local path = self.path
 
@@ -90,13 +90,13 @@ end
 -- @tparam string name Name of the task
 -- @tparam Depends.Dependencies dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
--- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
--- @treturn Bootstrap The created task
--- @see tasks.Runner.Runner
-function Runner.Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(Task.Factory(name, taskDepends, function(task, env)
+-- @tparam table taskDepends A list of @{howl.tasks.task.Task|tasks} this task requires
+-- @treturn howl.tasks.task.Task The created task
+-- @see tasks.Runner
+function Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
+	return self:InjectTask(Task.OptionTask(name, taskDepends, function(task, env)
 		dependencies:CreateBootstrap(env, outputFile, task)
-	end, Task.OptionTask))
+	end))
 		:Description("Creates a 'dynamic' combination of files in '" .. outputFile .. "')")
 		:Produces(outputFile)
 		:Requires(dependencies:Paths())

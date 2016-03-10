@@ -1,5 +1,5 @@
 --- Combines multiple files into one file
--- Extends @{howl.depends.Depends.Dependencies} and @{howl.tasks.Runner.Runner} classes
+-- Extends @{howl.depends.Dependencies} and @{howl.tasks.Runner} classes
 -- @module howl.depends.combiner
 
 local Mediator = require "howl.lib.mediator"
@@ -36,7 +36,7 @@ end]]):gsub("[\t\n ]+", " ")
 -- @tparam env env The current environment
 -- @tparam string outputFile The path of the output file
 -- @tparam CombinerOptions options Options for combining
--- @see Depends.Dependencies
+-- @see howl.depends.Dependencies
 function Depends.Dependencies:Combiner(env, outputFile, options)
 	options = options or {}
 	local path = self.path
@@ -143,15 +143,15 @@ end
 
 --- A task for combining stuff
 -- @tparam string name Name of the task
--- @tparam depends.Depends.Dependencies dependencies The dependencies to compile
+-- @tparam howl.depends.Dependencies dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
--- @tparam table taskDepends A list of @{tasks.Task.Task|tasks} this task requires
--- @treturn CombinerTask The created task
--- @see tasks.Runner.Runner
-function Runner.Runner:Combine(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(Task.Factory(name, taskDepends, function(options, env)
+-- @tparam table taskDepends A list of @{howl.tasks.task.Task|tasks} this task requires
+-- @treturn howl.tasks.task.Task The created task
+-- @see howl.tasks.Runner
+function Runner:Combine(name, dependencies, outputFile, taskDepends)
+	return self:InjectTask(Task.OptionTask(name, taskDepends, function(options, env)
 		dependencies:Combiner(env, outputFile, options)
-	end, Task.OptionTask))
+	end))
 		:Description("Combines files into '" .. outputFile .. "'")
 		:Produces(outputFile)
 		:Requires(dependencies:Paths())

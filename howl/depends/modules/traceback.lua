@@ -1,5 +1,5 @@
 --- Adds finalizers and tracebacks
--- @module howl.depends.modules.Traceback
+-- @module howl.depends.modules.traceback
 
 local find = string.find
 

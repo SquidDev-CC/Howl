@@ -1,3 +1,6 @@
+--- An OOP library for Lua
+-- @module howl.lib.middleclass
+
 local middleclass = {
 	_VERSION     = 'middleclass v4.0.0',
 	_DESCRIPTION = 'Object Orientation for Lua',
@@ -175,21 +178,9 @@ local DefaultMixin = {
 	}
 }
 
-local function noSubclass(self, name)
-	assert(type(self) == 'table', "Make sure that you are using 'Class:subclass' instead of 'Class.subclass'")
-	assert(type(name) == "string", "You must provide a name(string) for your class")
-	error("Cannot subclass '" .. tostring(self) .. "' (attempting to create '" .. name .. "')", 2)
-end
-
 function middleclass.class(name, super)
 	assert(type(name) == 'string', "A name (string) is needed for the new class")
 	return super and super:subclass(name) or _includeMixin(_createClass(name), DefaultMixin)
-end
-
-function middleclass.sealed(name, super)
-	local class = middleclass.class(name, super)
-	class.static.subclass = noSubclass
-	return class
 end
 
 setmetatable(middleclass, { __call = function(_, ...) return middleclass.class(...) end })
