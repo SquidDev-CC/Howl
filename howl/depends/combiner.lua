@@ -1,6 +1,6 @@
 --- Combines multiple files into one file
--- Extends @{depends.Depends.Dependencies} and @{tasks.Runner.Runner} classes
--- @module depends.Combiner
+-- Extends @{howl.depends.Depends.Dependencies} and @{howl.tasks.Runner.Runner} classes
+-- @module howl.depends.combiner
 
 local Mediator = require "howl.lib.mediator"
 local Utils = require "howl.lib.utils"

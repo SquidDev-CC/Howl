@@ -2,10 +2,11 @@
 -- @module howl.depends
 
 local Mediator = require "howl.lib.mediator"
+local class = require "howl.lib.middleclass"
 
 --- Stores a file and the dependencies of the file
 -- @type File
-local File = {}
+local File = class.sealed("howl.depends.Files")
 
 --- Define the name of this file
 -- @tparam string name The name of this file
@@ -74,30 +75,39 @@ function File:NoWrap(noWrap)
 	return self
 end
 
+function File:initialize(self, parent)
+	self.dependencies = {}
+	self.name = nil
+	self.alias = nil
+	self.path = path
+	self.shouldExport = true
+	self.noWrap = false
+	self.type = "File"
+	self.parent = parent
+end
+
 --- Stores an entire list of dependencies and handles resolving them
 -- @type Dependencies
-local Dependencies = {}
+local Dependencies = class.sealed("howl.depends.Dependencies")
 
 --- Create a new Dependencies object
 -- @tparam string path The base path of the dependencies
 -- @tparam Dependencies parent The parent dependencies
 -- @treturn Dependencies The new Dependencies object
-local function Factory(path, parent)
-	return setmetatable({
-		mainFiles = {},
-		files = {},
-		path = path,
-		namespaces = {},
-		shouldExport = false,
-		parent = parent,
-	}, { __index = Dependencies })
+function Dependencies:initialize(path, parent)
+	self.mainFiles = {}
+	self.files = {}
+	self.path = path
+	self.namespaces = {}
+	self.shouldExport = false
+	self.parent = parent
 end
 
 --- Add a file to the dependency list
 -- @tparam string path The path of the file relative to the Dependencies' root
 -- @treturn File The created file object
 function Dependencies:File(path)
-	local file = self:_File(path)
+	local file = File(path, self)
 	self.files[path] = file
 	Mediator.Publish({ "Dependencies", "create" }, self, file)
 	return file
@@ -107,27 +117,11 @@ end
 -- @tparam string path The path of the file relative to the Dependencies' root
 -- @treturn File The created file object
 function Dependencies:Resource(path)
-	local file = self:_File(path)
+	local file = File(path, self)
 	file.type = "Resource"
 	self.files[path] = file
 	Mediator.Publish({ "Dependencies", "create" }, self, file)
 	return file
-end
-
---- Create a file
--- @tparam string path The path of the file relative to the Dependencies' root
--- @treturn File The created file object
-function Dependencies:_File(path)
-	return setmetatable({
-		dependencies = {},
-		name = nil,
-		alias = nil,
-		path = path,
-		shouldExport = true,
-		noWrap = false,
-		type = "File",
-		parent = self,
-	}, { __index = File })
 end
 
 --- Add a 'main' file to the dependency list. This is a file that will be executed (added to the end of a script)
@@ -135,7 +129,7 @@ end
 -- @tparam string path The path of the file relative to the Dependencies' root
 -- @treturn File The created file object
 function Dependencies:Main(path)
-	local file = self:FindFile(path) or self:_File(path)
+	local file = self:FindFile(path) or File(path, self)
 	file.type = "Main"
 	table.insert(self.mainFiles, file)
 	Mediator.Publish({ "Dependencies", "create" }, self, file)
@@ -254,13 +248,12 @@ end
 
 --- Add files to environment
 Mediator.Subscribe({ "HowlFile", "env" }, function(env)
-	env.Dependencies = function(...) return Factory(env.CurrentDirectory, ...) end
-	env.Sources = Factory(env.CurrentDirectory)
+	env.Dependencies = function(...) return Dependencies(env.CurrentDirectory, ...) end
+	env.Sources = Dependencies(env.CurrentDirectory)
 end)
 
 --- @export
 return {
 	File = File,
 	Dependencies = Dependencies,
-	Factory = Factory,
 }

@@ -46,7 +46,7 @@ local function toModule(file)
 end
 
 
-function Files.Files:AsRequire(env, output, options)
+function Files:AsRequire(env, output, options)
 	local path = self.path
 	options = options or {}
 	local link = options.link

@@ -3,10 +3,11 @@
 
 local Mediator = require "howl.lib.mediator"
 local Utils = require "howl.lib.utils"
+local class = require "howl.lib.middleclass"
 
 --- Handles a list of files
 -- @type Files
-local Files = {}
+local Files = class.sealed("howl.files.Files")
 
 --- Include a series of files/folders
 -- @tparam string match The match to include
@@ -110,24 +111,19 @@ end
 --- Create a new @{Files|files object}
 -- @tparam string path The path
 -- @treturn Files The resulting object
-local function Factory(path)
-	return setmetatable({
-		path = path,
-		include = {},
-		exclude = {},
-		startup = 'startup'
-	}, { __index = Files })
-		:Remove { ".git", ".idea", "Howlfile.lua", "Howlfile", "build" }
+function Files:initialize(path)
+	self.path = path
+	self.include = {}
+	self.exclude = {}
+	self.startup = 'startup'
+
+	self:Remove { ".git", ".idea", "Howlfile.lua", "Howlfile", "build" }
 end
 
 Mediator.Subscribe({ "HowlFile", "env" }, function(env)
 	env.Files = function(path)
-		return Factory(path or env.CurrentDirectory)
+		return Files(path or env.CurrentDirectory)
 	end
 end)
 
---- @export
-return {
-	Files = Files,
-	Factory = Factory,
-}
+return Files

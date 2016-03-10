@@ -233,7 +233,7 @@ else
 end
 ]]
 
-function Files.Files:Compilr(env, output, options)
+function Files:Compilr(env, output, options)
 	local path = self.path
 	options = options or {}
 
