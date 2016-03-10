@@ -49,7 +49,7 @@ local function SetupEnvironment(variables)
 		return env.loadfile(path)()
 	end
 
-	Mediator.Publish({ "HowlFile", "env" }, env)
+	Mediator:publish({ "HowlFile", "env" }, env)
 
 	return env
 end
@@ -65,7 +65,7 @@ local function SetupTasks(currentDirectory, howlFile, options)
 		Options = options,
 	})
 
-	Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
+	Mediator:subscribe({ "ArgParse", "changed" }, function(options)
 		tasks.ShowTime = options:Get "time"
 		tasks.Traceback = options:Get "trace"
 	end)

@@ -1,40 +1,51 @@
 --- Mediator pattern implementation for pub-sub management
 --
--- [Taken from Olivine Labs](http://olivinelabs.com/mediator_lua/)
+-- [Adapted from Olivine Labs' Mediator](http://olivinelabs.com/mediator_lua/)
 -- @module howl.lib.mediator
 
-local type, pairs = type, pairs
+local class = require "howl.lib.middleclass"
+local mixin = require "howl.lib.mixin"
 
-local Subscriber = {}
+local function getUniqueId()
+	return tonumber(tostring({}):match(':%s*[0xX]*(%x+)'), 16)
+end
+
+--- A subscriber to a channel
+-- @type Subscriber
+local Subscriber = class("howl.lib.mediator.Subscriber"):include(mixin.sealed)
+
+--- Create a new subscriber
+-- @tparam function fn The function to execute
+-- @tparam table options Options to use
+-- @constructor
+function Subscriber:initialize(fn, options)
+	self.id = getUniqueId()
+	self.options = options or {}
+	self.fn = fn
+end
+
+--- Update the subscriber with new options
+-- @tparam table options Options to use
 function Subscriber:update(options)
-	if options then
-		self.fn = options.fn or self.fn
-		self.options = options.options or self.options
-	end
+	self.fn = options.fn or self.fn
+	self.options = options.options or self.options
 end
 
-local function SubscriberFactory(fn, options)
-	return setmetatable({
-		options = options or {},
-		fn = fn,
-		channel = nil,
-		id = math.random(1000000000), -- sounds reasonable, rite?
-	}, { __index = Subscriber })
-end
 
-local Channel = {}
-local function ChannelFactory(namespace, parent)
-	return setmetatable({
-		stopped = false,
-		namespace = namespace,
-		callbacks = {},
-		channels = {},
-		parent = parent,
-	}, { __index = Channel })
+--- Channel class and functions
+-- @type Channel
+local Channel = class("howl.lib.mediator.Channel"):include(mixin.sealed)
+
+function Channel:initialize(namespace, parent)
+	self.stopped = false
+	self.namespace = namespace
+	self.callbacks = {}
+	self.channels = {}
+	self.parent = parent
 end
 
 function Channel:addSubscriber(fn, options)
-	local callback = SubscriberFactory(fn, options)
+	local callback = Subscriber(fn, options)
 	local priority = (#self.callbacks + 1)
 
 	options = options or {}
@@ -74,7 +85,7 @@ function Channel:setPriority(id, priority)
 end
 
 function Channel:addChannel(namespace)
-	self.channels[namespace] = ChannelFactory(namespace, self)
+	self.channels[namespace] = Channel(namespace, self)
 	return self.channels[namespace]
 end
 
@@ -107,7 +118,7 @@ function Channel:publish(result, ...)
 			-- just take the first result and insert it into the result table
 			local continue, value = callback.fn(...)
 
-			if value then result[#result] = value end
+			if value ~= nil then table.insert(result, value) end
 			if continue == false then return false, result end
 		end
 	end
@@ -119,45 +130,44 @@ function Channel:publish(result, ...)
 	end
 end
 
-local channel = ChannelFactory('root')
-local function GetChannel(channelNamespace)
-	local channel = channel
+--- Mediator class and functions
+local Mediator = setmetatable(
+	{
+		Channel = Channel,
+		Subscriber = Subscriber
+	},
+	{
+		__call = function(fn, options)
+			return {
+				channel = Channel('root'),
 
-	if type(channelNamespace) == "string" then
-		if channelNamespace:find(":") then
-			channelNamespace = { channelNamespace:match((channelNamespace:gsub("[^:]+:?", "([^:]+):?"))) }
-		else
-			channelNamespace = { channelNamespace }
+				getChannel = function(self, channelNamespace)
+					local channel = self.channel
+
+					for i=1, #channelNamespace do
+						channel = channel:getChannel(channelNamespace[i])
+					end
+
+					return channel
+				end,
+
+				subscribe = function(self, channelNamespace, fn, options)
+					return self:getChannel(channelNamespace):addSubscriber(fn, options)
+				end,
+
+				getSubscriber = function(self, id, channelNamespace)
+					return self:getChannel(channelNamespace):getSubscriber(id)
+				end,
+
+				removeSubscriber = function(self, id, channelNamespace)
+					return self:getChannel(channelNamespace):removeSubscriber(id)
+				end,
+
+				publish = function(self, channelNamespace, ...)
+					return self:getChannel(channelNamespace):publish({}, ...)
+				end
+			}
 		end
-	end
-
-	for i = 1, #channelNamespace do
-		channel = channel:getChannel(channelNamespace[i])
-	end
-
-	return channel
-end
-
-local function Subscribe(channelNamespace, fn, options)
-	return GetChannel(channelNamespace):addSubscriber(fn, options)
-end
-
-local function GetSubscriber(id, channelNamespace)
-	return GetChannel(channelNamespace):getSubscriber(id)
-end
-
-local function RemoveSubscriber(id, channelNamespace)
-	return GetChannel(channelNamespace):removeSubscriber(id)
-end
-
-local function Publish(channelNamespace, ...)
-	return GetChannel(channelNamespace):publish({}, ...)
-end
-
-return {
-	GetChannel = GetChannel,
-	Subscribe = Subscribe,
-	GetSubscriber = GetSubscriber,
-	RemoveSubscriber = RemoveSubscriber,
-	Publish = Publish,
-}
+	}
+)
+return Mediator()

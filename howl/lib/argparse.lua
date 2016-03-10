@@ -152,7 +152,7 @@ end
 --- Fires the on changed event
 -- @local
 function Parser:_Changed()
-	Mediator.Publish({ "ArgParse", "changed" }, self)
+	Mediator:publish({ "ArgParse", "changed" }, self)
 end
 
 --- Generates a help string

@@ -151,7 +151,7 @@ local function replaceTemplate(source, replacers)
 	end)
 end
 
-Mediator.Subscribe({ "Combiner", "start" }, function(self, outputFile, options)
+Mediator:subscribe({ "Combiner", "start" }, function(self, outputFile, options)
 	if self.finalizer then
 		options.traceback = true
 	end
@@ -169,7 +169,7 @@ Mediator.Subscribe({ "Combiner", "start" }, function(self, outputFile, options)
 end)
 
 local min = math.min
-Mediator.Subscribe({ "Combiner", "write" }, function(self, name, contents, options)
+Mediator:subscribe({ "Combiner", "write" }, function(self, name, contents, options)
 	if options.lineMapping then
 		name = name or "file"
 
@@ -195,7 +195,7 @@ Mediator.Subscribe({ "Combiner", "write" }, function(self, name, contents, optio
 	end
 end)
 
-Mediator.Subscribe({ "Combiner", "end" }, function(self, outputFile, options)
+Mediator:subscribe({ "Combiner", "end" }, function(self, outputFile, options)
 	if options.traceback then
 		local tracebackIncludes = {}
 		local replacers = {}
@@ -212,7 +212,7 @@ Mediator.Subscribe({ "Combiner", "end" }, function(self, outputFile, options)
 			if #finalizerContents == 0 then
 				finalizerContents = nil
 			else
-				Mediator.Publish({ "Combiner", "include" }, self, finalizer, finalizerContents, options)
+				Mediator:publish({ "Combiner", "include" }, self, finalizer, finalizerContents, options)
 			end
 
 			-- Register template
@@ -258,6 +258,6 @@ function Depends.Dependencies:Finalizer(path)
 	local file = self:FindFile(path) or self:File(path)
 	file.type = "Finalizer"
 	self.finalizer = file
-	Mediator.Publish({ "Dependencies", "create" }, self, file)
+	Mediator:publish({ "Dependencies", "create" }, self, file)
 	return file
 end

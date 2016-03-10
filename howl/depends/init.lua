@@ -110,7 +110,7 @@ end
 function Dependencies:File(path)
 	local file = File(path, self)
 	self.files[path] = file
-	Mediator.Publish({ "Dependencies", "create" }, self, file)
+	Mediator:publish({ "Dependencies", "create" }, self, file)
 	return file
 end
 
@@ -121,7 +121,7 @@ function Dependencies:Resource(path)
 	local file = File(path, self)
 	file.type = "Resource"
 	self.files[path] = file
-	Mediator.Publish({ "Dependencies", "create" }, self, file)
+	Mediator:publish({ "Dependencies", "create" }, self, file)
 	return file
 end
 
@@ -133,7 +133,7 @@ function Dependencies:Main(path)
 	local file = self:FindFile(path) or File(path, self)
 	file.type = "Main"
 	table.insert(self.mainFiles, file)
-	Mediator.Publish({ "Dependencies", "create" }, self, file)
+	Mediator:publish({ "Dependencies", "create" }, self, file)
 	return file
 end
 
@@ -248,7 +248,7 @@ function Dependencies:Paths()
 end
 
 --- Add files to environment
-Mediator.Subscribe({ "HowlFile", "env" }, function(env)
+Mediator:subscribe({ "HowlFile", "env" }, function(env)
 	env.Dependencies = function(...) return Dependencies(env.CurrentDirectory, ...) end
 	env.Sources = Dependencies(env.CurrentDirectory)
 end)

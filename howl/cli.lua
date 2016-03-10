@@ -58,7 +58,7 @@ end
 
 Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 
-Mediator.Subscribe({ "ArgParse", "changed" }, function(options)
+Mediator:subscribe({ "ArgParse", "changed" }, function(options)
 	Utils.IsVerbose(options:Get("verbose") or false)
 	if options:Get "help" then
 		taskList = { "help" }

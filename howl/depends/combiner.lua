@@ -12,7 +12,7 @@ local Task = require "howl.tasks.task"
 require "howl.depends.modules.verify"
 require "howl.depends.modules.traceback"
 
-local combinerMediator = Mediator.GetChannel { "Combiner" }
+local combinerMediator = Mediator:getChannel { "Combiner" }
 
 local functionLoaderName = "_W"
 --[[

@@ -121,7 +121,7 @@ function Files:initialize(path)
 	self:Remove { ".git", ".idea", "Howlfile.lua", "Howlfile", "build" }
 end
 
-Mediator.Subscribe({ "HowlFile", "env" }, function(env)
+Mediator:subscribe({ "HowlFile", "env" }, function(env)
 	env.Files = function(path)
 		return Files(path or env.CurrentDirectory)
 	end

@@ -6,7 +6,7 @@ local Depends = require "howl.depends"
 
 local loadstring = loadstring
 -- Verify a source file
-Mediator.Subscribe({ "Combiner", "include" }, function(self, file, contents, options)
+Mediator:subscribe({ "Combiner", "include" }, function(self, file, contents, options)
 	if options.verify and file.verify ~= false then
 		local success, err = loadstring(contents)
 		if not success then
@@ -19,7 +19,7 @@ Mediator.Subscribe({ "Combiner", "include" }, function(self, file, contents, opt
 end)
 
 -- We should explicitly prevent a resource being verified
-Mediator.Subscribe({ "Dependencies", "create" }, function(depends, file)
+Mediator:subscribe({ "Dependencies", "create" }, function(depends, file)
 	if file.type == "Resource" then
 		file:Verify(false)
 	end
