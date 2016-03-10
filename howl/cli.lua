@@ -1,5 +1,18 @@
 --- Core script for Howl
--- @script Howl
+-- @script howl.cli
+
+local ArgParse = require "howl.lib.argparse"
+local HowlFile = require "howl.loader"
+local Mediator = require "howl.lib.mediator"
+local Utils = require "howl.lib.utils"
+
+require "howl.tasks.extensions"
+require "howl.depends.bootstrap"
+require "howl.depends.combiner"
+require "howl.lexer.tasks"
+require "howl.external.busted"
+require "howl.files.compilr"
+require "howl.files.require"
 
 local options = ArgParse.Options({ ... })
 

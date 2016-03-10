@@ -3,6 +3,7 @@
 
 local Depends = require "howl.depends"
 local Runner = require "howl.tasks.runner"
+local Task = require "howl.tasks.task"
 
 local format = string.format
 local tracebackHeader = [[

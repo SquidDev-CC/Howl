@@ -1,5 +1,8 @@
 --- Basic extensions to classes
--- @module tasks.Extensions
+-- @module howl.tasks.extensions
+
+local Runner = require "howl.tasks.runner"
+local Utils = require "howl.lib.utils"
 
 --- Prints all tasks in a TaskRunner
 -- Extends the @{Runner.Runner} class

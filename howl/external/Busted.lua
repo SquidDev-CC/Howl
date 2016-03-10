@@ -1,5 +1,10 @@
 --- Tasks for the lexer
--- @module external.Busted
+-- @module howl.external.busted
+
+-- TODO: Replace with BSRocks
+
+local Utils = require "howl.lib.utils"
+local Runner = require "howl.tasks.runner"
 
 local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, Utils.Verbose
 local busted = busted

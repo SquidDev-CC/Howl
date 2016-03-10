@@ -1,6 +1,8 @@
 --- The main task class
 -- @module tasks.Task
 
+local Utils = require "howl.lib.utils"
+
 --- Convert a pattern
 local function ParsePattern(from, to)
 	local fromParsed = Utils.ParsePattern(from, true)

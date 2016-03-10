@@ -1,9 +1,12 @@
 --- [Compilr](https://github.com/oeed/Compilr) by Oeed ported to Howl by SquidDev
 -- Combines files and emulates the fs API
--- @module files.Compilr
+-- @module howl.files.compilr
 
 local Files = require "howl.files"
-local Helpers = require "howl.helpers"
+local dump = require "howl.lib.dump"
+local Rebuild = require "howl.lexer.rebuild"
+local Runner = require "howl.tasks.runner"
+
 local header = [=[--[[Hideously Smashed Together by Compilr, a Hideous Smash-Stuff-Togetherer, (c) 2014 oeed
 	This file REALLLLLLLY isn't suitable to be used for anything other than being executed
 	To extract all the files, run: "<filename> --extract" in the Shell
@@ -264,7 +267,7 @@ function Files.Files:Compilr(env, output, options)
 		root[fs.getName(file)] = contents
 	end
 
-	local result = header .. "local files = " .. Helpers.serialize(resultFiles) .. "\n" .. string.format(footer, self.startup, self.startup)
+	local result = header .. "local files = " .. dump.serialize(resultFiles) .. "\n" .. string.format(footer, self.startup, self.startup)
 
 	if options.minify then
 		result = Rebuild.MinifyString(result)

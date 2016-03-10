@@ -1,5 +1,8 @@
 --- Handles a list of files
--- @module files.Files
+-- @module howl.files
+
+local Mediator = require "howl.lib.mediator"
+local Utils = require "howl.lib.utils"
 
 --- Handles a list of files
 -- @type Files

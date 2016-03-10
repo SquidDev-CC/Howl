@@ -1,6 +1,9 @@
 --- Manages the running of tasks
 -- @module tasks.Context
 
+local Helpers = require "howl.lib.helpers"
+local Utils = require "howl.lib.utils"
+
 --- Holds task contexts
 -- @type Context
 local Context = {}

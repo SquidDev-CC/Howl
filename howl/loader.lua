@@ -1,5 +1,11 @@
 --- Handles loading and creation of HowlFiles
--- @module howl.core.HowlFile
+-- @module howl.loader
+
+local Runner = require "howl.tasks.runner"
+local Mediator = require "howl.lib.mediator"
+local Utils = require "howl.lib.utils"
+local Helpers = require "howl.lib.helpers"
+local Runner = require "howl.tasks.runner"
 
 --- Names to test when searching for Howlfiles
 local Names = { "Howlfile", "Howlfile.lua" }

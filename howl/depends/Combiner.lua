@@ -2,6 +2,16 @@
 -- Extends @{depends.Depends.Dependencies} and @{tasks.Runner.Runner} classes
 -- @module depends.Combiner
 
+local Mediator = require "howl.lib.mediator"
+local Utils = require "howl.lib.utils"
+local Depends = require "howl.depends"
+local Runner = require "howl.tasks.runner"
+local Task = require "howl.tasks.task"
+
+-- Load some modules
+require "howl.depends.modules.verify"
+require "howl.depends.modules.traceback"
+
 local combinerMediator = Mediator.GetChannel { "Combiner" }
 
 local functionLoaderName = "_W"
@@ -31,7 +41,6 @@ function Depends.Dependencies:Combiner(env, outputFile, options)
 	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport
-	local format = Helpers.serialize
 
 	local output = fs.open(fs.combine(env.CurrentDirectory, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
@@ -90,7 +99,7 @@ function Depends.Dependencies:Combiner(env, outputFile, options)
 				exports[#exports + 1] = moduleName
 				line = "local " .. line
 			end
-			write(line .. format(contents), file.alias or file.path) -- If the file is a resource then quote it and print it
+			write(line .. string.format("%q", contents), file.alias or file.path) -- If the file is a resource then quote it and print it
 		elseif moduleName then -- If the file has an module name then use that
 			-- Check if we are prevented in setting a custom environment
 			local startFunc, endFunc = functionLoaderName .. '(function(_ENV, ...)', 'end)'

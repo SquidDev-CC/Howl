@@ -1,7 +1,12 @@
 --- Emulate Lua standard requires
 --
 -- Combines multiple files, loading them into an emulated `package.preload`.
--- @module files.Require
+-- @module howl.files.require
+
+local Files = require "howl.files"
+local Runner = require "howl.tasks.runner"
+local Utils = require "howl.lib.utils"
+local Task = require "howl.tasks.task"
 
 local header = [=[
 local loading = {}

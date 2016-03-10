@@ -1,6 +1,10 @@
 --- Handles tasks and dependencies
 -- @module tasks.Runner
 
+local Task = require "howl.tasks.task"
+local Context = require "howl.tasks.context"
+local Utils = require "howl.lib.utils"
+
 --- Handles a collection of tasks and running them
 -- @type Runner
 local Runner = {}
