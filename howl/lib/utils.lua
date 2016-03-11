@@ -122,7 +122,7 @@ local basicMatches = {
 -- @tparam string text Pattern to parse
 -- @tparam boolean invert If using a wildcard, invert it
 -- @treturn Pattern
-local function ParsePattern(text, invert)
+local function parsePattern(text, invert)
 	local beginning = text:sub(1, 5)
 	if beginning == "ptrn:" or beginning == "wild:" then
 
@@ -150,7 +150,7 @@ end
 --- Create a lookup table from a list of values
 -- @tparam table tbl The table of values
 -- @treturn The same table, with lookups as well
-local function CreateLookup(tbl)
+local function createLookup(tbl)
 	for _, v in ipairs(tbl) do
 		tbl[v] = true
 	end
@@ -187,7 +187,7 @@ return {
 	Verbose = Verbose,
 	VerboseLog = VerboseLog,
 	EscapePattern = EscapePattern,
-	ParsePattern = ParsePattern,
-	CreateLookup = CreateLookup,
+	parsePattern = parsePattern,
+	createLookup = createLookup,
 	MatchTables = MatchTables,
 }

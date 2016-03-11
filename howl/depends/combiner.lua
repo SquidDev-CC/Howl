@@ -33,16 +33,16 @@ end]]):gsub("[\t\n ]+", " ")
 -- @tfield boolean traceback Print the traceback out
 
 --- Combines Dependencies into one file
--- @tparam env env The current environment
+-- @tparam howl.Context context The current environment
 -- @tparam string outputFile The path of the output file
 -- @tparam CombinerOptions options Options for combining
 -- @see howl.depends.Dependencies
-function Depends.Dependencies:Combiner(env, outputFile, options)
+function Depends.Dependencies:Combiner(context, outputFile, options)
 	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport
 
-	local output = fs.open(fs.combine(env.root, outputFile), "w")
+	local output = fs.open(fs.combine(context.root, outputFile), "w")
 	assert(output, "Could not create " .. outputFile)
 
 	local includeChannel = combinerMediator:getChannel("include")
@@ -86,7 +86,7 @@ function Depends.Dependencies:Combiner(env, outputFile, options)
 			error(result[#result] or "Unknown error")
 		end
 
-		Utils.Verbose("Adding " .. filePath)
+		context.logger:verbose("Adding " .. filePath)
 
 		local moduleName = file.name
 		if file.type == "Main" then -- If the file is a main file then just print it

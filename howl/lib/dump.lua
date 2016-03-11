@@ -1,12 +1,28 @@
---- A util module that is only ever used in debugging
+--- Allows formatting tables for logging and storing
 -- @module howl.lib.dump
+
+local Buffer = require("howl.lib.buffer")
+-- local utils = require("howl.lib.utils")
+
+local type, tostring, format = type, tostring, string.format
+local getmetatable, error = getmetatable, error
+
+--- Create a lookup table from a list of values
+-- @tparam table tbl The table of values
+-- @treturn The same table, with lookups as well
+local function createLookup(tbl)
+	for _, v in ipairs(tbl) do
+		tbl[v] = true
+	end
+	return tbl
+end
 
 --- Format an object
 -- @param object The object to foramt
 -- @treturn string The object
-local function InternalFormat(object)
+local function internalFormat(object)
 	if type(object) == "string" then
-		return string.format("%q", object)
+		return format("%q", object)
 	else
 		return tostring(object)
 	end
@@ -14,35 +30,36 @@ end
 
 --- Core dumping of object
 -- @param object The object to dump
--- @tparam ?|string indent The indent to use
+-- @tparam string indent The indent to use
 -- @tparam table seen A list of seen objects
--- @tparam boolean meta Print metatables too
-local function InternalDump(object, indent, seen, meta)
-	local result = ""
+-- @tparam bool meta Print metatables too
+-- @tparam Buffer buffer Buffer to append to
+-- @treturn Buffer The buffer passed
+local function internalDump(object, indent, seen, meta, buffer)
 	local objType = type(object)
 	if objType == "table" then
 		local id = seen[object]
 
 		if id then
-			result = result .. (indent .. "--[[ Object@" .. id .. " ]] { }") .. "\n"
+			buffer:append(indent .. "--[[ Object@" .. id .. " ]] { }" .. "\n")
 		else
 			id = seen.length + 1
 			seen[object] = id
 			seen.length = id
-			result = result .. (indent .. "--[[ Object@" .. id .. " ]] {") .. "\n"
+			buffer:append(indent .. "--[[ Object@" .. id .. " ]] {" .. "\n")
 			for k, v in pairs(object) do
 
 				if type(k) == "table" then
-					result = result .. (indent .. "\t{") .. "\n"
-					result = result .. InternalDump(k, indent .. "\t\t", seen, meta)
-					result = result .. InternalDump(v, indent .. "\t\t", seen, meta)
-					result = result .. (indent .. "\t},") .. "\n"
+					buffer:append(indent .. "  {" .. "\n")
+					internalDump(k, indent .. "    ", seen, meta, buffer)
+					internalDump(v, indent .. "    ", seen, meta, buffer)
+					buffer:append(indent .. "  }," .. "\n")
 				elseif type(v) == "table" then
-					result = result .. (indent .. "\t[" .. InternalFormat(k) .. "] = {") .. "\n"
-					result = result .. InternalDump(v, indent .. "\t\t", seen, meta)
-					result = result .. (indent .. "\t},") .. "\n"
+					buffer:append(indent .. "  [" .. internalFormat(k) .. "] = {" .. "\n")
+					internalDump(v, indent .. "    ", seen, meta, buffer)
+					buffer:append(indent .. "  },".. "\n")
 				else
-					result = result .. (indent .. "\t[" .. InternalFormat(k) .. "] = " .. InternalFormat(v) .. ",") .. "\n"
+					buffer:append(indent .. "  [" .. internalFormat(k) .. "] = " .. internalFormat(v) .. "," .. "\n")
 				end
 			end
 
@@ -50,89 +67,99 @@ local function InternalDump(object, indent, seen, meta)
 				local metatable = getmetatable(object)
 
 				if metatable then
-					result = result .. (indent .. "\tMetatable = {") .. "\n"
-					result = result .. InternalDump(metatable, indent .. "\t\t", seen, meta)
-					result = result .. (indent .. "\t}") .. "\n"
+					buffer:append(indent .. "  Metatable = {" .. "\n")
+					internalDump(metatable, indent .. "    ", seen, meta, buffer)
+					buffer:append(indent .. "  }".. "\n")
 				end
 			end
-			result = result .. (indent .. "}") .. "\n"
+			buffer:append(indent .. "}" .. "\n")
 		end
 	else
-		result = result .. (indent .. InternalFormat(object)) .. "\n"
+		buffer:append(indent .. internalFormat(object) .. "\n")
 	end
 
-	return result
+	return buffer
 end
 
 --- Dumps an object
 -- @param object The object to dump
--- @tparam boolean meta Print metatables too
--- @tparam ?|string indent The indent to use
-local function Dump(object, meta, indent)
+-- @tparam[opt=true] boolean meta Print metatables too
+-- @tparam[opt=""] string indent Starting indent level
+-- @treturn string The dumped string
+local function dump(object, meta, indent)
 	if meta == nil then meta = true end
-	return InternalDump(object, indent or "", { length = 0 }, meta)
+	return internalDump(object, indent or "", { length = 0 }, meta, buffer()):toString()
 end
 
-local keywords = {
-	["and"] = true, ["break"] = true, ["do"] = true, ["else"] = true,
-	["elseif"] = true, ["end"] = true, ["false"] = true, ["for"] = true,
-	["function"] = true, ["if"] = true, ["in"] = true, ["local"] = true,
-	["nil"] = true, ["not"] = true, ["or"] = true, ["repeat"] = true,
-	["return"] = true, ["then"] = true, ["true"] = true, ["until"] = true,
-	["while"] = true,
+local keywords = createLookup {
+	"and", "break", "do", "else", "elseif", "end", "false",
+	"for", "function", "if", "in", "local", "nil", "not", "or",
+	"repeat", "return", "then", "true", "until", "while",
 }
 
-local function serializeImpl(t, tTracking, sIndent)
-	local sType = type(t)
+--- Internal serialiser
+-- @tparam table tracking List of items being tracked
+-- @tparam Buffer buffer Buffer to append to
+-- @treturn Buffer The buffer passed
+local function internalSerialise(object, tracking, buffer)
+	local sType = type(object)
 	if sType == "table" then
-		if tTracking[t] ~= nil then
-			error("Cannot serialize table with recursive entries", 0)
+		if tracking[object] then
+			error("Cannot serialise table with recursive entries", 1)
 		end
-		tTracking[t] = true
+		tracking[object] = true
 
-		if next(t) == nil then
-			-- Empty tables are simple
-			return "{}"
+		if next(object) == nil then
+			buffer:append("{}")
 		else
 			-- Other tables take more work
-			local sResult = "{\n"
-			local sSubIndent = sIndent .. "  "
-			local tSeen = {}
-			for k, v in ipairs(t) do
-				tSeen[k] = true
-				sResult = sResult .. sSubIndent .. serializeImpl(v, tTracking, sSubIndent) .. ",\n"
+			buffer:append("{")
+
+			local seen = {}
+			-- Attempt array only method
+			for k, v in ipairs(object) do
+				seen[k] = true
+				internalSerialise(v, tracking, buffer)
+				buffer:append(",")
 			end
-			for k, v in pairs(t) do
-				if not tSeen[k] then
-					local sEntry
-					if type(k) == "string" and not keywords[k] and string.match(k, "^[%a_][%a%d_]*$") then
-						sEntry = k .. " = " .. serializeImpl(v, tTracking, sSubIndent) .. ",\n"
+			for k, v in pairs(object) do
+				if not seen[k] then
+					if type(k) == "string" and not keywords[k] and k:match("^[%a_][%a%d_]*$") then
+						buffer:append(k .. "=")
 					else
-						sEntry = "[ " .. serializeImpl(k, tTracking, sSubIndent) .. " ] = " .. serializeImpl(v, tTracking, sSubIndent) .. ",\n"
+						buffer:append("[")
+						serialiseImpl(k, tracking, buffer)
+						buffer:append("]=")
 					end
-					sResult = sResult .. sSubIndent .. sEntry
+
+					internalSerialise(v, tracking, buffer)
+					buffer:append(",")
 				end
 			end
-			sResult = sResult .. sIndent .. "}"
-			return sResult
+			buffer:append("}")
 		end
-
-	elseif sType == "string" then
-		return string.format("%q", t)
-
-	elseif sType == "number" or sType == "boolean" or sType == "nil" then
-		return tostring(t)
-
+	elseif type == "string" then
+		buffer:append(format("%q", object))
+	elseif type == "number" or type == "boolean" or type == "nil" then
+		buffer:append(tostring(object))
 	else
-		error("Cannot serialize type " .. sType, 0)
+		error("Cannot serialise type " .. type)
 	end
+
+	return buffer
 end
 
-local function serialize(t)
-	return serializeImpl(t, {}, "")
+--- Used for serialising a data structure.
+--
+-- This does not handle recursive structures or functions.
+-- @param object The object to dump
+-- @treturn string The serialised string
+local function serialise(object)
+	return serialiseImpl(object, {}, Buffer()):toString()
 end
 
+--- @export
 return {
+	serialise = serialise,
 	dump = dump,
-	serialize = serialize,
 }

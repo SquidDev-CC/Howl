@@ -42,9 +42,9 @@ end
 -- @tparam table taskDepends A list of tasks this task requires
 -- @treturn howl.tasks.task.Task The created task
 function Runner:Clean(name, directory, taskDepends)
-	return self:AddTask(name, taskDepends, function(task, env)
-		Utils.Verbose("Emptying directory '" .. directory .. "'")
-		local file = fs.combine(env.root, directory)
+	return self:AddTask(name, taskDepends, function(task, context)
+		context.logger:verbose("Emptying directory '" .. directory .. "'")
+		local file = fs.combine(context.root, directory)
 		if fs.isDir(file) then
 			for _, sub in pairs(fs.list(file)) do
 				fs.delete(fs.combine(file, sub))

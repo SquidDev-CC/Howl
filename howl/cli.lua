@@ -57,9 +57,9 @@ if not howlFile then
 	error("Cannot find Howlfile", 0)
 end
 
-Utils.Verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
+context.logger:verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 
-Mediator:subscribe({ "ArgParse", "changed" }, function(options)
+context.mediator:subscribe({ "ArgParse", "changed" }, function(options)
 	Utils.IsVerbose(options:Get("verbose") or false)
 	if options:Get "help" then
 		taskList = { "help" }
@@ -85,7 +85,7 @@ end):Description "Print out a detailed usage for Howl"
 -- If no other task exists run this
 tasks:Default(function()
 	Utils.PrintError("No default task exists.")
-	Utils.Verbose("Use 'Tasks:Default' to define a default task")
+	context.logger:verbose("Use 'Tasks:Default' to define a default task")
 	Utils.PrintColor(colors.orange, "Choose from: ")
 	tasks:ListTasks("  ")
 end)

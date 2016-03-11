@@ -62,7 +62,7 @@ function Files:AsRequire(context, output, options)
 		result[#result + 1] = envSetup
 	end
 	for file, _ in pairs(files) do
-		Utils.Verbose("Including " .. file)
+		context.logger:verbose("Including " .. file)
 		local whole = fs.combine(path, file)
 		result[#result + 1] = "preload[\"" .. toModule(file) .. "\"] = "
 		if link then

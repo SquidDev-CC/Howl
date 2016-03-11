@@ -96,10 +96,10 @@ end
 
 --- Parse a pattern
 -- @tparam string match The pattern to parse
--- @treturn Utils.Pattern The created pattern
+-- @treturn howl.lib.utils.Pattern The created pattern
 -- @local
 function Files:_Parse(match)
-	match = Utils.ParsePattern(match)
+	match = Utils.parsePattern(match)
 	local text = match.Text
 
 	if match.Type == "Normal" then

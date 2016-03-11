@@ -6,8 +6,8 @@ local class = require "howl.lib.middleclass"
 
 --- Convert a pattern
 local function ParsePattern(from, to)
-	local fromParsed = Utils.ParsePattern(from, true)
-	local toParsed = Utils.ParsePattern(to)
+	local fromParsed = Utils.parsePattern(from, true)
+	local toParsed = Utils.parsePattern(to)
 
 	local newType = fromParsed.Type
 	assert(newType == toParsed.Type, "Both from and to must be the same type " .. newType .. " and " .. fromParsed.Type)

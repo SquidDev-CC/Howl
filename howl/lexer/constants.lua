@@ -1,7 +1,7 @@
 --- Lexer constants
 -- @module howl.lexer.constants
 
-local createLookup = require "howl.lib.utils".CreateLookup
+local createLookup = require "howl.lib.utils".createLookup
 
 return {
 	--- List of white chars
