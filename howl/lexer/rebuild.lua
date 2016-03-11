@@ -4,7 +4,7 @@
 
 local Constants = require "howl.lexer.constants"
 local Parse = require "howl.lexer.parse"
-local Helpers = require "howl.lib.helpers"
+local platform = require "howl.platform"
 
 local lowerChars = Constants.LowerChars
 local upperChars = Constants.UpperChars
@@ -359,10 +359,10 @@ end
 -- @treturn string The minifyied string
 local function MinifyString(input)
 	local lex = Parse.LexLua(input)
-	Helpers.refreshYield()
+	platform.refreshYield()
 
 	lex = Parse.ParseLua(lex)
-	Helpers.refreshYield()
+	platform.refreshYield()
 
 	return Minify(lex)
 end

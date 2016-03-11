@@ -1,7 +1,7 @@
 --- Manages the running of tasks
 -- @classmod howl.tasks.Context
 
-local Helpers = require "howl.lib.helpers"
+local platform = require "howl.platform"
 local class = require "howl.lib.middleclass"
 local mixin = require "howl.lib.mixin"
 
@@ -107,7 +107,7 @@ function Context:Run(name, ...)
 	end
 
 	-- Sleep before every task just in case
-	Helpers.refreshYield()
+	platform.refreshYield()
 
 	return task:Run(self, ...)
 end

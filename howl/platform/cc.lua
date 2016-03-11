@@ -22,6 +22,13 @@ local function assertExists(file, name, level)
 	end
 end
 
+local push, pull = os.queueEvent, coroutine.yield
+
+local function refreshYield()
+	push("sleep")
+	if pull() == "terminate" then error("Terminated") end
+end
+
 local function readDir(directory)
 	local offset = #directory + 2
 	local stack, n = { directory }, 1
@@ -67,7 +74,7 @@ return {
 
 		-- Type checking
 		assertExists = assertExists,
-		exits = fs.exists,
+		exists = fs.exists,
 		isDir = fs.isDir,
 
 		-- Other
@@ -85,5 +92,7 @@ return {
 			term.setTextColor(col)
 		end,
 		resetColor = function() term.setTextColor(default) end
-	}
+	},
+
+	refreshYield = refreshYield,
 }

@@ -7,7 +7,7 @@ local mixin = require "howl.lib.mixin"
 local mediator = require "howl.lib.mediator"
 local argparse = require "howl.lib.argparse"
 
-local Logger = require "howl.lib.logger"
+local Logger = require "howl.lib.Logger"
 local Context = class("howl.Context"):include(mixin.sealed)
 
 --- Setup the main context
@@ -20,7 +20,6 @@ function Context:initialize(root, args)
 	self.root = root
 	self.mediator = mediator
 	self.arguments = argparse.Options(self.mediator, args)
-	-- self.Options = self.arguments
 	self.logger = Logger(self)
 end
 

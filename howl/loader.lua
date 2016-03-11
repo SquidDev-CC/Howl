@@ -1,11 +1,9 @@
 --- Handles loading and creation of HowlFiles
 -- @module howl.loader
 
-local Runner = require "howl.tasks.runner"
-local Mediator = require "howl.lib.mediator"
 local Utils = require "howl.lib.utils"
-local Helpers = require "howl.lib.helpers"
 local Runner = require "howl.tasks.runner"
+local fs = require "howl.platform".fs
 
 --- Names to test when searching for Howlfiles
 local Names = { "Howlfile", "Howlfile.lua" }
@@ -14,7 +12,7 @@ local Names = { "Howlfile", "Howlfile.lua" }
 -- @treturn string The name of the howl file or nil if not found
 -- @treturn string The path of the howl file or the error message if not found
 local function FindHowl()
-	local currentDirectory = Helpers.dir()
+	local currentDirectory = fs.currentDir()
 
 	while true do
 		for _, file in ipairs(Names) do

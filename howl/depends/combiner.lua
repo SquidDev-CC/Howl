@@ -11,8 +11,6 @@ local Task = require "howl.tasks.task"
 require "howl.depends.modules.verify"
 require "howl.depends.modules.traceback"
 
-local combinerMediator = Mediator:getChannel { "Combiner" }
-
 local functionLoaderName = "_W"
 --[[
 	If the function returns a non nil value then we use that, otherwise we
@@ -37,6 +35,7 @@ end]]):gsub("[\t\n ]+", " ")
 -- @tparam CombinerOptions options Options for combining
 -- @see howl.depends.Dependencies
 function Depends.Dependencies:Combiner(context, outputFile, options)
+	local combinerMediator = context.mediator:getChannel { "Combiner" }
 	options = options or {}
 	local path = self.path
 	local shouldExport = self.shouldExport

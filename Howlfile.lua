@@ -1,24 +1,4 @@
-do -- Setup options
-	-- By default we want to include the minify and depends library
-	-- and print a trace on errors
-	Options:Default "trace"
-	Options:Option "with-interop"
-		:Description "Include the interop library"
-		:Alias "wi"
-		:Default(not shell and not redstone)
-end
-
-if Options:Get("with-interop") then
-	-- TODO:
-	Sources:File "interop/native/Colors.lua"     :Name "colors"
-	Sources:File "interop/native/FileSystem.lua" :Name "fs"
-	Sources:File "interop/native/Terminal.lua"
-		:Name "term"
-		:Depends "colors"
-	Sources:File "interop/native/Helpers.lua"
-		:Name "Helpers"
-		:Prerequisite { "colors", "fs", "term" }
-end
+Options:Default "trace"
 
 Tasks:Clean("clean", "build")
 

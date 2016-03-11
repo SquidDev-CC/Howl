@@ -1,10 +1,7 @@
 --- Core script for Howl
 -- @script howl.cli
 
-local ArgParse = require "howl.lib.argparse"
-local HowlFile = require "howl.loader"
-local Mediator = require "howl.lib.mediator"
-local Utils = require "howl.lib.utils"
+local loader = require "howl.loader"
 local colored = require "howl.lib.colored"
 local fs = require "howl.platform".fs
 
@@ -16,7 +13,7 @@ require "howl.external.busted"
 require "howl.files.compilr"
 require "howl.files.require"
 
-local howlFile, currentDirectory = HowlFile.FindHowl()
+local howlFile, currentDirectory = loader.FindHowl()
 local context = require "howl.context"(currentDirectory or shell.dir(), {... })
 local options = context.arguments
 
@@ -56,7 +53,7 @@ if not howlFile then
 
 		colored.printColor("white", "Now just run `Howl minify`!")
 	end
-	error("Cannot find Howlfile", 0)
+	error(currentDirectory, 0)
 end
 
 context.logger:verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
@@ -67,7 +64,7 @@ context.mediator:subscribe({ "ArgParse", "changed" }, function(options)
 	end
 end)
 
-local tasks, environment = HowlFile.SetupTasks(context, howlFile)
+local tasks, environment = loader.SetupTasks(context, howlFile)
 
 -- Basic list tasks
 tasks:Task "list" (function()
@@ -94,4 +91,6 @@ end)
 environment.dofile(fs.combine(currentDirectory, howlFile))
 
 -- Run the task
-tasks:RunMany(taskList)
+if not tasks:RunMany(taskList) then
+	error("Error running tasks", 0)
+end
