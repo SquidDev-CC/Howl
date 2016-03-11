@@ -3,7 +3,6 @@
 -- @module howl.depends.combiner
 
 local Mediator = require "howl.lib.mediator"
-local Utils = require "howl.lib.utils"
 local Depends = require "howl.depends"
 local Runner = require "howl.tasks.runner"
 local Task = require "howl.tasks.task"

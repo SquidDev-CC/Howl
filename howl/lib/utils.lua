@@ -1,80 +1,6 @@
 --- Useful little helpers for things
 -- @module howl.lib.utils
 
-local dump = require "howl.lib.dump".dump
-
-local isVerbose = false
-
---- Prints a string in a colour if colour is supported
--- @tparam int color The colour to print
--- @param ... Values to print
-local function PrintColor(color, ...)
-	local isColor = term.isColor()
-	if isColor then term.setTextColor(color) end
-	print(...)
-	if isColor then term.setTextColor(colors.white) end
-end
-
---- Writes a string in a colour if colour is supported
--- @tparam int color The colour to print
--- @tparam string text Values to print
-local function WriteColor(color, text)
-	local isColor = term.isColor()
-	if isColor then term.setTextColor(color) end
-	io.write(text)
-	if isColor then term.setTextColor(colors.white) end
-end
-
---- Prints a string in green if colour is supported
--- @param ... Values to print
-local function PrintSuccess(...) PrintColor(colors.green, ...) end
-
---- Prints a string in red if colour is supported
--- @param ... Values to print
-local function PrintError(...) PrintColor(colors.red, ...) end
-
---- Check if verbose is true
--- @tparam ?|boolean value If not nil, set verbose to true
--- @treturn boolean Is verbose output on
-local function IsVerbose(value)
-	if value ~= nil then isVerbose = value end
-	return isVerbose
-end
-
---- Prints a verbose string if verbose is turned on
--- @param ... Values to print
-local function Verbose(...)
-	if isVerbose then
-		local _, m = pcall(function() error("", 4) end)
-		WriteColor(colors.gray, m)
-		PrintColor(colors.lightGray, ...)
-	end
-end
-
---- Pretty prints values if verbose is turned on
--- @param ... Values to print
-local function VerboseLog(...)
-	if isVerbose then
-		local _, m = pcall(function() error("", 4) end)
-		WriteColor(colors.gray, m)
-
-		local hasPrevious = false
-		for _, value in ipairs({ ... }) do
-			local t = type(value)
-			if t == "table" then
-				value = dump(value)
-			else
-				value = tostring(value)
-			end
-
-			if hasPrevious then value = " " .. value end
-			hasPrevious = true
-			WriteColor(colors.lightGray, value)
-		end
-		print()
-	end
-end
-
 local matches = {
 	["^"] = "%^",
 	["$"] = "%$",
@@ -94,7 +20,7 @@ local matches = {
 --- Escape a string for using in a pattern
 -- @tparam string pattern The string to escape
 -- @treturn string The escaped pattern
-local function EscapePattern(pattern)
+local function escapePattern(pattern)
 	return (pattern:gsub(".", matches))
 end
 
@@ -161,7 +87,7 @@ end
 -- @tparam table a
 -- @tparam table b
 -- @treturn boolean If they match
-local function MatchTables(a, b)
+local function matchTables(a, b)
 	local length = #a
 	if length ~= #b then return false end
 
@@ -178,16 +104,8 @@ local Print = print
 
 --- @export
 return {
-	Print = Print,
-	PrintError = PrintError,
-	PrintSuccess = PrintSuccess,
-	PrintColor = PrintColor,
-	WriteColor = WriteColor,
-	IsVerbose = IsVerbose,
-	Verbose = Verbose,
-	VerboseLog = VerboseLog,
-	EscapePattern = EscapePattern,
+	escapePattern = escapePattern,
 	parsePattern = parsePattern,
 	createLookup = createLookup,
-	MatchTables = MatchTables,
+	matchTables = matchTables,
 }

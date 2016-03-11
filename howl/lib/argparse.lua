@@ -1,7 +1,7 @@
 --- Parses command line arguments
 -- @module howl.lib.argparse
 
-local Utils = require "howl.lib.utils"
+local colored = require "howl.lib.colored"
 
 --- Simple wrapper for Options
 -- @type Option
@@ -172,7 +172,7 @@ function Parser:Help(indent)
 			prefix = '--'
 		end
 
-		Utils.WriteColor(colors.white, indent .. prefix .. name)
+		colored.writeColor("white", indent .. prefix .. name)
 
 		local aliasStr = ""
 		local aliases = settings.aliases
@@ -196,10 +196,10 @@ function Parser:Help(indent)
 			aliasStr = aliasStr .. ")"
 		end
 
-		Utils.WriteColor(colors.brown, aliasStr)
+		colored.writeColor("brown", aliasStr)
 		local description = settings.description
 		if description and description ~= "" then
-			Utils.PrintColor(colors.lightGray, " " .. description)
+			colored.printColor("lightGray", " " .. description)
 		end
 	end
 end

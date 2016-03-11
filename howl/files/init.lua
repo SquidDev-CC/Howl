@@ -2,7 +2,7 @@
 -- @module howl.files
 
 local Mediator = require "howl.lib.mediator"
-local Utils = require "howl.lib.utils"
+local utils = require "howl.lib.utils"
 local assert = require "howl.lib.assert"
 local class = require "howl.lib.middleclass"
 local mixin = require "howl.lib.mixin"
@@ -99,7 +99,7 @@ end
 -- @treturn howl.lib.utils.Pattern The created pattern
 -- @local
 function Files:_Parse(match)
-	match = Utils.parsePattern(match)
+	match = utils.parsePattern(match)
 	local text = match.Text
 
 	if match.Type == "Normal" then

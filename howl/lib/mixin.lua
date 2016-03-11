@@ -1,6 +1,7 @@
 --- Various mixins for the class library
 -- @module howl.lib.mixins
 
+local assert = require "howl.lib.assert"
 local mixins = {}
 
 --- Prevent subclassing a class
@@ -12,6 +13,18 @@ mixins.sealed = {
 			error("Cannot subclass '" .. tostring(self) .. "' (attempting to create '" .. name .. "')", 2)
 		end,
 	}
+}
+
+mixins.curry = {
+	curry = function(self, name)
+		assert.type(self, "table", "Bad argument #1 to class:curry (expected table, got %s)")
+		assert.type(name, "string", "Bad argument #2 to class:curry (expected string, got %s)")
+		local func = self[name]
+		assert.type(func, "function", "No such function " .. name)
+		return function(...) return func(self, ...) end
+	end,
+
+	__div = function(left, right) return left:curry(right) end,
 }
 
 return mixins

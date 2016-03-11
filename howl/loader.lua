@@ -70,8 +70,8 @@ local function SetupTasks(context, howlFile)
 		Tasks = tasks,
 		Options = context.arguments,
 		-- Helper functions
-		Verbose = Utils.Verbose,
-		Log = Utils.VerboseLog,
+		Verbose = context.logger/"verbose",
+		Log = context.logger/"dump",
 		File = function(...) return fs.combine(context.root, ...) end,
 	})
 

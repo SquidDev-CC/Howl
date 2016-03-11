@@ -2,7 +2,6 @@
 -- @classmod howl.tasks.Context
 
 local Helpers = require "howl.lib.helpers"
-local Utils = require "howl.lib.utils"
 local class = require "howl.lib.middleclass"
 local mixin = require "howl.lib.mixin"
 
@@ -47,7 +46,7 @@ function Context:DoRequire(path, quite)
 		local canCreate = self:DoRequire(from, true)
 		if not canCreate then
 			if not quite then
-				Utils.PrintError("Cannot find '" .. from .. "'")
+				self.env.logger:error("Cannot find '" .. from .. "'")
 			end
 			return false
 		end
@@ -61,7 +60,7 @@ function Context:DoRequire(path, quite)
 	end
 
 	if not quite then
-		Utils.PrintError("Cannot find a task matching '" .. path .. "'")
+		self.env.logger:error("Cannot find a task matching '" .. path .. "'")
 	end
 	return false
 end
@@ -86,11 +85,11 @@ function Context:Run(name, ...)
 		task = self.tasks[name]
 
 		if not task then
-			Utils.PrintError("Cannot find a task called '" .. name .. "'")
+			self.env.logger:error("Cannot find a task called '" .. name .. "'")
 			return false
 		end
 	elseif not task or not task.Run then
-		Utils.PrintError("Cannot call task as it has no 'Run' method")
+		self.env.logger:error("Cannot call task as it has no 'Run' method")
 		return false
 	end
 
@@ -126,7 +125,7 @@ function Context:Start(name)
 	end
 
 	if not task then
-		Utils.PrintError("Cannot find a task called '" .. name .. "'")
+		self.env.logger:error("Cannot find a task called '" .. name .. "'")
 		return false
 	end
 

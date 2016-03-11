@@ -5,6 +5,8 @@ local ArgParse = require "howl.lib.argparse"
 local HowlFile = require "howl.loader"
 local Mediator = require "howl.lib.mediator"
 local Utils = require "howl.lib.utils"
+local colored = require "howl.lib.colored"
+local fs = require "howl.platform".fs
 
 require "howl.tasks.extensions"
 require "howl.depends.bootstrap"
@@ -41,18 +43,18 @@ local taskList = options:Arguments()
 -- Locate the howl file
 if not howlFile then
 	if options:Get("help") or (#taskList == 1 and taskList[1] == "help") then
-		Utils.PrintColor(colours.yellow, "Howl")
-		Utils.PrintColor(colours.lightGrey, "Howl is a simple build system for Lua")
-		Utils.PrintColor(colours.grey, "You can read the full documentation online: https://github.com/SquidDev-CC/Howl/wiki/")
+		colored.printColor("yellow", "Howl")
+		colored.printColor("lightGrey", "Howl is a simple build system for Lua")
+		colored.printColor("grey", "You can read the full documentation online: https://github.com/SquidDev-CC/Howl/wiki/")
 
-		Utils.PrintColor(colours.white, (([[
+		colored.printColor("white", (([[
 			The key thing you are missing is a HowlFile. This can be "Howlfile" or "Howlfile.lua".
 			Then you need to define some tasks. Maybe something like this:
 		]]):gsub("\t", ""):gsub("\n+$", "")))
 
-		Utils.PrintColor(colours.magenta, 'Tasks:Minify("minify", "Result.lua", "Result.min.lua")')
+		colored.printColor("magenta", 'Tasks:Minify("minify", "Result.lua", "Result.min.lua")')
 
-		Utils.PrintColor(colours.white, "Now just run `Howl minify`!")
+		colored.printColor("white", "Now just run `Howl minify`!")
 	end
 	error("Cannot find Howlfile", 0)
 end
@@ -60,7 +62,6 @@ end
 context.logger:verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
 
 context.mediator:subscribe({ "ArgParse", "changed" }, function(options)
-	Utils.IsVerbose(options:Get("verbose") or false)
 	if options:Get "help" then
 		taskList = { "help" }
 	end
@@ -74,19 +75,19 @@ tasks:Task "list" (function()
 end):Description "Lists all the tasks"
 
 tasks:Task "help" (function()
-	Utils.Print("Howl [options] [task]")
-	Utils.PrintColor(colors.orange, "Tasks:")
+	print("Howl [options] [task]")
+	colored.printColor("orange", "Tasks:")
 	tasks:ListTasks("  ")
 
-	Utils.PrintColor(colors.orange, "\nOptions:")
+	colored.printColor("orange", "\nOptions:")
 	options:Help("  ")
 end):Description "Print out a detailed usage for Howl"
 
 -- If no other task exists run this
 tasks:Default(function()
-	Utils.PrintError("No default task exists.")
+	context.logger:error("No default task exists.")
 	context.logger:verbose("Use 'Tasks:Default' to define a default task")
-	Utils.PrintColor(colors.orange, "Choose from: ")
+	colored.printColor("orange", "Choose from: ")
 	tasks:ListTasks("  ")
 end)
 

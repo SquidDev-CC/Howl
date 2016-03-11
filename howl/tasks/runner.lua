@@ -3,7 +3,7 @@
 
 local Task = require "howl.tasks.task"
 local Context = require "howl.tasks.context"
-local Utils = require "howl.lib.utils"
+local colored = require "howl.lib.colored"
 local class = require "howl.lib.middleclass"
 local mixin = require "howl.lib.mixin"
 
@@ -79,7 +79,7 @@ function Runner:RunMany(names)
 	end
 
 	if context.ShowTime then
-		Utils.PrintColor(colors.orange, "Took " .. os.clock() - oldTime .. "s in total")
+		colored.printColor("orange", "Took " .. os.clock() - oldTime .. "s in total")
 	end
 
 	return value

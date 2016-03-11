@@ -2,7 +2,7 @@
 -- @module howl.tasks.extensions
 
 local Runner = require "howl.tasks.runner"
-local Utils = require "howl.lib.utils"
+local colored = require "howl.lib.colored"
 
 --- Prints all tasks in a TaskRunner
 -- Extends the @{howl.tasks.Runner} class
@@ -28,8 +28,8 @@ function Runner:ListTasks(indent, all)
 	maxLength = maxLength + 2
 	indent = indent or ""
 	for name, description in pairs(taskNames) do
-		Utils.WriteColor(colors.white, indent .. name)
-		Utils.PrintColor(colors.lightGray, string.rep(" ", maxLength - #name) .. description)
+		colored.writeColor("white", indent .. name)
+		colored.printColor("lightGray", string.rep(" ", maxLength - #name) .. description)
 	end
 
 	return self

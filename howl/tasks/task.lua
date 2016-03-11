@@ -1,13 +1,14 @@
 --- The main task class
 -- @module howl.tasks.task
 
-local Utils = require "howl.lib.utils"
+local utils = require "howl.lib.utils"
+local colored = require "howl.lib.colored"
 local class = require "howl.lib.middleclass"
 
 --- Convert a pattern
 local function ParsePattern(from, to)
-	local fromParsed = Utils.parsePattern(from, true)
-	local toParsed = Utils.parsePattern(to)
+	local fromParsed = utils.parsePattern(from, true)
+	local toParsed = utils.parsePattern(to)
 
 	local newType = fromParsed.Type
 	assert(newType == toParsed.Type, "Both from and to must be the same type " .. newType .. " and " .. fromParsed.Type)
@@ -129,7 +130,7 @@ function Task:Run(context, ...)
 			end
 			description = " (" .. table.concat(newArgs, ", ") .. ")"
 		end
-		Utils.PrintColor(colors.cyan, "Running " .. self.name .. description)
+		colored.printColor("cyan", "Running " .. self.name .. description)
 
 		local oldTime = os.clock()
 		local s, err = true, nil
@@ -149,13 +150,13 @@ function Task:Run(context, ...)
 		end
 
 		if s then
-			Utils.PrintSuccess(self.name .. ": Success")
+			context.env.logger:success(self.name .. ": Success")
 		else
-			Utils.PrintError(self.name .. ": Failure\n" .. err)
+			context.env.logger:error(self.name .. ": Failure\n" .. err)
 		end
 
 		if context.ShowTime then
-			Utils.Print(" ", "Took " .. os.clock() - oldTime .. "s")
+			print(" ", "Took " .. os.clock() - oldTime .. "s")
 		end
 
 		return s

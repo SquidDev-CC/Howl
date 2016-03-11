@@ -4,28 +4,11 @@
 local class = require "howl.lib.middleclass"
 local mixin = require "howl.lib.mixin"
 local dump = require "howl.lib.dump"
+local colored = require "howl.lib.colored"
 
-local Logger = class("howl.lib.Logger"):include(mixin.sealed)
-
---- Prints a string in a colour if colour is supported
--- @tparam int color The colour to print
--- @param ... Values to print
-local function printColor(color, ...)
-	local isColor = term.isColor()
-	if isColor then term.setTextColor(color) end
-	print(...)
-	if isColor then term.setTextColor(colors.white) end
-end
-
---- Writes a string in a colour if colour is supported
--- @tparam int color The colour to print
--- @tparam string text Values to print
-local function writeColor(color, text)
-	local isColor = term.isColor()
-	if isColor then term.setTextColor(color) end
-	write(text)
-	if isColor then term.setTextColor(colors.white) end
-end
+local Logger = class("howl.lib.Logger")
+	:include(mixin.sealed)
+	:include(mixin.curry)
 
 function Logger:initialize(context)
 	self.isVerbose = false
@@ -37,15 +20,15 @@ end
 function Logger:verbose(...)
 	if self.isVerbose then
 		local _, m = pcall(function() error("", 4) end)
-		writeColor(colors.gray, m)
-		printColor(colors.lightGray, ...)
+		colored.writeColor("gray", m)
+		colored.printColor("lightGray", ...)
 	end
 end
 
 function Logger:dump(...)
 	if self.isVerbose then
 		local _, m = pcall(function() error("", 4) end)
-		writeColor(colors.gray, m)
+		colored.writeColor("gray", m)
 
 		local hasPrevious = false
 		for _, value in ipairs({ ... }) do
@@ -63,5 +46,14 @@ function Logger:dump(...)
 		print()
 	end
 end
+
+function Logger:error(...)
+	colored.printColor("red", ...)
+end
+
+function Logger:success(...)
+	colored.printColor("green", ...)
+end
+
 
 return Logger
