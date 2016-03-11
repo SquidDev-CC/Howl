@@ -5,7 +5,7 @@
 
 local Files = require "howl.files"
 local Runner = require "howl.tasks.runner"
-local Task = require "howl.tasks.task"
+local OptionTask = require "howl.tasks.OptionTask"
 
 local header = [=[
 local loading = {}
@@ -84,8 +84,8 @@ function Files:AsRequire(context, output, options)
 end
 
 function Runner:AsRequire(name, files, outputFile, taskDepends)
-	return self:InjectTask(Task.OptionTask(name, taskDepends, function(task, context)
-		files:AsRequire(context, outputFile, task)
+	return self:InjectTask(OptionTask(name, taskDepends, {"link"}, function(task, context)
+		files:AsRequire(context, outputFile, task.options)
 	end))
 		:Description("Packages files together to allow require")
 		:Produces(outputFile)

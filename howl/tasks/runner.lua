@@ -1,7 +1,7 @@
 --- Handles tasks and dependencies
 -- @classmod howl.tasks.Runner
 
-local Task = require "howl.tasks.task"
+local Task = require "howl.tasks.Task"
 local Context = require "howl.tasks.context"
 local colored = require "howl.lib.colored"
 local class = require "howl.lib.middleclass"
@@ -24,7 +24,7 @@ end
 -- @tparam function action The action to run
 -- @treturn Task The created task
 function Runner:AddTask(name, dependencies, action)
-	return self:InjectTask(Task.Task(name, dependencies, action))
+	return self:InjectTask(Task(name, dependencies, action))
 end
 
 --- Add a Task object to the collection
@@ -49,7 +49,7 @@ function Runner:Default(task)
 			error("Cannot find task " .. task)
 		end
 	else
-		self.default = Task.Task("<default>", {}, task)
+		self.default = Task("<default>", {}, task)
 	end
 
 	return self

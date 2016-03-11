@@ -3,7 +3,7 @@
 
 local Depends = require "howl.depends"
 local Runner = require "howl.tasks.runner"
-local Task = require "howl.tasks.task"
+local OptionTask = require "howl.tasks.OptionTask"
 
 local format = string.format
 local tracebackHeader = [[
@@ -90,12 +90,12 @@ end
 -- @tparam string name Name of the task
 -- @tparam Depends.Dependencies dependencies The dependencies to compile
 -- @tparam string outputFile The file to save to
--- @tparam table taskDepends A list of @{howl.tasks.task.Task|tasks} this task requires
--- @treturn howl.tasks.task.Task The created task
+-- @tparam table taskDepends A list of @{howl.tasks.Task|tasks} this task requires
+-- @treturn howl.tasks.Task The created task
 -- @see tasks.Runner
 function Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(Task.OptionTask(name, taskDepends, function(task, env)
-		dependencies:CreateBootstrap(env, outputFile, task)
+	return self:InjectTask(OptionTask(name, taskDepends, {"traceback"}, function(task, env)
+		dependencies:CreateBootstrap(env, outputFile, task.options)
 	end))
 		:Description("Creates a 'dynamic' combination of files in '" .. outputFile .. "')")
 		:Produces(outputFile)

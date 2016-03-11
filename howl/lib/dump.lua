@@ -1,21 +1,11 @@
 --- Allows formatting tables for logging and storing
 -- @module howl.lib.dump
 
-local Buffer = require("howl.lib.buffer")
--- local utils = require("howl.lib.utils")
+local Buffer = require("howl.lib.Buffer")
+local createLookup = require("howl.lib.utils").createLookup
 
 local type, tostring, format = type, tostring, string.format
 local getmetatable, error = getmetatable, error
-
---- Create a lookup table from a list of values
--- @tparam table tbl The table of values
--- @treturn The same table, with lookups as well
-local function createLookup(tbl)
-	for _, v in ipairs(tbl) do
-		tbl[v] = true
-	end
-	return tbl
-end
 
 --- Format an object
 -- @param object The object to foramt

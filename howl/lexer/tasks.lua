@@ -14,7 +14,7 @@ end
 -- @tparam string inputFile The input file
 -- @tparam string outputFile The file to save to
 -- @tparam table taskDepends A list of @{tasks.task.Task|tasks} this task requires
--- @treturn howl.tasks.task.Task The created task
+-- @treturn howl.tasks.Task The created task
 -- @see tasks.Runner.Runner
 function Runner:Minify(name, inputFile, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)
@@ -40,7 +40,7 @@ end
 -- @tparam string name Name of the task
 -- @tparam string inputPattern The pattern to read in
 -- @tparam string outputPattern The pattern to produce
--- @treturn howl.tasks.task.Task The created task
+-- @treturn howl.tasks.Task The created task
 function Runner:MinifyAll(name, inputPattern, outputPattern)
 	name = name or "_minify"
 	return self:AddTask(name, {}, minifyDiscard)

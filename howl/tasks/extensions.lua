@@ -8,7 +8,7 @@ local colored = require "howl.lib.colored"
 -- Extends the @{howl.tasks.Runner} class
 -- @tparam string indent The indent to print at
 -- @tparam boolean all Include all tasks (otherwise exclude ones starting with _)
--- @treturn howl.tasks.task.Task The created task
+-- @treturn howl.tasks.Task The created task
 function Runner:ListTasks(indent, all)
 	local taskNames = {}
 	local maxLength = 0
@@ -40,7 +40,7 @@ end
 -- @tparam string name Name of the task
 -- @tparam string directory The directory to clean
 -- @tparam table taskDepends A list of tasks this task requires
--- @treturn howl.tasks.task.Task The created task
+-- @treturn howl.tasks.Task The created task
 function Runner:Clean(name, directory, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, context)
 		context.logger:verbose("Emptying directory '" .. directory .. "'")

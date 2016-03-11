@@ -1,5 +1,5 @@
 --- The main task class
--- @module howl.tasks.task
+-- @classmod howl.tasks.Task
 
 local utils = require "howl.lib.utils"
 local colored = require "howl.lib.colored"
@@ -16,9 +16,7 @@ local function ParsePattern(from, to)
 	return { Type = newType, From = fromParsed.Text, To = toParsed.Text }
 end
 
---- A single task: actions, dependencies and metadata
--- @type Task
-local Task = class("howl.tasks.tasks.Task")
+local Task = class("howl.tasks.Task")
 
 --- Define what this task depends on
 -- @tparam string|table name Name/list of dependencies
@@ -186,30 +184,4 @@ function Task:initialize(name, dependencies, action)
 	self.produces = {} -- Files this task produces
 end
 
---- A Task that can store options
--- @type OptionTask
-local OptionTask = Task:subclass("OptionTask")
-function OptionTask:__index(key)
-	local parent = Task[key]
-	if parent then
-		return parent
-	end
-	if key:match("^%u") then
-		local normalFunction = Task[key]
-		if normalFunction then
-			return normalFunction
-		end
-		return function(self, value)
-			if value == nil then value = true end
-			self[(key:gsub("^%u", string.lower))] = value
-			return self
-		end
-	end
-end
-
-
---- @export
-return {
-	Task = Task,
-	OptionTask = OptionTask,
-}
+return Task
