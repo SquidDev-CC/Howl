@@ -2,8 +2,8 @@
 -- @classmod howl.Context
 
 local assert = require "howl.lib.assert"
-local class = require "howl.lib.middleclass"
-local mixin = require "howl.lib.mixin"
+local class = require "howl.class"
+local mixin = require "howl.class.mixin"
 local mediator = require "howl.lib.mediator"
 local argparse = require "howl.lib.argparse"
 

@@ -2,8 +2,8 @@
 -- @module howl.depends
 
 local Mediator = require "howl.lib.mediator"
-local class = require "howl.lib.middleclass"
-local mixin = require "howl.lib.mixin"
+local class = require "howl.class"
+local mixin = require "howl.class.mixin"
 
 --- Stores a file and the dependencies of the file
 -- @type File
@@ -76,7 +76,7 @@ function File:NoWrap(noWrap)
 	return self
 end
 
-function File:initialize(self, parent)
+function File:initialize(path, parent)
 	self.dependencies = {}
 	self.name = nil
 	self.alias = nil

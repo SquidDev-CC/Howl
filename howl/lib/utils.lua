@@ -97,11 +97,6 @@ local function matchTables(a, b)
 	return true
 end
 
--- Hacky docs for objects
-
---- Print messages
-local Print = print
-
 --- @export
 return {
 	escapePattern = escapePattern,

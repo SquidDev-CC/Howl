@@ -3,7 +3,7 @@
 
 local utils = require "howl.lib.utils"
 local colored = require "howl.lib.colored"
-local class = require "howl.lib.middleclass"
+local class = require "howl.class"
 
 --- Convert a pattern
 local function ParsePattern(from, to)

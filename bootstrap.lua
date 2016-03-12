@@ -35,13 +35,24 @@ local function toModule(file)
 	return file:sub(#root + 2):gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
 end
 
+local function loadModule(path)
+	local file = fs.open(path, "r")
+	if file then
+		local func, err = load(file.readAll(), path:sub(#root + 2), "t", env)
+		file.close()
+		if not func then error(err) end
+		return func
+	end
+	error("File not found: " .. tostring(path))
+end
+
 local function include(path)
 	if fs.isDir(path) then
 		for _, v in ipairs(fs.list(path)) do
 			include(fs.combine(path, v))
 		end
 	elseif path:find("%.lua$") then
-		preload[toModule(path)] = setfenv(assert(loadfile(path)), env)
+		preload[toModule(path)] = loadModule(path)
 	end
 end
 
@@ -53,7 +64,7 @@ end, function(err)
 	printError(err)
 	for i = 3, 15 do
 		local _, msg = pcall(error, "", i)
-		if msg:match("bootstrap.lua:51") then break end
+		if #msg == 0 or msg:find("^xpcall:") then break end
 		print(" ", msg)
 	end
 end)

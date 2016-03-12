@@ -4,7 +4,7 @@
 
 local Mediator = require "howl.lib.mediator"
 local Depends = require "howl.depends"
-local Runner = require "howl.tasks.runner"
+local Runner = require "howl.tasks.Runner"
 local OptionTask = require "howl.tasks.OptionTask"
 
 -- Load some modules

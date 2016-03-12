@@ -4,8 +4,8 @@
 local Mediator = require "howl.lib.mediator"
 local utils = require "howl.lib.utils"
 local assert = require "howl.lib.assert"
-local class = require "howl.lib.middleclass"
-local mixin = require "howl.lib.mixin"
+local class = require "howl.class"
+local mixin = require "howl.class.mixin"
 
 --- Handles a list of files
 -- @type Files

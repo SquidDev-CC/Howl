@@ -240,6 +240,7 @@ function Parser:Parse(args)
 end
 
 --- Create a new options parser
+-- @tparam table mediator The mediator instance
 -- @tparam table args The command line arguments passed
 -- @treturn Parser The resulting parser
 local function Options(mediator, args)

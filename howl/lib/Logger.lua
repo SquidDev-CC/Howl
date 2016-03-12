@@ -1,8 +1,8 @@
 --- The main logger for Lua
--- @clasmod howl.lib.Logger
+-- @classmod howl.lib.Logger
 
-local class = require "howl.lib.middleclass"
-local mixin = require "howl.lib.mixin"
+local class = require "howl.class"
+local mixin = require "howl.class.mixin"
 local dump = require "howl.lib.dump"
 local colored = require "howl.lib.colored"
 
@@ -17,6 +17,7 @@ function Logger:initialize(context)
 	end)
 end
 
+--- Print a series of objects if verbose mode is enabled
 function Logger:verbose(...)
 	if self.isVerbose then
 		local _, m = pcall(function() error("", 4) end)
@@ -25,13 +26,16 @@ function Logger:verbose(...)
 	end
 end
 
+--- Dump a series of objects if verbose mode is enabled
 function Logger:dump(...)
 	if self.isVerbose then
 		local _, m = pcall(function() error("", 4) end)
 		colored.writeColor("gray", m)
 
-		local hasPrevious = false
-		for _, value in ipairs({ ... }) do
+		local len = select('#', ...)
+		local args = {...}
+		for i = 1, len do
+			local value = args[i]
 			local t = type(value)
 			if t == "table" then
 				value = dump(value)
@@ -39,18 +43,19 @@ function Logger:dump(...)
 				value = tostring(value)
 			end
 
-			if hasPrevious then value = " " .. value end
-			hasPrevious = true
-			writeColor(colors.lightGray, value)
+			if i > 1 then value = " " .. value end
+			writeColor("lightGray", value)
 		end
 		print()
 	end
 end
 
+--- Print a series of objects in red
 function Logger:error(...)
 	colored.printColor("red", ...)
 end
 
+--- Print a series of objects in green
 function Logger:success(...)
 	colored.printColor("green", ...)
 end

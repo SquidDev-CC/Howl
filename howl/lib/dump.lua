@@ -88,6 +88,7 @@ local keywords = createLookup {
 }
 
 --- Internal serialiser
+-- @param object The object being serialised
 -- @tparam table tracking List of items being tracked
 -- @tparam Buffer buffer Buffer to append to
 -- @treturn Buffer The buffer passed

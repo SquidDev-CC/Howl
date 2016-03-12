@@ -5,7 +5,7 @@
 local Files = require "howl.files"
 local dump = require "howl.lib.dump"
 local Rebuild = require "howl.lexer.rebuild"
-local Runner = require "howl.tasks.runner"
+local Runner = require "howl.tasks.Runner"
 
 local header = [=[--[[Hideously Smashed Together by Compilr, a Hideous Smash-Stuff-Togetherer, (c) 2014 oeed
 	This file REALLLLLLLY isn't suitable to be used for anything other than being executed

@@ -2,7 +2,7 @@
 -- @module howl.depends.bootstrap
 
 local Depends = require "howl.depends"
-local Runner = require "howl.tasks.runner"
+local Runner = require "howl.tasks.Runner"
 local OptionTask = require "howl.tasks.OptionTask"
 
 local format = string.format
@@ -86,6 +86,8 @@ function Depends.Dependencies:CreateBootstrap(env, outputFile, options)
 	output.close()
 end
 
+local BootstrapRunner = {}
+
 --- A task creating a 'dynamic' combination of files
 -- @tparam string name Name of the task
 -- @tparam Depends.Dependencies dependencies The dependencies to compile
@@ -93,7 +95,7 @@ end
 -- @tparam table taskDepends A list of @{howl.tasks.Task|tasks} this task requires
 -- @treturn howl.tasks.Task The created task
 -- @see tasks.Runner
-function Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
+function BootstrapRunner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
 	return self:InjectTask(OptionTask(name, taskDepends, {"traceback"}, function(task, env)
 		dependencies:CreateBootstrap(env, outputFile, task.options)
 	end))
@@ -101,3 +103,5 @@ function Runner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
 		:Produces(outputFile)
 		:Requires(dependencies:Paths())
 end
+
+Runner:include(BootstrapRunner)

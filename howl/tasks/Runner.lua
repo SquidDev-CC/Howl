@@ -2,10 +2,10 @@
 -- @classmod howl.tasks.Runner
 
 local Task = require "howl.tasks.Task"
-local Context = require "howl.tasks.context"
+local Context = require "howl.tasks.Context"
 local colored = require "howl.lib.colored"
-local class = require "howl.lib.middleclass"
-local mixin = require "howl.lib.mixin"
+local class = require "howl.class"
+local mixin = require "howl.class.mixin"
 
 --- Handles a collection of tasks and running them
 -- @type Runner

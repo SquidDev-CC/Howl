@@ -1,15 +1,17 @@
 --- Basic extensions to classes
 -- @module howl.tasks.extensions
 
-local Runner = require "howl.tasks.runner"
+local Runner = require "howl.tasks.Runner"
 local colored = require "howl.lib.colored"
+
+local TaskExtensions = {}
 
 --- Prints all tasks in a TaskRunner
 -- Extends the @{howl.tasks.Runner} class
 -- @tparam string indent The indent to print at
 -- @tparam boolean all Include all tasks (otherwise exclude ones starting with _)
 -- @treturn howl.tasks.Task The created task
-function Runner:ListTasks(indent, all)
+function TaskExtensions:ListTasks(indent, all)
 	local taskNames = {}
 	local maxLength = 0
 	for name, task in pairs(self.tasks) do
@@ -41,7 +43,7 @@ end
 -- @tparam string directory The directory to clean
 -- @tparam table taskDepends A list of tasks this task requires
 -- @treturn howl.tasks.Task The created task
-function Runner:Clean(name, directory, taskDepends)
+function TaskExtensions:Clean(name, directory, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, context)
 		context.logger:verbose("Emptying directory '" .. directory .. "'")
 		local file = fs.combine(context.root, directory)
@@ -54,3 +56,5 @@ function Runner:Clean(name, directory, taskDepends)
 		end
 	end):Description("Clean the '" .. directory .. "' directory")
 end
+
+Runner:include(TaskExtensions)

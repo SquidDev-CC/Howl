@@ -2,7 +2,7 @@
 -- @module howl.loader
 
 local Utils = require "howl.lib.utils"
-local Runner = require "howl.tasks.runner"
+local Runner = require "howl.tasks.Runner"
 local fs = require "howl.platform".fs
 
 --- Names to test when searching for Howlfiles

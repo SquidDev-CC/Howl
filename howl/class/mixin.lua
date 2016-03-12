@@ -1,5 +1,5 @@
 --- Various mixins for the class library
--- @module howl.lib.mixins
+-- @module howl.class.mixin
 
 local assert = require "howl.lib.assert"
 local mixins = {}

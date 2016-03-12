@@ -1,6 +1,6 @@
 project = 'Howl'
 description = 'Howl'
-file = {'howl', exclude = {'howl/interop'}}
+file = {'howl'}
 dir = 'build/doc'
 full_description = [[
 A Lua buildsystem

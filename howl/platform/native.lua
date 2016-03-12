@@ -1,3 +1,6 @@
+--- Platform implementation for vanilla Lua
+-- @module howl.platform.native
+
 local escapeBegin = string.char(27) .. '['
 local colorMappings = {
 	white     = 97,

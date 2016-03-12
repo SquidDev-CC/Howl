@@ -1,7 +1,7 @@
 --- Tasks for the lexer
 -- @module howl.lexer.tasks
 local Rebuild = require "howl.lexer.rebuild"
-local Runner = require "howl.tasks.runner"
+local Runner = require "howl.tasks.Runner"
 local Mediator = require "howl.lib.mediator"
 
 local minifyFile = Rebuild.MinifyFile
@@ -13,7 +13,7 @@ end
 -- @tparam string name Name of the task
 -- @tparam string inputFile The input file
 -- @tparam string outputFile The file to save to
--- @tparam table taskDepends A list of @{tasks.task.Task|tasks} this task requires
+-- @tparam table taskDepends A list of @{tasks.Task|tasks} this task requires
 -- @treturn howl.tasks.Task The created task
 -- @see tasks.Runner.Runner
 function Runner:Minify(name, inputFile, outputFile, taskDepends)

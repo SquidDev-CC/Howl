@@ -2,11 +2,12 @@
 -- @module howl.external.busted
 
 -- TODO: Replace with BSRocks
+-- TODO: Fix verbose
 
 local Utils = require "howl.lib.utils"
-local Runner = require "howl.tasks.runner"
+local Runner = require "howl.tasks.Runner"
 
-local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, Utils.Verbose
+local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, print
 local busted = busted
 
 local names = { "busted.api.lua", "../lib/busted.api.lua", "busted.api", "../lib/busted.api", "busted", "../lib/busted" }
@@ -67,7 +68,7 @@ local function getDefaults(cwd)
 		cwd = cwd,
 		output = 'colorTerminal',
 		seed = os.time(),
-		verbose = Utils.IsVerbose(),
+		verbose = true,
 		root = 'spec',
 		tags = {},
 		['exclude-tags'] = {},
@@ -80,8 +81,8 @@ end
 --- A task that executes tests
 -- @tparam string name Name of the task
 -- @tparam table options Options to pass to busted
--- @tparam table taskDepends A list of @{tasks.task.Task|tasks} this task requires
--- @treturn tasks.task.Task The task (for chaining)
+-- @tparam table taskDepends A list of @{tasks.Task|tasks} this task requires
+-- @treturn tasks.Task The task (for chaining)
 -- @see howl.tasks.Runner
 function Runner:Busted(name, options, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)
@@ -100,7 +101,7 @@ function Runner:Busted(name, options, taskDepends)
 
 		local count, errors = busted.run(newOptions, getDefaults(env.root))
 		if count ~= 0 then
-			Utils.VerboseLog(errors)
+			verbose(errors)
 			error("Not all tests passed")
 		end
 	end)

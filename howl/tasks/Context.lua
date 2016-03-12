@@ -2,8 +2,8 @@
 -- @classmod howl.tasks.Context
 
 local platform = require "howl.platform"
-local class = require "howl.lib.middleclass"
-local mixin = require "howl.lib.mixin"
+local class = require "howl.class"
+local mixin = require "howl.class.mixin"
 
 --- Holds task contexts
 local Context = class("howl.tasks.Context"):include(mixin.sealed)

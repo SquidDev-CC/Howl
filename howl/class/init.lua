@@ -1,5 +1,5 @@
 --- An OOP library for Lua
--- @module howl.lib.middleclass
+-- @module howl.class
 
 local middleclass = {
 	_VERSION     = 'middleclass v4.0.0',

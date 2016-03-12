@@ -3,8 +3,8 @@
 -- [Adapted from Olivine Labs' Mediator](http://olivinelabs.com/mediator_lua/)
 -- @module howl.lib.mediator
 
-local class = require "howl.lib.middleclass"
-local mixin = require "howl.lib.mixin"
+local class = require "howl.class"
+local mixin = require "howl.class.mixin"
 
 local function getUniqueId()
 	return tonumber(tostring({}):match(':%s*[0xX]*(%x+)'), 16)
