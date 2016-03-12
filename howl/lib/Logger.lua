@@ -3,7 +3,7 @@
 
 local class = require "howl.class"
 local mixin = require "howl.class.mixin"
-local dump = require "howl.lib.dump"
+local dump = require "howl.lib.dump".dump
 local colored = require "howl.lib.colored"
 
 local Logger = class("howl.lib.Logger")
@@ -44,7 +44,7 @@ function Logger:dump(...)
 			end
 
 			if i > 1 then value = " " .. value end
-			writeColor("lightGray", value)
+			colored.writeColor("lightGray", value)
 		end
 		print()
 	end

@@ -12,12 +12,14 @@ local Source = require "howl.files.Source"
 
 local insert = table.insert
 
-local Sources = class("howl.files.Sources"):include(mixin.configurable)
+local Sources = class("howl.files.Sources")
+	:include(mixin.configurable)
+	:include(mixin.filterable)
 
 function Sources:initialize(root)
 	assert.argType(root, "string", "Sources", 1)
 	self.root = root
-	self.rootSource = Source(false)
+	self.rootSource = Source()
 	self.sources = { [''] = self.rootSource }
 end
 
@@ -29,6 +31,7 @@ function Sources:from(path, configure)
 	if not source then
 		source = Source(path)
 		self.sources[path] = source
+		self.rootSource.allowEmpty = false
 	end
 
 	if configure ~= nil then
@@ -39,13 +42,13 @@ function Sources:from(path, configure)
 end
 
 function Sources:include(...)
-	self.rootSource:include(...)
-	return self
+	-- We intentionally do this to avoid people doing `:include "foo.lua" :from "bar"`
+	return self.rootSource:include(...)
 end
 
 function Sources:exclude(...)
-	self.rootSource:exclude(...)
-	return self
+	-- We intentionally do this to avoid people doing `:exclude "foo.lua" :from "bar"`
+	return self.rootSource:exclude(...)
 end
 
 function Sources:configure(item)
@@ -72,16 +75,17 @@ function Sources:getFiles()
 			while queueN > 0 do
 				local top = queue[queueN]
 				local relative = top:sub(#whole + 2)
+				local rootRelative = top:sub(#self.root + 2)
 				queueN = queueN - 1
 
 				if fs.isDir(top) then
-					if not source:excluded(relative) and (root == source or not root:excluded(relative)) then
+					if not source:excluded(relative) and (root == source or not root:excluded(rootRelative)) then
 						for _, v in ipairs(fs.list(top)) do
 							queueN = queueN + 1
 							queue[queueN] = fs.combine(top, v)
 						end
 					end
-				elseif source:included(relative) and not source:excluded(relative) and (root == source or not root:excluded(relative)) then
+				elseif source:included(relative) and not source:excluded(relative) and (root == source or not root:excluded(rootRelative)) then
 					n = n + 1
 					outList[n] = { top, relative }
 				end

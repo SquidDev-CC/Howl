@@ -46,4 +46,22 @@ mixins.configurable = {
 	__call = function(self, ...) return self:configureWith(...) end,
 }
 
+mixins.filterable = {
+	__add = function(self, ...) return self:include(...) end,
+	__sub = function(self, ...) return self:exclude(...) end,
+	with = function(self, ...) return self:configure(...) end,
+}
+
+function mixins.delegate(name, keys)
+	local out = {}
+	for _, key in ipairs(keys) do
+		out[key] = function(self, ...)
+			local object = self[name]
+			return object[key](object, ...)
+		end
+	end
+
+	return out
+end
+
 return mixins

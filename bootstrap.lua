@@ -61,8 +61,10 @@ local args = { ... }
 
 if args[1] == "repl" then
 	preload["howl.cli"] = loadModule(shell.resolveProgram("lua"))
+	args = {}
 elseif args[1] == "exec" then
 	preload["howl.cli"] =  loadModule(shell.resolveProgram(args[2]))
+	args = {}
 end
 
 local success = xpcall(function()

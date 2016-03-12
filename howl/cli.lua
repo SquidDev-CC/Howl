@@ -15,6 +15,7 @@ require "howl.files.require"
 
 local howlFile, currentDirectory = loader.FindHowl()
 local context = require "howl.context"(currentDirectory or shell.dir(), {... })
+require "howl.modules.require".apply()
 local options = context.arguments
 
 options

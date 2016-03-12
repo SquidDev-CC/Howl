@@ -9,7 +9,9 @@ local mixin = require "howl.class.mixin"
 
 local insert = table.insert
 
-local Source = class("howl.files.Source"):include(mixin.configurable)
+local Source = class("howl.files.Source")
+	:include(mixin.configurable)
+	:include(mixin.filterable)
 
 local function extractPattern(item)
 	local t = type(item)
@@ -93,6 +95,8 @@ end
 
 function Source:configure(item)
 	assert.argType(item, "table", "configure", 1)
+	-- TODO: Ensure other keys aren't passed
+	-- TODO: Fix passing other source instances
 
 	if item.include ~= nil then self:include(item.include) end
 	if item.exclude ~= nil then self:exclude(item.exclude) end
@@ -103,11 +107,7 @@ function Source:configure(item)
 			self:with(v)
 		end
 	end
-
-	-- TODO: Ensure other keys aren't passed
 end
-
-Source.with = Source.configure
 
 function Source:matches(text)
 	return self:included(text) and not self:excluded(text)

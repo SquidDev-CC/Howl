@@ -1,6 +1,7 @@
 --- The main task class
 -- @classmod howl.tasks.Task
 
+local assert = require "howl.lib.assert"
 local utils = require "howl.lib.utils"
 local colored = require "howl.lib.colored"
 local class = require "howl.class"
@@ -90,8 +91,8 @@ function Task:Description(text)
 end
 
 --- Run the action with no bells or whistles
-function Task:_RunAction(env, ...)
-	return self.action(self, env, ...)
+function Task:RunAction(context, ...)
+	return self.action(self, context, ...)
 end
 
 --- Execute the task
@@ -133,7 +134,7 @@ function Task:Run(context, ...)
 		local oldTime = os.clock()
 		local s, err = true, nil
 		if context.Traceback then
-			xpcall(function() self:_RunAction(context.env, unpack(args)) end, function(msg)
+			xpcall(function() self:RunAction(context.env, unpack(args)) end, function(msg)
 				for i = 5, 15 do
 					local _, err = pcall(function() error("", i) end)
 					if msg:match("Howlfile") then break end
@@ -144,7 +145,7 @@ function Task:Run(context, ...)
 				s = false
 			end)
 		else
-			s, err = pcall(self._RunAction, self, context.env, ...)
+			s, err = pcall(self.RunAction, self, context.env, ...)
 		end
 
 		if s then
@@ -169,6 +170,8 @@ end
 -- @tparam function action The action to run
 -- @treturn Task The created task
 function Task:initialize(name, dependencies, action)
+	assert.argType(name, "string", "Task", 1)
+
 	-- Check calling with no dependencies
 	if type(dependencies) == "function" then
 		action = dependencies

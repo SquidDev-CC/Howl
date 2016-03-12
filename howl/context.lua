@@ -18,6 +18,7 @@ function Context:initialize(root, args)
 	assert.type(args, "table", "bad argument #2 for Context expected table, got %s")
 
 	self.root = root
+	self.out = "build"
 	self.mediator = mediator
 	self.arguments = argparse.Options(self.mediator, args)
 	self.logger = Logger(self)

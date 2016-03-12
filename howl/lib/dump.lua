@@ -7,78 +7,96 @@ local createLookup = require("howl.lib.utils").createLookup
 local type, tostring, format = type, tostring, string.format
 local getmetatable, error = getmetatable, error
 
---- Format an object
--- @param object The object to foramt
--- @treturn string The object
-local function internalFormat(object)
-	if type(object) == "string" then
-		return format("%q", object)
-	else
-		return tostring(object)
-	end
-end
+-- TODO: Switch to LuaCP's pprint
+local function dumpImpl(t, tracking, indent)
+	local objType = type(t)
+	if objType == "table" and not tracking[t] then
+		tracking[t] = true
 
---- Core dumping of object
--- @param object The object to dump
--- @tparam string indent The indent to use
--- @tparam table seen A list of seen objects
--- @tparam bool meta Print metatables too
--- @tparam Buffer buffer Buffer to append to
--- @treturn Buffer The buffer passed
-local function internalDump(object, indent, seen, meta, buffer)
-	local objType = type(object)
-	if objType == "table" then
-		local id = seen[object]
-
-		if id then
-			buffer:append(indent .. "--[[ Object@" .. id .. " ]] { }" .. "\n")
+		if next(t) == nil then
+			return "{}"
 		else
-			id = seen.length + 1
-			seen[object] = id
-			seen.length = id
-			buffer:append(indent .. "--[[ Object@" .. id .. " ]] {" .. "\n")
-			for k, v in pairs(object) do
+			local shouldNewLine = false
+			local length = #t
 
-				if type(k) == "table" then
-					buffer:append(indent .. "  {" .. "\n")
-					internalDump(k, indent .. "    ", seen, meta, buffer)
-					internalDump(v, indent .. "    ", seen, meta, buffer)
-					buffer:append(indent .. "  }," .. "\n")
-				elseif type(v) == "table" then
-					buffer:append(indent .. "  [" .. internalFormat(k) .. "] = {" .. "\n")
-					internalDump(v, indent .. "    ", seen, meta, buffer)
-					buffer:append(indent .. "  },".. "\n")
+			local builder = 0
+			for k,v in pairs(t) do
+				if type(k) == "table" or type(v) == "table" then
+					shouldNewLine = true
+					break
+				elseif type(k) == "number" and k >= 1 and k <= length and k % 1 == 0 then
+					builder = builder + #tostring(v) + 2
 				else
-					buffer:append(indent .. "  [" .. internalFormat(k) .. "] = " .. internalFormat(v) .. "," .. "\n")
+					builder = builder + #tostring(v) + #tostring(k) + 2
+				end
+
+				if builder > 30 then
+					shouldNewLine = true
+					break
 				end
 			end
 
-			if meta then
-				local metatable = getmetatable(object)
+			local newLine, nextNewLine, subIndent = "", ", ", ""
+			if shouldNewLine then
+				newLine = "\n"
+				nextNewLine = ",\n"
+				subIndent = indent .. " "
+			end
 
-				if metatable then
-					buffer:append(indent .. "  Metatable = {" .. "\n")
-					internalDump(metatable, indent .. "    ", seen, meta, buffer)
-					buffer:append(indent .. "  }".. "\n")
+			local result, n = {(tupleLength and "(" or "{") .. newLine}, 1
+
+			local seen = {}
+			local first = true
+			for k = 1, length do
+				seen[k] = true
+				n = n + 1
+				local entry = subIndent .. dumpImpl(t[k], tracking, subIndent)
+
+				if not first then
+					entry = nextNewLine .. entry
+				else
+					first = false
+				end
+
+				result[n] = entry
+			end
+
+			for k,v in pairs(t) do
+				if not seen[k] then
+					local entry
+					if type(k) == "string" and string.match( k, "^[%a_][%a%d_]*$" ) then
+						entry = k .. " = " .. serializeImpl(v, tracking, subIndent)
+					else
+						entry = "[" .. serializeImpl(k, tracking, subIndent) .. "] = " .. serializeImpl(v, tracking, subIndent)
+					end
+
+					entry = subIndent .. entry
+
+					if not first then
+						entry = nextNewLine .. entry
+					else
+						first = false
+					end
+
+					n = n + 1
+					result[n] = entry
 				end
 			end
-			buffer:append(indent .. "}" .. "\n")
+
+			n = n + 1
+			result[n] = newLine .. indent .. (tupleLength and ")" or "}")
+			return table.concat(result)
 		end
-	else
-		buffer:append(indent .. internalFormat(object) .. "\n")
-	end
 
-	return buffer
+	elseif objType == "string" then
+		return (string.format("%q", t):gsub("\\\n", "\\n"))
+	else
+		return tostring(t)
+	end
 end
 
---- Dumps an object
--- @param object The object to dump
--- @tparam[opt=true] boolean meta Print metatables too
--- @tparam[opt=""] string indent Starting indent level
--- @treturn string The dumped string
-local function dump(object, meta, indent)
-	if meta == nil then meta = true end
-	return internalDump(object, indent or "", { length = 0 }, meta, Buffer()):toString()
+local function dump(t, n)
+	return dumpImpl(t, {}, "", n)
 end
 
 local keywords = createLookup {
