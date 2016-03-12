@@ -24,10 +24,14 @@ function assert.type(value, expected, message)
 	end
 end
 
+local function argError(type, expected, func, index)
+	return error("bad argument #" .. index .. " for " .. func .. " (expected " .. expected .. ", got " .. type .. ")")
+end
+
 function assert.argType(value, expected, func, index)
 	local t = type(value)
 	if t ~= expected then
-		return error("bad argument #" .. index .. " for " .. func .. " (expected " .. expected .. ", got " .. type .. ")")
+		return argError(t, expected, func, index)
 	end
 end
 
@@ -39,10 +43,13 @@ function assert.args(func, ...)
 		local t = type(args[i])
 		local expected = args[i + 1]
 		if t ~= expected then
-			return error("bad argument #" .. math.floor(k / 2) .. " for " .. func .. " (expected " .. expected .. ", got " .. type .. ")")
+			return argError(t, expected, func, math.floor(k / 2))
 		end
 	end
 end
+
+assert.typeError = typeError
+assert.argError = argError
 
 function assert.class(value, expected, message)
 	local t = type(value)

@@ -78,7 +78,7 @@ end
 -- @treturn string The dumped string
 local function dump(object, meta, indent)
 	if meta == nil then meta = true end
-	return internalDump(object, indent or "", { length = 0 }, meta, buffer()):toString()
+	return internalDump(object, indent or "", { length = 0 }, meta, Buffer()):toString()
 end
 
 local keywords = createLookup {

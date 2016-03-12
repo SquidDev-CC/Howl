@@ -27,4 +27,23 @@ mixins.curry = {
 	__div = function(left, right) return left:curry(right) end,
 }
 
+mixins.configurable = {
+	configureWith = function(self, arg)
+		local t = type(arg)
+		if t == "table" then
+			self:configure(arg)
+			return self
+		elseif t == "function" then
+			arg(self)
+			return self
+		else
+			error("Expected table or function, got " .. type(arg), 2)
+		end
+
+		return self
+	end,
+
+	__call = function(self, ...) return self:configureWith(...) end,
+}
+
 return mixins

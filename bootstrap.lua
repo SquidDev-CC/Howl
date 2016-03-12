@@ -58,6 +58,13 @@ end
 
 include(fs.combine(root, "howl"))
 local args = { ... }
+
+if args[1] == "repl" then
+	preload["howl.cli"] = loadModule(shell.resolveProgram("lua"))
+elseif args[1] == "exec" then
+	preload["howl.cli"] =  loadModule(shell.resolveProgram(args[2]))
+end
+
 local success = xpcall(function()
 	preload["howl.cli"](unpack(args))
 end, function(err)

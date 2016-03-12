@@ -62,6 +62,7 @@ return {
 	fs = {
 		-- Path manipulation
 		combine = fs.combine,
+		normalise = function(path) return fs.combine(path, "") end,
 		getDir = getDir,
 		getName = getName,
 		currentDir = shell.dir,

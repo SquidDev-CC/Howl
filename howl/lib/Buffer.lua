@@ -6,15 +6,15 @@ local concat = table.concat
 --- Append to this buffer
 -- @tparam string text
 -- @treturn Buffer The current buffer to allow chaining
-local function append(text)
+local function append(self, text)
 	local n = self.n + 1
-	self[n + 1] = text
+	self[n] = text
 	self.n = n
 end
 
 --- Convert this buffer to a string
 -- @treturn string String representation of the buffer
-local function toString()
+local function toString(self)
 	return concat(self)
 end
 

@@ -97,10 +97,19 @@ local function matchTables(a, b)
 	return true
 end
 
+local function startsWith(string, text)
+	if string:sub(1, #text) == text then
+		return string:sub(#text + 1)
+	else
+		return false
+	end
+end
+
 --- @export
 return {
 	escapePattern = escapePattern,
 	parsePattern = parsePattern,
 	createLookup = createLookup,
 	matchTables = matchTables,
+	startsWith = startsWith,
 }

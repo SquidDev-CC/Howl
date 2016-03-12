@@ -1,5 +1,5 @@
 --- Handles a list of files
--- @module howl.files
+-- @classmod howl.files.Files
 
 local Mediator = require "howl.lib.mediator"
 local utils = require "howl.lib.utils"
@@ -8,7 +8,6 @@ local class = require "howl.class"
 local mixin = require "howl.class.mixin"
 
 --- Handles a list of files
--- @type Files
 local Files = class("howl.files.Files"):include(mixin.sealed)
 
 --- Include a series of files/folders
