@@ -39,7 +39,7 @@ local function SetupEnvironment(variables)
 	local env = setmetatable(variables or {}, { __index = getfenv() })
 
 	function env.loadfile(path)
-		return setfenv(loadfile(path), env)
+		return setfenv(assert(loadfile(path)), env)
 	end
 
 	function env.dofile(path)

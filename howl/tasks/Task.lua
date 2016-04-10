@@ -92,7 +92,11 @@ end
 
 --- Run the action with no bells or whistles
 function Task:RunAction(context, ...)
-	return self.action(self, context, ...)
+	if self.action then
+		return self.action(self, context, ...)
+	else
+		return true
+	end
 end
 
 --- Execute the task
@@ -117,51 +121,47 @@ function Task:Run(context, ...)
 	end
 
 	-- Technically we don't need to specify an action
-	if self.action then
-		local args = { ... }
-		local description = ""
+	local args = { ... }
+	local description = ""
 
-		-- Get a list of arguments
-		if #args > 0 then
-			local newArgs = {}
-			for _, arg in ipairs(args) do
-				table.insert(newArgs, tostring(arg))
+	-- Get a list of arguments
+	if #args > 0 then
+		local newArgs = {}
+		for _, arg in ipairs(args) do
+			table.insert(newArgs, tostring(arg))
+		end
+		description = " (" .. table.concat(newArgs, ", ") .. ")"
+	end
+	colored.printColor("cyan", "Running " .. self.name .. description)
+
+	local oldTime = os.clock()
+	local s, err = true, nil
+	if context.Traceback then
+		xpcall(function() self:RunAction(context.env, unpack(args)) end, function(msg)
+			for i = 5, 15 do
+				local _, err = pcall(function() error("", i) end)
+				if msg:match("Howlfile") then break end
+				msg = msg .. "\n  " .. err
 			end
-			description = " (" .. table.concat(newArgs, ", ") .. ")"
-		end
-		colored.printColor("cyan", "Running " .. self.name .. description)
 
-		local oldTime = os.clock()
-		local s, err = true, nil
-		if context.Traceback then
-			xpcall(function() self:RunAction(context.env, unpack(args)) end, function(msg)
-				for i = 5, 15 do
-					local _, err = pcall(function() error("", i) end)
-					if msg:match("Howlfile") then break end
-					msg = msg .. "\n  " .. err
-				end
-
-				err = msg
-				s = false
-			end)
-		else
-			s, err = pcall(self.RunAction, self, context.env, ...)
-		end
-
-		if s then
-			context.env.logger:success(self.name .. ": Success")
-		else
-			context.env.logger:error(self.name .. ": Failure\n" .. err)
-		end
-
-		if context.ShowTime then
-			print(" ", "Took " .. os.clock() - oldTime .. "s")
-		end
-
-		return s
+			err = msg
+			s = false
+		end)
+	else
+		s, err = pcall(self.RunAction, self, context.env, ...)
 	end
 
-	return true
+	if s then
+		context.env.logger:success(self.name .. ": Success")
+	else
+		context.env.logger:error(self.name .. ": Failure\n" .. err)
+	end
+
+	if context.ShowTime then
+		print(" ", "Took " .. os.clock() - oldTime .. "s")
+	end
+
+	return s
 end
 
 --- Create a task

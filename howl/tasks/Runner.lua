@@ -67,7 +67,7 @@ end
 -- @return The result of the last task
 function Runner:RunMany(names)
 	local oldTime = os.clock()
-	local value
+	local value = true
 
 	local context = Context(self)
 	if #names == 0 then

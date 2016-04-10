@@ -2,6 +2,8 @@
 -- @module howl.class.mixin
 
 local assert = require "howl.lib.assert"
+local rawset = rawset
+
 local mixins = {}
 
 --- Prevent subclassing a class
@@ -24,7 +26,7 @@ mixins.curry = {
 		return function(...) return func(self, ...) end
 	end,
 
-	__div = function(left, right) return left:curry(right) end,
+	__div = function(self, name) return self:curry(name) end,
 }
 
 mixins.configurable = {
@@ -60,6 +62,44 @@ function mixins.delegate(name, keys)
 			return object[key](object, ...)
 		end
 	end
+
+	return out
+end
+
+function mixins.options(names)
+	local keys = {}
+	local out = { static = { options = keys }, options = {} }
+	for _, key in ipairs(names) do
+		local func = function(self, value)
+			if value == nil then value = true end
+			self.options[key] = value
+			return self
+		end
+
+		out[key:gsub("^%l", string.upper)] = func
+		out[key] = func
+		keys[key] = true
+	end
+
+	function out:configure(item)
+		assert.argType(item, "table", "configure", 1)
+
+		for k, v in pairs(item) do
+			if keys[k] then
+				self[k](self, v)
+			end
+		end
+	end
+
+	function out:__newindex(key, value)
+		if keys[key] then
+			self[key](self, value)
+		else
+			rawset(self, key, value)
+		end
+	end
+
+	out._configureOptions = out.configure
 
 	return out
 end

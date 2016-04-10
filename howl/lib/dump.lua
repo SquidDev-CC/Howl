@@ -65,9 +65,9 @@ local function dumpImpl(t, tracking, indent)
 				if not seen[k] then
 					local entry
 					if type(k) == "string" and string.match( k, "^[%a_][%a%d_]*$" ) then
-						entry = k .. " = " .. serializeImpl(v, tracking, subIndent)
+						entry = k .. " = " .. dumpImpl(v, tracking, subIndent)
 					else
-						entry = "[" .. serializeImpl(k, tracking, subIndent) .. "] = " .. serializeImpl(v, tracking, subIndent)
+						entry = "[" .. dumpImpl(k, tracking, subIndent) .. "] = " .. dumpImpl(v, tracking, subIndent)
 					end
 
 					entry = subIndent .. entry
@@ -137,7 +137,7 @@ local function internalSerialise(object, tracking, buffer)
 						buffer:append(k .. "=")
 					else
 						buffer:append("[")
-						serialiseImpl(k, tracking, buffer)
+						internalSerialise(k, tracking, buffer)
 						buffer:append("]=")
 					end
 
@@ -164,7 +164,7 @@ end
 -- @param object The object to dump
 -- @treturn string The serialised string
 local function serialise(object)
-	return serialiseImpl(object, {}, Buffer()):toString()
+	return internalSerialise(object, {}, Buffer()):toString()
 end
 
 --- @export

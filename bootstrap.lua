@@ -35,6 +35,10 @@ local function toModule(file)
 	return file:sub(#root + 2):gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
 end
 
+local function toResource(file)
+	return file:sub(#root + 2):gsub("%.res%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
+end
+
 local function loadModule(path)
 	local file = fs.open(path, "r")
 	if file then
@@ -46,11 +50,23 @@ local function loadModule(path)
 	error("File not found: " .. tostring(path))
 end
 
+local function loadResource(path)
+	local file = fs.open(path, "r")
+	if file then
+		local contents = file.readAll()
+		file.close()
+		return function() return contents end
+	end
+	error("File not found: " .. tostring(path))
+end
+
 local function include(path)
 	if fs.isDir(path) then
 		for _, v in ipairs(fs.list(path)) do
 			include(fs.combine(path, v))
 		end
+	elseif path:find("%.res%.lua$") then
+		preload[toResource(path)] = loadResource(path)
 	elseif path:find("%.lua$") then
 		preload[toModule(path)] = loadModule(path)
 	end

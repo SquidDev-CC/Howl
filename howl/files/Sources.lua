@@ -87,7 +87,7 @@ function Sources:getFiles()
 					end
 				elseif source:included(relative) and not source:excluded(relative) and (root == source or not root:excluded(rootRelative)) then
 					n = n + 1
-					outList[n] = { top, relative }
+					outList[n] = { path = top, relative = relative, name = relative }
 				end
 			end
 		end

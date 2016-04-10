@@ -10,6 +10,7 @@ local function append(self, text)
 	local n = self.n + 1
 	self[n] = text
 	self.n = n
+	return self
 end
 
 --- Convert this buffer to a string

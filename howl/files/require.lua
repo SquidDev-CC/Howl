@@ -66,7 +66,7 @@ function Files:AsRequire(context, output, options)
 		result[#result + 1] = "preload[\"" .. toModule(file) .. "\"] = "
 		if link then
 			assert(fs.exists(whole), "Cannot find " .. file)
-			result[#result + 1] = "setfenv(assert(loadfile(\"" .. whole .. "\")), env)\n"
+			result[#result + 1] = "assert(loadfile(\"" .. whole .. "\", env))\n"
 		else
 			local read = fs.open(whole, "r")
 			local contents = read.readAll()

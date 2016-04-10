@@ -3,6 +3,7 @@
 
 local assert = require "howl.lib.assert"
 local mixin = require "howl.class.mixin"
+local rawset = rawset
 
 local Task = require "howl.tasks.Task"
 
@@ -21,15 +22,15 @@ end
 
 function OptionTask:addOption(key)
 	local options = self.options
-	local func = function(value)
+	local func = function(self, value)
 		if value == nil then value = true end
 		options[key] = value
 		return self
 	end
 
-	self.optionKeys[key] = true
 	self[key:gsub("^%l", string.upper)] = func
 	self[key] = func
+	self.optionKeys[key] = true
 end
 
 function OptionTask:configure(item)

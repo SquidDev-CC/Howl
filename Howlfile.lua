@@ -14,9 +14,12 @@ Tasks:AsRequire("main", files, "build/Howl.lua")
 Tasks:Minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 	:Description("Produces a minified version of the code")
 
-Tasks:asRequire("foobar", "out.lua") (function(spec)
-	spec:include "howl/*.lua"
-end)
+Tasks:asRequire "foobar" {
+	include = "howl/*.lua",
+	startup = "howl/cli.lua",
+	output = "build/howl.lua",
+	link = true,
+}
 
 Tasks:Task "build" { "minify" }
 	:Description "Minify sources"

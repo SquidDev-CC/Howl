@@ -102,7 +102,7 @@ function Source:configure(item)
 	if item.exclude ~= nil then self:exclude(item.exclude) end
 
 	if item.with ~= nil then
-		assert.type(item.with, "table", "expected table for with1, got %s")
+		assert.type(item.with, "table", "expected table for with, got %s")
 		for _, v in ipairs(item.with) do
 			self:with(v)
 		end
