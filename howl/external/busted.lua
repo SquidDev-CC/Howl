@@ -7,7 +7,7 @@
 local Utils = require "howl.lib.utils"
 local Runner = require "howl.tasks.Runner"
 
-local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, print
+local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, function() end
 local busted = busted
 
 local names = { "busted.api.lua", "../lib/busted.api.lua", "busted.api", "../lib/busted.api", "busted", "../lib/busted" }

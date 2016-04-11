@@ -1,6 +1,7 @@
 --- A task that combines files that can be loaded using `require`.
 
 local assert = require "howl.lib.assert"
+local fs = require "howl.platform".fs
 local mixin = require "howl.class.mixin"
 
 local Buffer = require "howl.lib.Buffer"
@@ -68,19 +69,14 @@ function RequireTask:RunAction(context)
 			assert(fs.exists(file.path), "Cannot find " .. file.relative)
 			result:append("setfenv(assert(loadfile(\"" .. file.path .. "\")), env)\n")
 		else
-			local read = fs.open(file.path, "r")
-			local contents = read.readAll()
-			read.close()
-
+			local contents = fs.read(file.path)
 			result:append("function(...)\n" .. contents .. "\nend\n")
 		end
 	end
 
 	result:append("return preload[\"" .. toModule(startup) .. "\"](...)")
 
-	local outputFile = fs.open(fs.combine(context.root, output), "w")
-	outputFile.write(result:toString())
-	outputFile.close()
+	fs.write(fs.combine(context.root, output), result:toString())
 end
 
 local RequireExtensions = { }

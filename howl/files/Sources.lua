@@ -29,7 +29,7 @@ function Sources:from(path, configure)
 
 	local source = self.sources[path]
 	if not source then
-		source = Source(path)
+		source = Source(true)
 		self.sources[path] = source
 		self.rootSource.allowEmpty = false
 	end
