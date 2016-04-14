@@ -25,7 +25,7 @@ Tasks:Task "build" { "minify" }
 	:Description "Minify sources"
 
 Tasks:gist "upload" (function(spec)
-	spec:description "A build system for Lua"
+	spec:summary "A build system for Lua"
 	spec:gist "703e2f46ce68c2ca158673ff0ec4208c"
 	spec:from "build" {
 		include = { "Howl.lua", "Howl.min.lua" }

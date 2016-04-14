@@ -17,7 +17,7 @@ local Sources = require "howl.files.Sources"
 local GistTask = Task:subclass("howl.modules.gist.GistTask")
 	:include(mixin.configurable)
 	:include(mixin.filterable)
-	:include(mixin.options { "gist", "description" })
+	:include(mixin.options { "gist", "summary" })
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
 
 function GistTask:initialize(context, name, dependencies)
@@ -56,7 +56,7 @@ function GistTask:RunAction(context)
 
 	local url = "https://api.github.com/gists/" .. gist .. "?access_token=" .. token
 	local headers = { Accept = "application/vnd.github.v3+json", ["X-HTTP-Method-Override"] = "PATCH" }
-	local data = json.encodePretty({ files = out, description = self.description })
+	local data = json.encodePretty({ files = out, description = self.options.summary })
 
 	local ok, handle, message = http.request(url, data, headers)
 	if not ok then
