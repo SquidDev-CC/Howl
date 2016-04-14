@@ -1,5 +1,6 @@
---- Tasks for the lexer
--- @module howl.lexer.tasks
+--- Various minification tasks
+-- @module howl.modules.minify
+
 local Rebuild = require "howl.lexer.rebuild"
 local Runner = require "howl.tasks.Runner"
 local Mediator = require "howl.lib.mediator"
@@ -9,6 +10,8 @@ local minifyDiscard = function(self, env, i, o)
 	return minifyFile(env.root, i, o)
 end
 
+local MinifyExtensions = {}
+
 --- A task that minifies a source file
 -- @tparam string name Name of the task
 -- @tparam string inputFile The input file
@@ -16,7 +19,7 @@ end
 -- @tparam table taskDepends A list of @{tasks.Task|tasks} this task requires
 -- @treturn howl.tasks.Task The created task
 -- @see tasks.Runner.Runner
-function Runner:Minify(name, inputFile, outputFile, taskDepends)
+function MinifyExtensions:minify(name, inputFile, outputFile, taskDepends)
 	return self:AddTask(name, taskDepends, function(task, env)
 		if type(inputFile) == "table" then
 			assert(type(outputFile) == "table", "Output File must be a table too")
@@ -41,13 +44,31 @@ end
 -- @tparam string inputPattern The pattern to read in
 -- @tparam string outputPattern The pattern to produce
 -- @treturn howl.tasks.Task The created task
-function Runner:MinifyAll(name, inputPattern, outputPattern)
+function MinifyExtensions:addMinifier(name, inputPattern, outputPattern)
 	name = name or "_minify"
 	return self:AddTask(name, {}, minifyDiscard)
 		:Description("Minifies files")
 		:Maps(inputPattern or "wild:*.lua", outputPattern or "wild:*.min.lua")
 end
 
-Mediator:subscribe({ "HowlFile", "env" }, function(env)
-	env.Minify = minifyFile
-end)
+MinifyExtensions.Minify = MinifyExtensions.minify
+MinifyExtensions.RequireAll = MinifyExtensions.addMinifier
+
+local function apply()
+	Runner:include(MinifyExtensions)
+end
+
+local function setup(context)
+	context.mediator:subscribe({ "HowlFile", "env" }, function(env)
+		env.Minify = minifyFile
+	end)
+end
+
+return {
+	name = "minify",
+	description = "Minifies files, reducing file size.",
+	apply = apply,
+	setup = setup,
+
+	GistTask = GistTask,
+}

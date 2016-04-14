@@ -61,7 +61,7 @@ function Sources:configureWith(item)
 	return self
 end
 
-function Sources:getFiles()
+function Sources:getFiles(dirs)
 	local outList, n = {}, 0
 
 	local root = self.rootSource
@@ -80,6 +80,11 @@ function Sources:getFiles()
 
 				if fs.isDir(top) then
 					if not source:excluded(relative) and (root == source or not root:excluded(rootRelative)) then
+						if dirs and dir ~= relative and source:included(relative) then
+							n = n + 1
+							outList[n] = { path = top, relative = relative, name = relative }
+						end
+
 						for _, v in ipairs(fs.list(top)) do
 							queueN = queueN + 1
 							queue[queueN] = fs.combine(top, v)

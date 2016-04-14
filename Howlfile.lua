@@ -1,33 +1,30 @@
 Options:Default "trace"
 
-Tasks:Clean("clean", "build")
+Tasks:clean()
 
-local files = Files()
-	:Include "wild:howl/*.lua"
-	:Startup "howl/cli.lua"
+Tasks:minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 
-Tasks:AsRequire("develop", files, "build/HowlD.lua"):Link()
-	:Description "Generates a bootstrap file for development"
-
-Tasks:AsRequire("main", files, "build/Howl.lua")
-
-Tasks:Minify("minify", "build/Howl.lua", "build/Howl.min.lua")
-	:Description("Produces a minified version of the code")
-
-Tasks:asRequire "foobar" {
+Tasks:asRequire "main" {
 	include = "howl/*.lua",
 	startup = "howl/cli.lua",
-	output = "build/howl.lua",
-	link = true,
+	output = "build/Howl.lua",
+	api = true,
 }
 
-Tasks:Task "build" { "minify" }
-	:Description "Minify sources"
+Tasks:asRequire "develop" {
+	include = "howl/*.lua",
+	startup = "howl/cli.lua",
+	output = "build/HowlD.lua",
+	link = true,
+	api = true,
+}
+
+Tasks:Task "build" { "minify" } :Description "Main build task"
 
 Tasks:gist "upload" (function(spec)
-	spec:summary "A build system for Lua"
+	spec:summary "A build system for Lua (http://www.computercraft.info/forums2/index.php?/topic/21254- and https://github.com/SquidDev-CC/Howl)"
 	spec:gist "703e2f46ce68c2ca158673ff0ec4208c"
 	spec:from "build" {
 		include = { "Howl.lua", "Howl.min.lua" }
 	}
-end) :Depends { "build" }
+end) :Requires { "build/Howl.lua", "build/Howl.min.lua" }

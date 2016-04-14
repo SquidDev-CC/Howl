@@ -25,8 +25,9 @@ function GistTask:initialize(context, name, dependencies)
 
 	self.options = {}
 	self.sources = Sources(context.root)
-
 	self:exclude { ".git", ".svn", ".gitignore" }
+
+	self:Description "Uploads files to a gist"
 end
 
 function GistTask:configure(item)
@@ -72,7 +73,6 @@ local GistExtensions = { }
 
 function GistExtensions:gist(name, taskDepends)
 	return self:InjectTask(GistTask(self.env, name, taskDepends))
-		:Description("Uploads files to a gist")
 end
 
 local function apply()
@@ -81,7 +81,7 @@ end
 
 return {
 	name = "gist",
-	description = "Uploads files to a gist",
+	description = "Uploads files to a gist.",
 	apply = apply,
 
 	GistTask = GistTask,

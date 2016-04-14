@@ -5,19 +5,14 @@ local loader = require "howl.loader"
 local colored = require "howl.lib.colored"
 local fs = require "howl.platform".fs
 
-require "howl.tasks.extensions"
-require "howl.depends.bootstrap"
-require "howl.depends.combiner"
-require "howl.lexer.tasks"
-require "howl.external.busted"
-require "howl.files.compilr"
-require "howl.files.require"
-
 local howlFile, currentDirectory = loader.FindHowl()
-local context = require "howl.context"(currentDirectory or shell.dir(), {... })
+local context = require "howl.context"(currentDirectory or shell.dir(), {...})
 
-require "howl.modules.require".apply()
-require "howl.modules.gist".apply()
+local function include(module)
+	context.logger:verbose("Including " .. module.name .. ": " .. module.description)
+	module.apply()
+	if module.setup then module.setup(context) end
+end
 
 local options = context.arguments
 
@@ -37,6 +32,19 @@ options
 	:Alias "?"
 	:Alias "h"
 	:Description "Print this help"
+
+require "howl.tasks.extensions"
+require "howl.depends.bootstrap"
+require "howl.depends.combiner"
+require "howl.external.busted"
+require "howl.files.compilr"
+require "howl.files.require"
+
+include(require "howl.modules.gist")
+include(require "howl.modules.minify")
+include(require "howl.modules.require")
+include(require "howl.modules.clean")
+
 
 -- SETUP TASKS
 local taskList = options:Arguments()

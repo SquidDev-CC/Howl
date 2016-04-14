@@ -12,7 +12,7 @@ local function isArray(t)
 end
 
 
-local function encodeCommon(val, pretty, tabLevel, tTracking)
+local function encodeCommon(val, pretty, tabLevel, tTracking, ctx)
 	local str = ""
 
 	-- Tabbing util
@@ -55,7 +55,7 @@ local function encodeCommon(val, pretty, tabLevel, tTracking)
 			arrEncoding(val, "{", "}", pairs, function(k,v)
 				assert(type(k) == "string", "JSON object keys must be strings", 2)
 				str = str .. encodeCommon(k, pretty, tabLevel, tTracking)
-				str = str .. (pretty and ": " or ":") .. encodeCommon(v, pretty, tabLevel, tTracking)
+				str = str .. (pretty and ": " or ":") .. encodeCommon(v, pretty, tabLevel, tTracking, k)
 			end)
 		end
 	-- String encoding
@@ -65,7 +65,7 @@ local function encodeCommon(val, pretty, tabLevel, tTracking)
 	elseif type(val) == "number" or type(val) == "boolean" then
 		str = tostring(val)
 	else
-		error("JSON only supports arrays, objects, numbers, booleans, and strings", 2)
+		error("JSON only supports arrays, objects, numbers, booleans, and strings, got " .. type(val) .. " in " .. tostring(ctx), 2)
 	end
 	return str
 end

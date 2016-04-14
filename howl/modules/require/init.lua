@@ -19,7 +19,7 @@ end
 local RequireTask = Task:subclass("howl.modules.require.RequireTask")
 	:include(mixin.configurable)
 	:include(mixin.filterable)
-	:include(mixin.options { "link", "startup", "output" })
+	:include(mixin.options { "link", "startup", "output", "api" })
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
 
 function RequireTask:initialize(context, name, dependencies)
@@ -74,7 +74,15 @@ function RequireTask:RunAction(context)
 		end
 	end
 
-	result:append("return preload[\"" .. toModule(startup) .. "\"](...)")
+	if self.options.api then
+		result:append("if shell then\n")
+	end
+	result:append("return preload[\"" .. toModule(startup) .. "\"](...)\n")
+	if self.options.api then
+		result:append("else\n")
+		result:append("return { require = require, preload = preload }\n")
+		result:append("end\n")
+	end
 
 	fs.write(fs.combine(context.root, output), result:toString())
 end
@@ -92,7 +100,7 @@ end
 
 return {
 	name = "require",
-	description = "A task that combines files that can be loaded using `require`.",
+	description = "Combines files that can be loaded using `require`.",
 	apply = apply,
 
 	RequireTask = RequireTask,
