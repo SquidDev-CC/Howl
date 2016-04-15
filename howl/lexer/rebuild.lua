@@ -358,13 +358,21 @@ end
 -- @tparam string input The input string
 -- @treturn string The minifyied string
 local function MinifyString(input)
+	local start = profiler.nanoTime()
 	local lex = Parse.LexLua(input)
+	print("Lex took: " .. ((profiler.nanoTime() - start)/1e9))
 	platform.refreshYield()
 
+	start = profiler.nanoTime()
 	lex = Parse.ParseLua(lex)
+	print("Parse took: " .. ((profiler.nanoTime() - start)/1e9))
 	platform.refreshYield()
 
-	return Minify(lex)
+	start = profiler.nanoTime()
+	local min =  Minify(lex)
+	print("Lex took: " .. ((profiler.nanoTime() - start)/1e9))
+
+	return min
 end
 
 --- Minify a file

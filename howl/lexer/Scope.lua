@@ -24,8 +24,9 @@ local Scope = {}
 
 --- Add a local to this scope
 -- @tparam Variable variable The local object
-function Scope:AddLocal(variable)
+function Scope:AddLocal(name, variable)
 	table.insert(self.Locals, variable)
+	self.LocalMap[name] = variable
 end
 
 --- Create a @{Variable} and add it to the scope
@@ -43,7 +44,7 @@ function Scope:CreateLocal(name)
 		References = 1,
 	}
 
-	self:AddLocal(variable)
+	self:AddLocal(name, variable)
 	return variable
 end
 
@@ -51,13 +52,13 @@ end
 -- @tparam string name The name of the local
 -- @treturn ?|Variable The variable
 function Scope:GetLocal(name)
-	for _, var in pairs(self.Locals) do
-		if var.Name == name then return var end
-	end
+	repeat
+		local var = self.LocalMap[name]
+		if var then return var end
 
-	if self.Parent then
-		return self.Parent:GetLocal(name)
-	end
+
+		self = self.Parent
+	until not self
 end
 
 --- Find an local variable by its old name
@@ -89,8 +90,9 @@ end
 
 --- Add a global to this scope
 -- @tparam Variable name The name of the global
-function Scope:AddGlobal(name)
-	table.insert(self.Globals, name)
+function Scope:AddGlobal(name, variable)
+	table.insert(self.Globals, variable)
+	self.GlobalMap[name] = variable
 end
 
 --- Create a @{Variable} and add it to the scope
@@ -108,7 +110,7 @@ function Scope:CreateGlobal(name)
 		References = 1,
 	}
 
-	self:AddGlobal(variable)
+	self:AddGlobal(name, variable)
 	return variable
 end
 
@@ -116,13 +118,13 @@ end
 -- @tparam string name The name of the global
 -- @treturn ?|Variable The variable
 function Scope:GetGlobal(name)
-	for _, v in pairs(self.Globals) do
-		if v.Name == name then return v end
-	end
+	repeat
+		local var = self.GlobalMap[name]
+		if var then return var end
 
-	if self.Parent then
-		return self.Parent:GetGlobal(name)
-	end
+
+		self = self.Parent
+	until not self
 end
 
 --- Find a Global by its old name
@@ -132,6 +134,7 @@ function Scope:GetOldGlobal(name)
 	if self.oldGlobalNamesMap[name] then
 		return self.oldGlobalNamesMap[name]
 	end
+	print("Getting global")
 	return self:GetGlobal(name)
 end
 
@@ -158,13 +161,6 @@ end
 -- @fixme This is a very inefficient implementation, as with @{Scope:GetLocal} and @{Scope:GetGlocal}
 function Scope:GetVariable(name)
 	return self:GetLocal(name) or self:GetGlobal(name)
-end
-
---- Find an variable by its old name
--- @tparam string name The old name of the variable
--- @treturn ?|Variable The variable
-function Scope:GetOldVariable(name)
-	return self:GetOldLocal(name) or self:GetOldGlobal(name)
 end
 
 --- Rename a variable
@@ -264,7 +260,9 @@ local function NewScope(parent)
 	local scope = setmetatable({
 		Parent = parent,
 		Locals = {},
+		LocalMap = {},
 		Globals = {},
+		GlobalMap = {},
 		oldLocalNamesMap = {},
 		oldGlobalNamesMap = {},
 		Children = {},
