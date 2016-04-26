@@ -16,7 +16,7 @@ local hexDigits = Constants.HexDigits
 local keywords = Constants.Keywords
 local statListCloseKeywords = Constants.StatListCloseKeywords
 local unops = Constants.UnOps
-local setmeta = setmetatable
+local insert, setmeta = table.insert, setmetatable
 
 --- One token
 -- @table Token
@@ -42,8 +42,9 @@ local function LexLua(src)
 	--token dump
 	local tokens = {}
 
-	local sub = string.sub
 	do -- Main bulk of the work
+		local sub = string.sub
+
 		--line / char / pointer tracking
 		local pointer = 1
 		local line = 1
@@ -51,7 +52,7 @@ local function LexLua(src)
 
 		--get / peek functions
 		local function get()
-			local c = src:sub(pointer,pointer)
+			local c = sub(src, pointer,pointer)
 			if c == '\n' then
 				char = 1
 				line = line + 1
@@ -61,9 +62,10 @@ local function LexLua(src)
 			pointer = pointer + 1
 			return c
 		end
+
 		local function peek(n)
 			n = n or 0
-			return src:sub(pointer+n,pointer+n)
+			return sub(src, pointer+n,pointer+n)
 		end
 		local function consume(chars)
 			local c = peek()
@@ -169,7 +171,7 @@ local function LexLua(src)
 			--separately.
 			local longStr = false
 			while true do
-				local c = peek()
+				local c = sub(src, pointer, pointer)
 				if c == '#' and peek(1) == '!' and line == 1 then
 					-- #! shebang for linux scripts
 					get()
@@ -202,7 +204,7 @@ local function LexLua(src)
 			--get the initial char
 			local thisLine = line
 			local thisChar = char
-			local c = peek()
+			local c = sub(src, pointer, pointer)
 
 			--symbol to emit
 			local toEmit = nil
@@ -212,13 +214,13 @@ local function LexLua(src)
 				--eof
 				toEmit = { Type = 'Eof' }
 
-			elseif upperChars[c] or lowerChars[c] or c == '_' then
+			elseif (c >= 'A' and c <= 'Z') or (c >= 'a' and c <= 'z') or c == '_' then
 				--ident or keyword
 				local start = pointer
 				repeat
 					get()
 					c = peek()
-				until not (upperChars[c] or lowerChars[c] or digits[c] or c == '_')
+				until not ((c >= 'A' and c <= 'Z') or (c >= 'a' and c <= 'z') or c == '_' or (c >= '0' and c <= '9'))
 				local dat = src:sub(start, pointer-1)
 				if keywords[dat] then
 					toEmit = {Type = 'Keyword', Data = dat}
@@ -243,7 +245,14 @@ local function LexLua(src)
 					end
 					if consume('Ee') then
 						consume('+-')
-						while digits[peek()] do get() end
+
+						if not digits[peek()] then generateError("Expected exponent") end
+						repeat get() until not digits[peek()]
+					end
+
+					local n = peek():lower()
+					if (n >= 'a' and n <= 'z') or n == '_' then
+						generateError("Invalid number format")
 					end
 				end
 				toEmit = {Type = 'Number', Data = src:sub(start, pointer-1)}
@@ -344,12 +353,14 @@ end
 --- Create a AST tree from a Lua Source
 -- @tparam TokenList tok List of tokens from @{LexLua}
 -- @treturn table The AST tree
-local function ParseLua(tok)
+local function ParseLua(tok, src)
 	--- Generate an error
 	-- @tparam string msg The error message
 	-- @raise The produces error message
 	local function GenerateError(msg)
-		local err = ">> :"..tok.Peek().Line..":"..tok.Peek().Char..": "..msg.."\n"
+		local err = tok.Peek().Line..":"..tok.Peek().Char..": "..msg.."\n"
+		local peek = tok.Peek()
+		err = err.. " got " .. peek.Type .. ": " .. peek.Data.. "\n"
 		--find the line
 		local lineNum = 0
 		if type(src) == 'string' then
@@ -357,16 +368,12 @@ local function ParseLua(tok)
 				if line:sub(-1,-1) == '\n' then line = line:sub(1,-2) end
 				lineNum = lineNum+1
 				if lineNum == tok.Peek().Line then
-					err = err..">> `"..line:gsub('\t','    ').."`\n"
+					err = err..""..line:gsub('\t','    ').."\n"
 					for i = 1, tok.Peek().Char do
 						local c = line:sub(i,i)
-						if c == '\t' then
-							err = err..'    '
-						else
-							err = err..' '
-						end
+						err = err..' '
 					end
-					err = err.."   ^^^^"
+					err = err.."^"
 					break
 				end
 			end
@@ -570,121 +577,127 @@ local function ParseLua(tok)
 	function ParseSimpleExpr(scope)
 		local tokenList = {}
 
-		if tok.Is('Number') then
+		local next = tok.Peek()
+		local type = next.Type
+		if type == 'Number' then
 			return {
 				AstType = 'NumberExpr',
 				Value   = tok.Get(tokenList),
 				Tokens  = tokenList,
 			}
-
-		elseif tok.Is('String') then
+		elseif type == 'String' then
 			return {
 				AstType = 'StringExpr',
 				Value   = tok.Get(tokenList),
 				Tokens  = tokenList,
 			}
+		elseif type == 'Keyword' then
+			local data = next.Data
+			if data == 'nil' then
+				tok.Get(tokenList)
+				return {
+					AstType = 'NilExpr',
+					Tokens  = tokenList,
+				}
+			elseif data == 'false' or data == 'true' then
+				return {
+					AstType = 'BooleanExpr',
+					Value   = (tok.Get(tokenList).Data == 'true'),
+					Tokens  = tokenList,
+				}
+			elseif data == 'function' then
+				tok.Get(tokenList)
+				local func = ParseFunctionArgsAndBody(scope, tokenList)
 
-		elseif tok.ConsumeKeyword('nil', tokenList) then
-			return {
-				AstType = 'NilExpr',
-				Tokens  = tokenList,
-			}
+				func.IsLocal = true
+				return func
+			end
+		elseif type == 'Symbol' then
+			local data = next.Data
+			if data == '...' then
+				tok.Get(tokenList)
+				return {
+					AstType  = 'DotsExpr',
+					Tokens   = tokenList,
+				}
+			elseif data == '{' then
+				tok.Get(tokenList)
 
-		elseif tok.IsKeyword('false') or tok.IsKeyword('true') then
-			return {
-				AstType = 'BooleanExpr',
-				Value   = (tok.Get(tokenList).Data == 'true'),
-				Tokens  = tokenList,
-			}
+				local entryList = {}
+				local v = {
+					AstType = 'ConstructorExpr',
+					EntryList = entryList,
+					Tokens  = tokenList,
+				}
 
-		elseif tok.ConsumeSymbol('...', tokenList) then
-			return {
-				AstType  = 'DotsExpr',
-				Tokens   = tokenList,
-			}
-
-		elseif tok.ConsumeSymbol('{', tokenList) then
-			local entryList = {}
-			local v = {
-				AstType = 'ConstructorExpr',
-				EntryList = entryList,
-				Tokens  = tokenList,
-			}
-
-			while true do
-				if tok.IsSymbol('[', tokenList) then
-					--key
-					tok.Get(tokenList)
-					local key = ParseExpr(scope)
-					if not tok.ConsumeSymbol(']', tokenList) then
-						GenerateError("`]` Expected")
-					end
-					if not tok.ConsumeSymbol('=', tokenList) then
-						GenerateError("`=` Expected")
-					end
-					local value = ParseExpr(scope)
-					entryList[#entryList+1] = {
-						Type  = 'Key',
-						Key   = key,
-						Value = value,
-					}
-
-				elseif tok.Is('Ident') then
-					--value or key
-					local lookahead = tok.Peek(1)
-					if lookahead.Type == 'Symbol' and lookahead.Data == '=' then
-						--we are a key
-						local key = tok.Get(tokenList)
+				while true do
+					if tok.IsSymbol('[', tokenList) then
+						--key
+						tok.Get(tokenList)
+						local key = ParseExpr(scope)
+						if not tok.ConsumeSymbol(']', tokenList) then
+							GenerateError("`]` Expected")
+						end
 						if not tok.ConsumeSymbol('=', tokenList) then
 							GenerateError("`=` Expected")
 						end
 						local value = ParseExpr(scope)
 						entryList[#entryList+1] = {
-							Type  = 'KeyString',
-							Key   = key.Data,
+							Type  = 'Key',
+							Key   = key,
 							Value = value,
 						}
 
+					elseif tok.Is('Ident') then
+						--value or key
+						local lookahead = tok.Peek(1)
+						if lookahead.Type == 'Symbol' and lookahead.Data == '=' then
+							--we are a key
+							local key = tok.Get(tokenList)
+							if not tok.ConsumeSymbol('=', tokenList) then
+								GenerateError("`=` Expected")
+							end
+							local value = ParseExpr(scope)
+							entryList[#entryList+1] = {
+								Type  = 'KeyString',
+								Key   = key.Data,
+								Value = value,
+							}
+
+						else
+							--we are a value
+							local value = ParseExpr(scope)
+							entryList[#entryList+1] = {
+								Type = 'Value',
+								Value = value,
+							}
+
+						end
+					elseif tok.ConsumeSymbol('}', tokenList) then
+						break
+
 					else
-						--we are a value
+						--value
 						local value = ParseExpr(scope)
 						entryList[#entryList+1] = {
 							Type = 'Value',
 							Value = value,
 						}
-
 					end
-				elseif tok.ConsumeSymbol('}', tokenList) then
-					break
 
-				else
-					--value
-					local value = ParseExpr(scope)
-					entryList[#entryList+1] = {
-						Type = 'Value',
-						Value = value,
-					}
+					if tok.ConsumeSymbol(';', tokenList) or tok.ConsumeSymbol(',', tokenList) then
+						--all is good
+					elseif tok.ConsumeSymbol('}', tokenList) then
+						break
+					else
+						GenerateError("`}` or table entry Expected")
+					end
 				end
-
-				if tok.ConsumeSymbol(';', tokenList) or tok.ConsumeSymbol(',', tokenList) then
-					--all is good
-				elseif tok.ConsumeSymbol('}', tokenList) then
-					break
-				else
-					GenerateError("`}` or table entry Expected")
-				end
+				return v
 			end
-			return v
-
-		elseif tok.ConsumeKeyword('function', tokenList) then
-			local func = ParseFunctionArgsAndBody(scope, tokenList)
-
-			func.IsLocal = true
-			return func
-
-		else
-			return ParseSuffixedExpr(scope)
 		end
+
+		return ParseSuffixedExpr(scope)
 	end
 
 	local unopprio = 8
@@ -764,273 +777,302 @@ local function ParseLua(tok)
 	local function ParseStatement(scope)
 		local stat = nil
 		local tokenList = {}
-		if tok.ConsumeKeyword('if', tokenList) then
-			--setup
-			local clauses = {}
-			local nodeIfStat = {
-				AstType = 'IfStatement',
-				Clauses = clauses,
-			}
-			--clauses
-			repeat
+
+		local next = tok.Peek()
+		if next.Type == "Keyword" then
+			local type = next.Data
+			if type == 'if' then
+				tok.Get(tokenList)
+
+				--setup
+				local clauses = {}
+				local nodeIfStat = {
+					AstType = 'IfStatement',
+					Clauses = clauses,
+				}
+				--clauses
+				repeat
+					local nodeCond = ParseExpr(scope)
+
+					if not tok.ConsumeKeyword('then', tokenList) then
+						GenerateError("`then` expected.")
+					end
+					local nodeBody = ParseStatementList(scope)
+					clauses[#clauses+1] = {
+						Condition = nodeCond,
+						Body = nodeBody,
+					}
+				until not tok.ConsumeKeyword('elseif', tokenList)
+
+				--else clause
+				if tok.ConsumeKeyword('else', tokenList) then
+					local nodeBody = ParseStatementList(scope)
+					clauses[#clauses+1] = {
+						Body = nodeBody,
+					}
+				end
+
+				--end
+				if not tok.ConsumeKeyword('end', tokenList) then
+					GenerateError("`end` expected.")
+				end
+
+				nodeIfStat.Tokens = tokenList
+				stat = nodeIfStat
+			elseif type == 'while' then
+				tok.Get(tokenList)
+
+				--condition
 				local nodeCond = ParseExpr(scope)
 
-				if not tok.ConsumeKeyword('then', tokenList) then
-					GenerateError("`then` expected.")
-				end
-				local nodeBody = ParseStatementList(scope)
-				clauses[#clauses+1] = {
-					Condition = nodeCond,
-					Body = nodeBody,
-				}
-			until not tok.ConsumeKeyword('elseif', tokenList)
-
-			--else clause
-			if tok.ConsumeKeyword('else', tokenList) then
-				local nodeBody = ParseStatementList(scope)
-				clauses[#clauses+1] = {
-					Body = nodeBody,
-				}
-			end
-
-			--end
-			if not tok.ConsumeKeyword('end', tokenList) then
-				GenerateError("`end` expected.")
-			end
-
-			nodeIfStat.Tokens = tokenList
-			stat = nodeIfStat
-		elseif tok.ConsumeKeyword('while', tokenList) then
-			--condition
-			local nodeCond = ParseExpr(scope)
-
-			--do
-			if not tok.ConsumeKeyword('do', tokenList) then
-				return GenerateError("`do` expected.")
-			end
-
-			--body
-			local nodeBody = ParseStatementList(scope)
-
-			--end
-			if not tok.ConsumeKeyword('end', tokenList) then
-				GenerateError("`end` expected.")
-			end
-
-			--return
-			stat = {
-				AstType = 'WhileStatement',
-				Condition = nodeCond,
-				Body      = nodeBody,
-				Tokens    = tokenList,
-			}
-		elseif tok.ConsumeKeyword('do', tokenList) then
-			--do block
-			local nodeBlock = ParseStatementList(scope)
-			if not tok.ConsumeKeyword('end', tokenList) then
-				GenerateError("`end` expected.")
-			end
-
-			stat = {
-				AstType = 'DoStatement',
-				Body    = nodeBlock,
-				Tokens  = tokenList,
-			}
-		elseif tok.ConsumeKeyword('for', tokenList) then
-			--for block
-			if not tok.Is('Ident') then
-				GenerateError("<ident> expected.")
-			end
-			local baseVarName = tok.Get(tokenList)
-			if tok.ConsumeSymbol('=', tokenList) then
-				--numeric for
-				local forScope = Scope(scope)
-				local forVar = forScope:CreateLocal(baseVarName.Data)
-
-				local startEx = ParseExpr(scope)
-				if not tok.ConsumeSymbol(',', tokenList) then
-					GenerateError("`,` Expected")
-				end
-				local endEx = ParseExpr(scope)
-				local stepEx
-				if tok.ConsumeSymbol(',', tokenList) then
-					stepEx = ParseExpr(scope)
-				end
+				--do
 				if not tok.ConsumeKeyword('do', tokenList) then
-					GenerateError("`do` expected")
+					return GenerateError("`do` expected.")
 				end
 
-				local body = ParseStatementList(forScope)
+				--body
+				local nodeBody = ParseStatementList(scope)
+
+				--end
 				if not tok.ConsumeKeyword('end', tokenList) then
-					GenerateError("`end` expected")
+					GenerateError("`end` expected.")
 				end
 
+				--return
 				stat = {
-					AstType  = 'NumericForStatement',
-					Scope    = forScope,
-					Variable = forVar,
-					Start    = startEx,
-					End      = endEx,
-					Step     = stepEx,
-					Body     = body,
-					Tokens   = tokenList,
+					AstType = 'WhileStatement',
+					Condition = nodeCond,
+					Body      = nodeBody,
+					Tokens    = tokenList,
 				}
-			else
-				--generic for
-				local forScope = Scope(scope)
+			elseif type == 'do' then
+				tok.Get(tokenList)
 
-				local varList = { forScope:CreateLocal(baseVarName.Data) }
-				while tok.ConsumeSymbol(',', tokenList) do
-					if not tok.Is('Ident') then
-						GenerateError("for variable expected.")
-					end
-					varList[#varList+1] = forScope:CreateLocal(tok.Get(tokenList).Data)
-				end
-				if not tok.ConsumeKeyword('in', tokenList) then
-					GenerateError("`in` expected.")
-				end
-				local generators = {ParseExpr(scope)}
-				while tok.ConsumeSymbol(',', tokenList) do
-					generators[#generators+1] = ParseExpr(scope)
-				end
-
-				if not tok.ConsumeKeyword('do', tokenList) then
-					GenerateError("`do` expected.")
-				end
-
-				local body = ParseStatementList(forScope)
+				--do block
+				local nodeBlock = ParseStatementList(scope)
 				if not tok.ConsumeKeyword('end', tokenList) then
 					GenerateError("`end` expected.")
 				end
 
 				stat = {
-					AstType      = 'GenericForStatement',
-					Scope        = forScope,
-					VariableList = varList,
-					Generators   = generators,
-					Body         = body,
-					Tokens       = tokenList,
+					AstType = 'DoStatement',
+					Body    = nodeBlock,
+					Tokens  = tokenList,
 				}
-			end
-		elseif tok.ConsumeKeyword('repeat', tokenList) then
-			local body = ParseStatementList(scope)
+			elseif type == 'for' then
+				tok.Get(tokenList)
 
-			if not tok.ConsumeKeyword('until', tokenList) then
-				GenerateError("`until` expected.")
-			end
-
-			local cond = ParseExpr(body.Scope)
-
-			stat = {
-				AstType   = 'RepeatStatement',
-				Condition = cond,
-				Body      = body,
-				Tokens    = tokenList,
-			}
-		elseif tok.ConsumeKeyword('function', tokenList) then
-			if not tok.Is('Ident') then
-				GenerateError("Function name expected")
-			end
-			local name = ParseSuffixedExpr(scope, true) --true => only dots and colons
-
-			local func = ParseFunctionArgsAndBody(scope, tokenList)
-
-			func.IsLocal = false
-			func.Name    = name
-			stat = func
-		elseif tok.ConsumeKeyword('local', tokenList) then
-			if tok.Is('Ident') then
-				local varList = { tok.Get(tokenList).Data }
-				while tok.ConsumeSymbol(',', tokenList) do
-					if not tok.Is('Ident') then
-						GenerateError("local var name expected")
-					end
-					varList[#varList+1] = tok.Get(tokenList).Data
+				--for block
+				if not tok.Is('Ident') then
+					GenerateError("<ident> expected.")
 				end
-
-				local initList = {}
+				local baseVarName = tok.Get(tokenList)
 				if tok.ConsumeSymbol('=', tokenList) then
-					repeat
-						initList[#initList+1] = ParseExpr(scope)
-					until not tok.ConsumeSymbol(',', tokenList)
+					--numeric for
+					local forScope = Scope(scope)
+					local forVar = forScope:CreateLocal(baseVarName.Data)
+
+					local startEx = ParseExpr(scope)
+					if not tok.ConsumeSymbol(',', tokenList) then
+						GenerateError("`,` Expected")
+					end
+					local endEx = ParseExpr(scope)
+					local stepEx
+					if tok.ConsumeSymbol(',', tokenList) then
+						stepEx = ParseExpr(scope)
+					end
+					if not tok.ConsumeKeyword('do', tokenList) then
+						GenerateError("`do` expected")
+					end
+
+					local body = ParseStatementList(forScope)
+					if not tok.ConsumeKeyword('end', tokenList) then
+						GenerateError("`end` expected")
+					end
+
+					stat = {
+						AstType  = 'NumericForStatement',
+						Scope    = forScope,
+						Variable = forVar,
+						Start    = startEx,
+						End      = endEx,
+						Step     = stepEx,
+						Body     = body,
+						Tokens   = tokenList,
+					}
+				else
+					--generic for
+					local forScope = Scope(scope)
+
+					local varList = { forScope:CreateLocal(baseVarName.Data) }
+					while tok.ConsumeSymbol(',', tokenList) do
+						if not tok.Is('Ident') then
+							GenerateError("for variable expected.")
+						end
+						varList[#varList+1] = forScope:CreateLocal(tok.Get(tokenList).Data)
+					end
+					if not tok.ConsumeKeyword('in', tokenList) then
+						GenerateError("`in` expected.")
+					end
+					local generators = {ParseExpr(scope)}
+					while tok.ConsumeSymbol(',', tokenList) do
+						generators[#generators+1] = ParseExpr(scope)
+					end
+
+					if not tok.ConsumeKeyword('do', tokenList) then
+						GenerateError("`do` expected.")
+					end
+
+					local body = ParseStatementList(forScope)
+					if not tok.ConsumeKeyword('end', tokenList) then
+						GenerateError("`end` expected.")
+					end
+
+					stat = {
+						AstType      = 'GenericForStatement',
+						Scope        = forScope,
+						VariableList = varList,
+						Generators   = generators,
+						Body         = body,
+						Tokens       = tokenList,
+					}
+				end
+			elseif type == 'repeat' then
+				tok.Get(tokenList)
+
+				local body = ParseStatementList(scope)
+
+				if not tok.ConsumeKeyword('until', tokenList) then
+					GenerateError("`until` expected.")
 				end
 
-				--now patch var list
-				--we can't do this before getting the init list, because the init list does not
-				--have the locals themselves in scope.
-				for i, v in pairs(varList) do
-					varList[i] = scope:CreateLocal(v)
-				end
+				local cond = ParseExpr(body.Scope)
 
 				stat = {
-					AstType   = 'LocalStatement',
-					LocalList = varList,
-					InitList  = initList,
+					AstType   = 'RepeatStatement',
+					Condition = cond,
+					Body      = body,
 					Tokens    = tokenList,
 				}
+			elseif type == 'function' then
+				tok.Get(tokenList)
 
-			elseif tok.ConsumeKeyword('function', tokenList) then
 				if not tok.Is('Ident') then
 					GenerateError("Function name expected")
 				end
-				local name = tok.Get(tokenList).Data
-				local localVar = scope:CreateLocal(name)
+				local name = ParseSuffixedExpr(scope, true) --true => only dots and colons
 
 				local func = ParseFunctionArgsAndBody(scope, tokenList)
 
-				func.Name    = localVar
-				func.IsLocal = true
+				func.IsLocal = false
+				func.Name    = name
 				stat = func
+			elseif type == 'local' then
+				tok.Get(tokenList)
 
-			else
-				GenerateError("local var or function def expected")
-			end
-		elseif tok.ConsumeSymbol('::', tokenList) then
-			if not tok.Is('Ident') then
-				GenerateError('Label name expected')
-			end
-			local label = tok.Get(tokenList).Data
-			if not tok.ConsumeSymbol('::', tokenList) then
-				GenerateError("`::` expected")
-			end
-			stat = {
-				AstType = 'LabelStatement',
-				Label   = label,
-				Tokens  = tokenList,
-			}
-		elseif tok.ConsumeKeyword('return', tokenList) then
-			local exList = {}
-			if not tok.IsKeyword('end') then
-				-- Use PCall as this may produce an error
-				local st, firstEx = pcall(function() return ParseExpr(scope) end)
-				if st then
-					exList[1] = firstEx
+				if tok.Is('Ident') then
+					local varList = { tok.Get(tokenList).Data }
 					while tok.ConsumeSymbol(',', tokenList) do
-						exList[#exList+1] = ParseExpr(scope)
+						if not tok.Is('Ident') then
+							GenerateError("local var name expected")
+						end
+						varList[#varList+1] = tok.Get(tokenList).Data
+					end
+
+					local initList = {}
+					if tok.ConsumeSymbol('=', tokenList) then
+						repeat
+							initList[#initList+1] = ParseExpr(scope)
+						until not tok.ConsumeSymbol(',', tokenList)
+					end
+
+					--now patch var list
+					--we can't do this before getting the init list, because the init list does not
+					--have the locals themselves in scope.
+					for i, v in pairs(varList) do
+						varList[i] = scope:CreateLocal(v)
+					end
+
+					stat = {
+						AstType   = 'LocalStatement',
+						LocalList = varList,
+						InitList  = initList,
+						Tokens    = tokenList,
+					}
+
+				elseif tok.ConsumeKeyword('function', tokenList) then
+					if not tok.Is('Ident') then
+						GenerateError("Function name expected")
+					end
+					local name = tok.Get(tokenList).Data
+					local localVar = scope:CreateLocal(name)
+
+					local func = ParseFunctionArgsAndBody(scope, tokenList)
+
+					func.Name    = localVar
+					func.IsLocal = true
+					stat = func
+
+				else
+					GenerateError("local var or function def expected")
+				end
+			elseif type == '::' then
+				tok.Get(tokenList)
+
+				if not tok.Is('Ident') then
+					GenerateError('Label name expected')
+				end
+				local label = tok.Get(tokenList).Data
+				if not tok.ConsumeSymbol('::', tokenList) then
+					GenerateError("`::` expected")
+				end
+				stat = {
+					AstType = 'LabelStatement',
+					Label   = label,
+					Tokens  = tokenList,
+				}
+			elseif type == 'return' then
+				tok.Get(tokenList)
+
+				local exList = {}
+				if not tok.IsKeyword('end') then
+					-- Use PCall as this may produce an error
+					local st, firstEx = pcall(function() return ParseExpr(scope) end)
+					if st then
+						exList[1] = firstEx
+						while tok.ConsumeSymbol(',', tokenList) do
+							exList[#exList+1] = ParseExpr(scope)
+						end
 					end
 				end
+				stat = {
+					AstType   = 'ReturnStatement',
+					Arguments = exList,
+					Tokens    = tokenList,
+				}
+			elseif type == 'break' then
+				tok.Get(tokenList)
+
+				stat = {
+					AstType = 'BreakStatement',
+					Tokens  = tokenList,
+				}
+			elseif type == 'goto' then
+				tok.Get(tokenList)
+
+				if not tok.Is('Ident') then
+					GenerateError("Label expected")
+				end
+				local label = tok.Get(tokenList).Data
+				stat = {
+					AstType = 'GotoStatement',
+					Label   = label,
+					Tokens  = tokenList,
+				}
 			end
-			stat = {
-				AstType   = 'ReturnStatement',
-				Arguments = exList,
-				Tokens    = tokenList,
-			}
-		elseif tok.ConsumeKeyword('break', tokenList) then
-			stat = {
-				AstType = 'BreakStatement',
-				Tokens  = tokenList,
-			}
-		elseif tok.ConsumeKeyword('goto', tokenList) then
-			if not tok.Is('Ident') then
-				GenerateError("Label expected")
-			end
-			local label = tok.Get(tokenList).Data
-			stat = {
-				AstType = 'GotoStatement',
-				Label   = label,
-				Tokens  = tokenList,
-			}
-		else
+		end
+
+		if not stat then
 			--statementParseExpr
 			local suffixed = ParseSuffixedExpr(scope)
 
