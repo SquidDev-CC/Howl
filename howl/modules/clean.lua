@@ -7,7 +7,7 @@ local fs = require "howl.platform".fs
 
 local Task = require "howl.tasks.Task"
 local Runner = require "howl.tasks.Runner"
-local Sources = require "howl.files.Sources"
+local Source = require "howl.files.Source"
 
 local CleanTask = Task:subclass("howl.modules.clean.CleanTask")
 	:include(mixin.configurable)
@@ -17,7 +17,8 @@ local CleanTask = Task:subclass("howl.modules.clean.CleanTask")
 function CleanTask:initialize(context, name, dependencies)
 	Task.initialize(self, name, dependencies)
 
-	self.sources = Sources(context.root)
+	self.root = context.root
+	self.sources = Source()
 	self:exclude { ".git", ".svn", ".gitignore" }
 
 	self:Description "Deletes all files matching a pattern"
@@ -28,7 +29,7 @@ function CleanTask:configure(item)
 end
 
 function CleanTask:validate(context)
-	local root = self.sources.rootSource
+	local root = self.sources
 	if root.allowEmpty and #root.includes == 0 then
 		-- Include the build directory if nothing is set
 		root:include(fs.combine(context.out, "/*"))
@@ -38,7 +39,7 @@ end
 function CleanTask:RunAction(context)
 	self:validate(context)
 
-	for _, file in ipairs(self.sources:getFiles(true)) do
+	for _, file in ipairs(self.sources:gatherFiles(self.root, true)) do
 		fs.delete(file.path)
 	end
 end

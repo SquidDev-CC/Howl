@@ -6,6 +6,7 @@ local assert = require "howl.lib.assert"
 local class = require "howl.class"
 local matcher = require "howl.files.matcher"
 local mixin = require "howl.class.mixin"
+local fs = require "howl.platform".fs
 
 local insert = table.insert
 
@@ -53,12 +54,33 @@ local function matches(items, text)
 	return false
 end
 
-function Source:initialize(allowEmpty)
+function Source:initialize(allowEmpty, parent)
 	if allowEmpty == nil then allowEmpty = true end
+
+	self.parent = parent
+	self.children = {}
 
 	self.includes = {}
 	self.excludes = {}
 	self.allowEmpty = allowEmpty
+end
+
+function Source:from(path, configure)
+	assert.argType(path, "string", "from", 1)
+	path = fs.normalise(path)
+
+	local source = self.children[path]
+	if not source then
+		source = self.class(true)
+		self.children[path] = source
+		self.allowEmpty = false
+	end
+
+	if configure ~= nil then
+		return source:configureWith(configure)
+	else
+		return source
+	end
 end
 
 function Source:include(...)
@@ -82,7 +104,14 @@ function Source:exclude(...)
 end
 
 function Source:excluded(text)
-	return matches(self.excludes, text)
+	if matches(self.excludes, text) then
+		return true
+	elseif self.parent then
+		-- FIXME: Combine this path
+		return self.parent:excluded(text)
+	else
+		return false
+	end
 end
 
 function Source:included(text)
@@ -111,6 +140,46 @@ end
 
 function Source:matches(text)
 	return self:included(text) and not self:excluded(text)
+end
+
+function Source:gatherFiles(root, includeDirectories, outList)
+	if not outList then outList = {} end
+
+	for dir, source in pairs(self.children) do
+		local path = fs.combine(root, dir)
+		source:gatherFiles(path, includeDirectories, outList)
+	end
+
+	if self.allowEmpty or #self.includes > 0 then
+		-- I lied. Its a stack
+		local queue, queueN = { root }, 1
+
+		local n = #outList
+		while queueN > 0 do
+			local top = queue[queueN]
+			local relative = top:sub(#root + 2)
+			queueN = queueN - 1
+
+			if fs.isDir(top) then
+				if not self:excluded(relative) then
+					if dirs and dir ~= relative and self:included(relative) then
+						n = n + 1
+						outList[n] = { path = top, relative = relative, name = relative }
+					end
+
+					for _, v in ipairs(fs.list(top)) do
+						queueN = queueN + 1
+						queue[queueN] = fs.combine(top, v)
+					end
+				end
+			elseif self:included(relative) and not self:excluded(relative) then
+				n = n + 1
+				outList[n] = { path = top, relative = relative, name = relative }
+			end
+		end
+	end
+
+	return outList
 end
 
 return Source

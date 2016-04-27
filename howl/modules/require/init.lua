@@ -7,7 +7,7 @@ local mixin = require "howl.class.mixin"
 local Buffer = require "howl.lib.Buffer"
 local Task = require "howl.tasks.Task"
 local Runner = require "howl.tasks.Runner"
-local Sources = require "howl.files.Sources"
+local Source = require "howl.files.Source"
 
 local header = require "howl.modules.require.header"
 local envSetup = "local env = setmetatable({ require = require }, { __index = getfenv() })\n"
@@ -26,7 +26,8 @@ function RequireTask:initialize(context, name, dependencies)
 	Task.initialize(self, name, dependencies)
 
 	self.options = {}
-	self.sources = Sources(context.root)
+	self.root = context.root
+	self.sources = Source()
 
 	self:exclude { ".git", ".svn", ".gitignore", context.out }
 end
@@ -52,7 +53,7 @@ end
 function RequireTask:RunAction(context)
 	self:validate()
 
-	local files = self.sources:getFiles()
+	local files = self.sources:gatherFiles(self.root)
 	local startup = self.options.startup
 	local output = self.options.output
 	local link = self.options.link
