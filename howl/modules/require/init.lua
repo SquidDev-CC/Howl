@@ -7,13 +7,22 @@ local mixin = require "howl.class.mixin"
 local Buffer = require "howl.lib.Buffer"
 local Task = require "howl.tasks.Task"
 local Runner = require "howl.tasks.Runner"
-local Source = require "howl.files.Source"
+local CopySource = require "howl.files.CopySource"
 
 local header = require "howl.modules.require.header"
 local envSetup = "local env = setmetatable({ require = require }, { __index = getfenv() })\n"
 
 local function toModule(file)
-	return file:gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
+	if file:find("%.lua$") then
+		return file:gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
+	end
+end
+
+local function handleRes(file)
+	if file.relative:find("%.res%.") then
+		file.name = file.name:gsub("%.res%.", ".")
+		return ("return %q"):format(file.contents)
+	end
 end
 
 local RequireTask = Task:subclass("howl.modules.require.RequireTask")
@@ -27,7 +36,9 @@ function RequireTask:initialize(context, name, dependencies)
 
 	self.options = {}
 	self.root = context.root
-	self.sources = Source()
+	self.sources = CopySource()
+	self.sources:rename(function(file) return toModule(file.name) end)
+	self.sources:modify(handleRes)
 
 	self:exclude { ".git", ".svn", ".gitignore", context.out }
 end
@@ -65,13 +76,12 @@ function RequireTask:RunAction(context)
 
 	for _, file in pairs(files) do
 		context.logger:verbose("Including " .. file.relative)
-		result:append("preload[\"" .. toModule(file.name) .. "\"] = ")
+		result:append("preload[\"" .. file.name .. "\"] = ")
 		if link then
 			assert(fs.exists(file.path), "Cannot find " .. file.relative)
 			result:append("setfenv(assert(loadfile(\"" .. file.path .. "\")), env)\n")
 		else
-			local contents = fs.read(file.path)
-			result:append("function(...)\n" .. contents .. "\nend\n")
+			result:append("function(...)\n" .. file.contents .. "\nend\n")
 		end
 	end
 

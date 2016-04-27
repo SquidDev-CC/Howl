@@ -6,13 +6,12 @@ local settings = require "howl.lib.settings"
 local json = require "howl.lib.json"
 local platform = require "howl.platform"
 
-local fs = platform.fs
 local http = platform.http
 
 local Buffer = require "howl.lib.Buffer"
 local Task = require "howl.tasks.Task"
 local Runner = require "howl.tasks.Runner"
-local Source = require "howl.files.Source"
+local CopySource = require "howl.files.CopySource"
 
 local GistTask = Task:subclass("howl.modules.gist.GistTask")
 	:include(mixin.configurable)
@@ -25,7 +24,7 @@ function GistTask:initialize(context, name, dependencies)
 
 	self.options = {}
 	self.root = context.root
-	self.sources = Source()
+	self.sources = CopySource()
 	self:exclude { ".git", ".svn", ".gitignore" }
 
 	self:Description "Uploads files to a gist"
@@ -52,7 +51,7 @@ function GistTask:RunAction(context)
 
 	for _, file in pairs(files) do
 		context.logger:verbose("Including " .. file.relative)
-		out[file.name] = { content = fs.read(file.path) }
+		out[file.name] = { content = file.contents }
 	end
 
 

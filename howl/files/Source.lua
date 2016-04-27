@@ -156,30 +156,38 @@ function Source:gatherFiles(root, includeDirectories, outList)
 
 		local n = #outList
 		while queueN > 0 do
-			local top = queue[queueN]
-			local relative = top:sub(#root + 2)
+			local path = queue[queueN]
+			local relative = path:sub(#root + 2)
 			queueN = queueN - 1
 
-			if fs.isDir(top) then
+			if fs.isDir(path) then
 				if not self:excluded(relative) then
 					if dirs and dir ~= relative and self:included(relative) then
 						n = n + 1
-						outList[n] = { path = top, relative = relative, name = relative }
+						outList[n] = self:buildFile(path, relative)
 					end
 
-					for _, v in ipairs(fs.list(top)) do
+					for _, v in ipairs(fs.list(path)) do
 						queueN = queueN + 1
-						queue[queueN] = fs.combine(top, v)
+						queue[queueN] = fs.combine(path, v)
 					end
 				end
 			elseif self:included(relative) and not self:excluded(relative) then
 				n = n + 1
-				outList[n] = { path = top, relative = relative, name = relative }
+				outList[n] = self:buildFile(path, relative)
 			end
 		end
 	end
 
 	return outList
+end
+
+function Source:buildFile(path, relative)
+	return {
+		path = path,
+		relative = relative,
+		name = relative,
+	}
 end
 
 return Source
