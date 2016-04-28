@@ -8,8 +8,6 @@ return function(tokens)
 	local n = #tokens
 	local pointer = 1
 
-	local TokenList = {}
-
 	--- Get this element in the token list
 	-- @tparam int offset The offset in the token list
 	local function Peek(offset)
@@ -128,5 +126,6 @@ return function(tokens)
 		IsSymbol = IsSymbol,
 		IsEof = IsEof,
 		Print = Print,
+		Tokens = tokens,
 	}
 end

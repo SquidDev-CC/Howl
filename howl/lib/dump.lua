@@ -30,13 +30,13 @@ local function dumpImpl(t, tracking, indent)
 					builder = builder + #tostring(v) + #tostring(k) + 2
 				end
 
-				if builder > 30 then
+				if builder > 40 then
 					shouldNewLine = true
 					break
 				end
 			end
 
-			local newLine, nextNewLine, subIndent = "", ", ", ""
+			local newLine, nextNewLine, subIndent = "", ", ", " "
 			if shouldNewLine then
 				newLine = "\n"
 				nextNewLine = ",\n"
@@ -96,7 +96,7 @@ local function dumpImpl(t, tracking, indent)
 end
 
 local function dump(t, n)
-	return dumpImpl(t, {}, "", n)
+	return dumpImpl(t, {}, "")
 end
 
 local keywords = createLookup {

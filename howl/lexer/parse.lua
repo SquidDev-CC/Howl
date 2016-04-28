@@ -169,7 +169,7 @@ local function LexLua(src)
 			--get leading whitespace. The leading whitespace will include any comments
 			--preceding the token. This prevents the parser needing to deal with comments
 			--separately.
-			local longStr = false
+			local comments, cn
 			while true do
 				local c = sub(src, pointer, pointer)
 				if c == '#' and peek(1) == '!' and line == 1 then
@@ -183,19 +183,31 @@ local function LexLua(src)
 				end
 				if c == ' ' or c == '\t' then
 					--whitespace
-					get() -- ignore whitespace
+					get() -- ignore whitespace: Possibly inline this here?
 				elseif c == '\n' or c == '\r' then
 					get()
 				elseif c == '-' and peek(1) == '-' then
 					--comment
 					get()
 					get()
-					local _, wholeText = tryGetLongString()
+					local startLine, startChar, startPointer = line, char, pointer
+					local wholeText, _ = tryGetLongString()
 					if not wholeText then
 						while peek() ~= '\n' and peek() ~= '' do
 							get()
 						end
+						wholeText = sub(src, startPointer, pointer - 1)
 					end
+					if not comments then 
+						comments = {}
+						cn = 0
+					end
+					cn = cn + 1
+					comments[cn] = {
+						Data = wholeText,
+						Line = startLine,
+						Char = startChar,
+					}
 				else
 					break
 				end
@@ -337,6 +349,7 @@ local function LexLua(src)
 			--add the emitted symbol, after adding some common data
 			toEmit.Line = thisLine
 			toEmit.Char = thisChar
+			if comments then toEmit.Comments = comments end
 			tokens[#tokens+1] = toEmit
 
 			--halt after eof has been emitted
