@@ -1,7 +1,6 @@
 --- Basic extensions to classes
 -- @module howl.modules.clean
 
-
 local mixin = require "howl.class.mixin"
 local fs = require "howl.platform".fs
 
@@ -29,6 +28,8 @@ function CleanTask:configure(item)
 end
 
 function CleanTask:setup(context, runner)
+	Task.setup(self, context, runner)
+
 	local root = self.sources
 	if root.allowEmpty and #root.includes == 0 then
 		-- Include the build directory if nothing is set

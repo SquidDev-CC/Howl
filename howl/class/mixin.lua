@@ -66,42 +66,57 @@ function mixins.delegate(name, keys)
 	return out
 end
 
-function mixins.options(names)
-	local keys = {}
-	local out = { static = { options = keys }, options = {} }
-	for _, key in ipairs(names) do
-		local func = function(self, value)
-			if value == nil then value = true end
-			self.options[key] = value
+mixins.optionGroup = {
+	static = {
+		addOption = function(self, key)
+			local func = function(self, value)
+				if value == nil then value = true end
+				self.options[key] = value
+				return self
+			end
+
+			self[key:gsub("^%l", string.upper)] = func
+			self[key] = func
+
+			if not rawget(self.static, "options") then
+				local options = {}
+				self.static.options = options
+				local parent = self.super and self.super.static.options
+
+				-- TODO: Copy instead. Also propagate to children below
+				if parent then setmetatable(options, { __index = parent } ) end
+			end
+
+			self.static.options[key] = true
+
 			return self
-		end
+		end,
+		addOptions = function(self, names)
+			for i = 1, #names do
+				self:addOption(names[i])
+			end
 
-		out[key:gsub("^%l", string.upper)] = func
-		out[key] = func
-		keys[key] = true
-	end
+			return self
+		end,
+	},
 
-	function out:configure(item)
+	configure = function(self, item)
 		assert.argType(item, "table", "configure", 1)
 
 		for k, v in pairs(item) do
-			if keys[k] then
+			if self.class.options[k] then
 				self[k](self, v)
 			end
 		end
-	end
+	end,
 
-	function out:__newindex(key, value)
+	__newindex = function(self, key, value)
 		if keys[key] then
 			self[key](self, value)
 		else
 			rawset(self, key, value)
 		end
 	end
-
-	out._configureOptions = out.configure
-
-	return out
-end
+}
 
 return mixins

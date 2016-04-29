@@ -14,15 +14,13 @@ local Runner = require "howl.tasks.Runner"
 local CopySource = require "howl.files.CopySource"
 
 local GistTask = Task:subclass("howl.modules.gist.GistTask")
-	:include(mixin.configurable)
 	:include(mixin.filterable)
-	:include(mixin.options { "gist", "summary" })
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
+	:addOptions { "gist", "summary" }
 
 function GistTask:initialize(context, name, dependencies)
 	Task.initialize(self, name, dependencies)
 
-	self.options = {}
 	self.root = context.root
 	self.sources = CopySource()
 	self:exclude { ".git", ".svn", ".gitignore" }
@@ -36,6 +34,7 @@ function GistTask:configure(item)
 end
 
 function GistTask:setup(context, runner)
+	Task.setup(self, context, runner)
 	if not self.options.gist then
 		context.logger:error("Task '%s': No gist ID specified", self.name)
 	end

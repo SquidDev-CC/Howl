@@ -37,7 +37,6 @@ function Runner:setup()
 	return true
 end
 
-
 --- Create a task
 -- @tparam string name The name of the task to create
 -- @treturn function A builder for tasks

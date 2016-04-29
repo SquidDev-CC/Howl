@@ -69,6 +69,4 @@ return {
 	description = "Minifies files, reducing file size.",
 	apply = apply,
 	setup = setup,
-
-	GistTask = GistTask,
 }

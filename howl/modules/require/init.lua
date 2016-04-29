@@ -26,15 +26,13 @@ local function handleRes(file)
 end
 
 local RequireTask = Task:subclass("howl.modules.require.RequireTask")
-	:include(mixin.configurable)
 	:include(mixin.filterable)
-	:include(mixin.options { "link", "startup", "output", "api" })
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
+	:addOptions { "link", "startup", "output", "api" }
 
 function RequireTask:initialize(context, name, dependencies)
 	Task.initialize(self, name, dependencies)
 
-	self.options = {}
 	self.root = context.root
 	self.sources = CopySource()
 	self.sources:rename(function(file) return toModule(file.name) end)
@@ -44,7 +42,7 @@ function RequireTask:initialize(context, name, dependencies)
 end
 
 function RequireTask:configure(item)
-	self:_configureOptions(item)
+	Task.configure(self, item)
 	self.sources:configure(item)
 end
 
@@ -57,6 +55,7 @@ function RequireTask:output(value)
 end
 
 function RequireTask:setup(context, runner)
+	Task.setup(self, context, runner)
 	if not self.options.startup then
 		context.logger:error("Task '%s': No startup file", self.name)
 	end

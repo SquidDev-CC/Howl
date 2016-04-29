@@ -2,14 +2,15 @@
 -- @classmod howl.tasks.Task
 
 local assert = require "howl.lib.assert"
-local utils = require "howl.lib.utils"
-local colored = require "howl.lib.colored"
 local class = require "howl.class"
+local colored = require "howl.lib.colored"
+local mixin = require "howl.class.mixin"
+local utils = require "howl.lib.utils"
 
 local insert = table.insert
 
 --- Convert a pattern
-local function ParsePattern(from, to)
+local function parsePattern(from, to)
 	local fromParsed = utils.parsePattern(from, true)
 	local toParsed = utils.parsePattern(to)
 
@@ -20,6 +21,8 @@ local function ParsePattern(from, to)
 end
 
 local Task = class("howl.tasks.Task")
+	:include(mixin.configurable)
+	:include(mixin.optionGroup)
 
 --- Create a task
 -- @tparam string name The name of the task
@@ -35,6 +38,7 @@ function Task:initialize(name, dependencies, action)
 		dependencies = {}
 	end
 
+	self.options = {}
 	self.name = name -- The name of the function
 	self.action = action -- The action to call
 	self.dependencies = {} -- Task dependencies
@@ -87,7 +91,7 @@ end
 -- @tparam string to The file to map to
 -- @treturn Task The current object (allows chaining)
 function Task:Maps(from, to)
-	table.insert(self.maps, ParsePattern(from, to))
+	table.insert(self.maps, parsePattern(from, to))
 	return self
 end
 
@@ -172,7 +176,7 @@ function Task:Run(context, ...)
 	if s then
 		context.env.logger:success("%s finished", self.name)
 	else
-		context.env.logger:error("%s: %s", self.name, err)
+		context.env.logger:error("%s: %s", self.name, msg)
 		error("Error running tasks", 0)
 	end
 

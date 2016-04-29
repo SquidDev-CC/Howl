@@ -3,7 +3,6 @@
 -- @classmod howl.files.Source
 
 local assert = require "howl.lib.assert"
-local class = require "howl.class"
 local matcher = require "howl.files.matcher"
 local mixin = require "howl.class.mixin"
 local fs = require "howl.platform".fs
@@ -12,7 +11,7 @@ local Source = require "howl.files.Source"
 
 local insert = table.insert
 
-local CopySource = class("howl.files.CopySource", Source)
+local CopySource = Source:subclass("howl.files.CopySource")
 
 function CopySource:initialize(allowEmpty, parent)
 	Source.initialize(self, allowEmpty, parent)
