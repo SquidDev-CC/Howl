@@ -183,9 +183,12 @@ local function LexLua(src)
 				end
 				if c == ' ' or c == '\t' then
 					--whitespace
-					get() -- ignore whitespace: Possibly inline this here?
+					char = char + 1
+					pointer = pointer + 1
 				elseif c == '\n' or c == '\r' then
-					get()
+					char = 1
+					line = line + 1
+					pointer = pointer + 1
 				elseif c == '-' and peek(1) == '-' then
 					--comment
 					get()
@@ -193,12 +196,14 @@ local function LexLua(src)
 					local startLine, startChar, startPointer = line, char, pointer
 					local wholeText, _ = tryGetLongString()
 					if not wholeText then
-						while peek() ~= '\n' and peek() ~= '' do
+						local next = sub(src, pointer, pointer)
+						while next ~= '\n' and next ~= '' do
 							get()
+							next = sub(src, pointer, pointer)
 						end
 						wholeText = sub(src, startPointer, pointer - 1)
 					end
-					if not comments then 
+					if not comments then
 						comments = {}
 						cn = 0
 					end
@@ -231,7 +236,7 @@ local function LexLua(src)
 				local start = pointer
 				repeat
 					get()
-					c = peek()
+					c = sub(src, pointer, pointer)
 				until not ((c >= 'A' and c <= 'Z') or (c >= 'a' and c <= 'z') or c == '_' or (c >= '0' and c <= '9'))
 				local dat = src:sub(start, pointer-1)
 				if keywords[dat] then
