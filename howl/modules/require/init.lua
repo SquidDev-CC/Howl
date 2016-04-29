@@ -56,14 +56,16 @@ function RequireTask:output(value)
 	self:Produces(value)
 end
 
-function RequireTask:validate()
-	if not self.options.startup then error("No startup file specified for " .. self.name) end
-	if not self.options.output then error("No output file specified for " .. self.name) end
+function RequireTask:setup(context, runner)
+	if not self.options.startup then
+		context.logger:error("Task '%s': No startup file", self.name)
+	end
+	if not self.options.output then
+		context.logger:error("Task '%s': No output file", self.name)
+ 	end
 end
 
 function RequireTask:RunAction(context)
-	self:validate()
-
 	local files = self.sources:gatherFiles(self.root)
 	local startup = self.options.startup
 	local output = self.options.output

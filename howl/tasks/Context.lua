@@ -8,6 +8,21 @@ local mixin = require "howl.class.mixin"
 --- Holds task contexts
 local Context = class("howl.tasks.Context"):include(mixin.sealed)
 
+--- Create a new task context
+-- @tparam Runner.Runner runner The task runner to run tasks from
+-- @treturn Context The resulting context
+function Context:initialize(runner)
+	self.ran = {} -- List of task already run
+	self.filesProduced = {}
+	self.tasks = runner.tasks
+	self.default = runner.default
+
+	self.Traceback = runner.Traceback
+	self.ShowTime = runner.ShowTime
+	self.env = runner.env
+	self:BuildCache()
+end
+
 function Context:DoRequire(path, quite)
 	if self.filesProduced[path] then return true end
 
@@ -85,11 +100,11 @@ function Context:Run(name, ...)
 		task = self.tasks[name]
 
 		if not task then
-			self.env.logger:error("Cannot find a task called '" .. name .. "'")
+			error("Cannot find a task called '" .. name .. "'")
 			return false
 		end
 	elseif not task or not task.Run then
-		self.env.logger:error("Cannot call task as it has no 'Run' method")
+		error("Cannot call task " .. tostring(task) .. " as it has no 'Run' method")
 		return false
 	end
 
@@ -101,7 +116,7 @@ function Context:Run(name, ...)
 		self.ran[task] = ran
 	else
 		for i = 1, #ran do
-			if arrayEquals(args, ran[i]) then return true end
+			if arrayEquals(args, ran[i]) then return false end
 		end
 		ran[#ran + 1] = args
 	end
@@ -111,6 +126,8 @@ function Context:Run(name, ...)
 
 	return task:Run(self, ...)
 end
+
+Context.run = Context.Run
 
 --- Start the task process
 -- @tparam string name The name of the task (Optional)
@@ -172,21 +189,6 @@ function Context:BuildCache()
 	end
 
 	return self
-end
-
---- Create a new task context
--- @tparam Runner.Runner runner The task runner to run tasks from
--- @treturn Context The resulting context
-function Context:initialize(runner)
-	self.ran = {} -- List of task already run
-	self.filesProduced = {}
-	self.tasks = runner.tasks
-	self.default = runner.default
-
-	self.Traceback = runner.Traceback
-	self.ShowTime = runner.ShowTime
-	self.env = runner.env
-	self:BuildCache()
 end
 
 return Context

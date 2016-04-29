@@ -11,6 +11,33 @@ local mixin = require "howl.class.mixin"
 -- @type Runner
 local Runner = class("howl.tasks.Runner"):include(mixin.sealed)
 
+--- Create a @{Runner} object
+-- @tparam env env The current environment
+-- @treturn Runner The created runner object
+function Runner:initialize(env)
+	self.tasks = {}
+	self.default = nil
+	self.env = env
+end
+
+function Runner:setup()
+	for _, task in pairs(self.tasks) do
+		task:setup(self.env, self)
+	end
+
+	if self.env.logger.hasError then return false end
+
+	for _, task in pairs(self.tasks) do
+		for _, dependency in ipairs(task.dependencies) do
+			dependency:setup(self.env, self)
+		end
+	end
+
+	if self.env.logger.hasError then return false end
+	return true
+end
+
+
 --- Create a task
 -- @tparam string name The name of the task to create
 -- @treturn function A builder for tasks
@@ -83,15 +110,6 @@ function Runner:RunMany(names)
 	end
 
 	return value
-end
-
---- Create a @{Runner} object
--- @tparam env env The current environment
--- @treturn Runner The created runner object
-function Runner:initialize(env)
-	self.tasks = {}
-	self.default = nil
-	self.env = env
 end
 
 return Runner

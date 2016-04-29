@@ -50,15 +50,32 @@ function Logger:dump(...)
 	end
 end
 
---- Print a series of objects in red
-function Logger:error(...)
-	colored.printColor("red", ...)
+local types = {
+	{ "success", "ok", "green" },
+	{ "error", "error", "red" },
+	{ "info", "info", "cyan" },
+	{ "warning", "warn", "yellow" },
+}
+
+local max = 0
+for _, v in ipairs(types) do
+	max = math.max(max, #v[2])
 end
 
---- Print a series of objects in green
-function Logger:success(...)
-	colored.printColor("green", ...)
-end
+for _, v in ipairs(types) do
+	local color = v[3]
+	local format = '[' .. v[2] .. ']' .. (' '):rep(max - #v[2] + 1)
+	local field = "has" .. v[2]:gsub("^%l", string.upper)
 
+	Logger[v[1]] = function(self, fmt, ...)
+		self[field] = true
+		colored.writeColor(color, format)
+		if type(fmt) == "string" then
+			print(fmt:format(...))
+		else
+			print(fmt, ...)
+		end
+	end
+end
 
 return Logger

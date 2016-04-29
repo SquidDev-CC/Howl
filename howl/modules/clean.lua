@@ -28,7 +28,7 @@ function CleanTask:configure(item)
 	self.sources:configure(item)
 end
 
-function CleanTask:validate(context)
+function CleanTask:setup(context, runner)
 	local root = self.sources
 	if root.allowEmpty and #root.includes == 0 then
 		-- Include the build directory if nothing is set
@@ -37,8 +37,6 @@ function CleanTask:validate(context)
 end
 
 function CleanTask:RunAction(context)
-	self:validate(context)
-
 	for _, file in ipairs(self.sources:gatherFiles(self.root, true)) do
 		fs.delete(file.path)
 	end

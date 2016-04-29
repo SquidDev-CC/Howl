@@ -19,7 +19,7 @@ Tasks:asRequire "develop" {
 	api = true,
 }
 
-Tasks:Task "build" { "minify" } :Description "Main build task"
+Tasks:Task "build" { "clean", "minify" } :Description "Main build task"
 
 Tasks:gist "upload" (function(spec)
 	spec:summary "A build system for Lua (http://www.computercraft.info/forums2/index.php?/topic/21254- and https://github.com/SquidDev-CC/Howl)"

@@ -6,6 +6,8 @@ local utils = require "howl.lib.utils"
 local colored = require "howl.lib.colored"
 local class = require "howl.class"
 
+local insert = table.insert
+
 --- Convert a pattern
 local function ParsePattern(from, to)
 	local fromParsed = utils.parsePattern(from, true)
@@ -19,36 +21,51 @@ end
 
 local Task = class("howl.tasks.Task")
 
---- Define what this task depends on
--- @tparam string|table name Name/list of dependencies
--- @treturn Task The current object (allows chaining)
-function Task:Depends(name)
-	if type(name) == "table" then
-		local dependencies = self.dependencies
-		for _, task in ipairs(name) do
-			table.insert(dependencies, task)
-		end
-	else
-		table.insert(self.dependencies, name)
+--- Create a task
+-- @tparam string name The name of the task
+-- @tparam table dependencies A list of tasks this task requires
+-- @tparam function action The action to run
+-- @treturn Task The created task
+function Task:initialize(name, dependencies, action)
+	assert.argType(name, "string", "Task", 1)
+
+	-- Check calling with no dependencies
+	if type(dependencies) == "function" then
+		action = dependencies
+		dependencies = {}
 	end
+
+	self.name = name -- The name of the function
+	self.action = action -- The action to call
+	self.dependencies = {} -- Task dependencies
+	self.description = nil -- Description of the task
+	self.maps = {} -- Reads and produces list
+	self.produces = {} -- Files this task produces
+
+	if dependencies then self:depends(dependencies) end
+end
+
+function Task.static:addDependency(class, name)
+	local function apply(self, ...)
+		if select('#', ...) == 1 and type(...) == "table" and (#(...) > 0 or next(...) == nil) then
+			local first = ...
+			for i = 1, #first do
+				insert(self.dependencies, class(self, first[i]))
+			end
+		else
+			insert(self.dependencies, class(self, ...))
+		end
+
+		return self
+	end
+
+	self[name] = apply
+	self[name:gsub("^%l", string.upper)] = apply
 
 	return self
 end
 
---- Sets a file this task requires
--- @tparam string|table file The path of the file
--- @treturn Task The current object (allows chaining)
-function Task:Requires(file)
-	if type(file) == "table" then
-		local requires = self.requires
-		for _, file in ipairs(file) do
-			table.insert(requires, file)
-		end
-	else
-		table.insert(self.requires, file)
-	end
-	return self
-end
+function Task:setup(context, runner) end
 
 --- Sets a file this task produces
 -- @tparam string|table file The path of the file
@@ -104,17 +121,18 @@ end
 -- @param ... The arguments to pass to task
 -- @tparam boolean Success
 function Task:Run(context, ...)
-	for _, depends in ipairs(self.dependencies) do
-		if not context:Run(depends) then
-			return false
+	local shouldRun = false
+	if #self.dependencies == 0 then
+		shouldRun = true
+	else
+		for _, depends in ipairs(self.dependencies) do
+			if depends:resolve(context.env, context) then
+				shouldRun = true
+			end
 		end
 	end
 
-	for _, file in ipairs(self.requires) do
-		if not context:DoRequire(file) then
-			return false
-		end
-	end
+	if not shouldRun then return false end
 
 	for _, file in ipairs(self.produces) do
 		context.filesProduced[file] = true
@@ -132,7 +150,7 @@ function Task:Run(context, ...)
 		end
 		description = " (" .. table.concat(newArgs, ", ") .. ")"
 	end
-	colored.printColor("cyan", "Running " .. self.name .. description)
+	context.env.logger:info("Running %s", self.name .. description)
 
 	local oldTime = os.clock()
 	local s, err = true, nil
@@ -152,39 +170,17 @@ function Task:Run(context, ...)
 	end
 
 	if s then
-		context.env.logger:success(self.name .. ": Success")
+		context.env.logger:success("%s finished", self.name)
 	else
-		context.env.logger:error(self.name .. ": Failure\n" .. err)
+		context.env.logger:error("%s: %s", self.name, err)
+		error("Error running tasks", 0)
 	end
 
 	if context.ShowTime then
 		print(" ", "Took " .. os.clock() - oldTime .. "s")
 	end
 
-	return s
-end
-
---- Create a task
--- @tparam string name The name of the task
--- @tparam table dependencies A list of tasks this task requires
--- @tparam function action The action to run
--- @treturn Task The created task
-function Task:initialize(name, dependencies, action)
-	assert.argType(name, "string", "Task", 1)
-
-	-- Check calling with no dependencies
-	if type(dependencies) == "function" then
-		action = dependencies
-		dependencies = {}
-	end
-
-	self.name = name -- The name of the function
-	self.action = action -- The action to call
-	self.dependencies = dependencies or {} -- Task dependencies
-	self.description = nil -- Description of the task
-	self.maps = {} -- Reads and produces list
-	self.requires = {} -- Files this task requires
-	self.produces = {} -- Files this task produces
+	return true
 end
 
 return Task

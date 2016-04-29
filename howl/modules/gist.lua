@@ -35,14 +35,16 @@ function GistTask:configure(item)
 	self.sources:configure(item)
 end
 
-function GistTask:validate()
-	if not self.options.gist then error("No gist specified for " .. self.name) end
-	if not settings.githubKey then error("No GitHub API key specified. Goto https://github.com/settings/tokens/new to create one.") end
+function GistTask:setup(context, runner)
+	if not self.options.gist then
+		context.logger:error("Task '%s': No gist ID specified", self.name)
+	end
+	if not settings.githubKey then
+		context.logger:error("Task '%s': No GitHub API key specified. Goto https://github.com/settings/tokens/new to create one.", self.name)
+	end
 end
 
 function GistTask:RunAction(context)
-	self:validate()
-
 	local files = self.sources:gatherFiles(self.root)
 	local gist = self.options.gist
 	local token = settings.githubKey

@@ -45,6 +45,8 @@ include(require "howl.modules.minify")
 include(require "howl.modules.require")
 include(require "howl.modules.clean")
 
+require "howl.tasks.dependency.TaskDependency".apply()
+require "howl.tasks.dependency.FileDependency".apply()
 
 -- SETUP TASKS
 local taskList = options:Arguments()
@@ -101,6 +103,10 @@ tasks:Default(function()
 end)
 
 environment.dofile(fs.combine(currentDirectory, howlFile))
+
+if not tasks:setup() then
+	error("Error setting up tasks", 0)
+end
 
 -- Run the task
 if not tasks:RunMany(taskList) then
