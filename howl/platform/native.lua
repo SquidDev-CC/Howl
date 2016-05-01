@@ -21,10 +21,58 @@ local colorMappings = {
 	black     = 30,
 }
 
-return {
-	fs = setmetatable({
+local function notImplemented(name)
+	return function() error(name .. " is not implemented", 2) end
+end
 
-	}, { __index = function(self, name) error(tostring(name) .. " is not implemented", 2) end }),
+local path = require('pl.path')
+local dir = require('pl.dir')
+local file = require('pl.file')
+return {
+	fs = {
+		combine = path.join,
+		normalise = path.normpath,
+		getDir = path.dirname,
+		getName = path.basename,
+		currentDir = function() return path.currentdir end,
+
+		read = file.read,
+		write = file.write,
+		readDir = notImplemented("fs.readDir"),
+		writeDir = notImplemented("fs.writeDir"),
+
+		assertExists = function(file)
+			if not path.exists(file) then
+				error("File does not exist")
+			end
+		end,
+		exists = path.exists,
+		isDir = path.isdir,
+
+		-- Other
+		list = function(dir)
+			local result = {}
+			for path in path.dir(dir) do
+				result[#result + 1] = path
+			end
+
+			return result
+		end,
+		makeDir = dir.makepath,
+		delete = function(pa)
+			if path.isdir(pa) then
+				dir.rmtree(pa)
+			else
+				file.delete(pa)
+			end
+		end,
+		move = file.move,
+		copy = file.copy,
+	},
+
+	http = {
+		request = notImplemented("http.request"),
+	},
 
 	term = {
 		setColor = function(color)
