@@ -1,7 +1,10 @@
 --- Lexer constants
 -- @module howl.lexer.constants
 
-local createLookup = require "howl.lib.utils".createLookup
+local function createLookup(tbl)
+	for k,v in ipairs(tbl) do tbl[v] = k end
+	return tbl
+end
 
 return {
 	--- List of white chars

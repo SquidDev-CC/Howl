@@ -33,12 +33,13 @@ function CleanTask:setup(context, runner)
 	local root = self.sources
 	if root.allowEmpty and #root.includes == 0 then
 		-- Include the build directory if nothing is set
-		root:include(fs.combine(context.out, "/*"))
+		root:include(fs.combine(context.out, "*"))
 	end
 end
 
 function CleanTask:RunAction(context)
 	for _, file in ipairs(self.sources:gatherFiles(self.root, true)) do
+		-- context.logger:verbose("Deleting " .. file.path)
 		fs.delete(file.path)
 	end
 end

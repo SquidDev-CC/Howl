@@ -162,7 +162,7 @@ function Source:gatherFiles(root, includeDirectories, outList)
 
 			if fs.isDir(path) then
 				if not self:excluded(relative) then
-					if dirs and dir ~= relative and self:included(relative) then
+					if includeDirectories and self:included(relative) then
 						n = n + 1
 						outList[n] = self:buildFile(path, relative)
 					end

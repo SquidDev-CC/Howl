@@ -176,7 +176,7 @@ function Task:Run(context, ...)
 	if s then
 		context.env.logger:success("%s finished", self.name)
 	else
-		context.env.logger:error("%s: %s", self.name, msg)
+		context.env.logger:error("%s: %s", self.name, err)
 		error("Error running tasks", 0)
 	end
 

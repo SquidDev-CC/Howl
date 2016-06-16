@@ -59,6 +59,8 @@ function RequireTask:setup(context, runner)
 	if not self.options.startup then
 		context.logger:error("Task '%s': No startup file", self.name)
 	end
+	self:requires(self.options.startup)
+
 	if not self.options.output then
 		context.logger:error("Task '%s': No output file", self.name)
  	end

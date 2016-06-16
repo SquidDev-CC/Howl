@@ -147,12 +147,12 @@ local function internalSerialise(object, tracking, buffer)
 			end
 			buffer:append("}")
 		end
-	elseif type == "string" then
+	elseif sType == "string" then
 		buffer:append(format("%q", object))
-	elseif type == "number" or type == "boolean" or type == "nil" then
+	elseif sType == "number" or sType == "boolean" or sType == "nil" then
 		buffer:append(tostring(object))
 	else
-		error("Cannot serialise type " .. type)
+		error("Cannot serialise type " .. sType)
 	end
 
 	return buffer
