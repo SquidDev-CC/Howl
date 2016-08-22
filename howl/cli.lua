@@ -6,6 +6,7 @@ local colored = require "howl.lib.colored"
 local fs = require "howl.platform".fs
 
 local howlFile, currentDirectory = loader.FindHowl()
+-- TODO: Don't pass the error message as the current directory: construct mediator/arg parser another time.
 local context = require "howl.context"(currentDirectory or shell.dir(), {...})
 
 local function include(module)
@@ -50,12 +51,19 @@ require "howl.tasks.dependency.FileDependency".apply()
 
 -- SETUP TASKS
 local taskList = options:Arguments()
+local function setHelp()
+	if options:Get "help" then
+		taskList = { "help" }
+	end
+end
+context.mediator:subscribe({ "ArgParse", "changed" }, setHelp)
+setHelp()
 
 -- Locate the howl file
 if not howlFile then
-	if options:Get("help") or (#taskList == 1 and taskList[1] == "help") then
-		colored.printColor("yellow", "Howl")
-		colored.printColor("lightGrey", "Howl is a simple build system for Lua")
+	if #taskList == 1 and taskList[1] == "help" then
+		colored.writeColor("yellow", "Howl")
+		colored.printColor("lightGrey", " is a simple build system for Lua")
 		colored.printColor("grey", "You can read the full documentation online: https://github.com/SquidDev-CC/Howl/wiki/")
 
 		colored.printColor("white", (([[
@@ -63,20 +71,22 @@ if not howlFile then
 			Then you need to define some tasks. Maybe something like this:
 		]]):gsub("\t", ""):gsub("\n+$", "")))
 
-		colored.printColor("magenta", 'Tasks:Minify("minify", "Result.lua", "Result.min.lua")')
+		colored.printColor("magenta", 'Tasks:minify("minify", "file.lua", "file.min.lua")')
 
-		colored.printColor("white", "Now just run `Howl minify`!")
+		colored.printColor("white", "Now just run '" .. shell.getRunningProgram() .. " minify'!")
+
+		colored.printColor("orange", "\nOptions:")
+		options:Help("  ")
+	elseif #taskList == 0 then
+		error(currentDirectory .. " Use " .. shell.getRunningProgram() .. " --help to dislay usage.", 0)
+	else
+		error(currentDirectory, 0)
 	end
-	error(currentDirectory, 0)
+
+	return
 end
 
 context.logger:verbose("Found HowlFile at " .. fs.combine(currentDirectory, howlFile))
-
-context.mediator:subscribe({ "ArgParse", "changed" }, function(options)
-	if options:Get "help" then
-		taskList = { "help" }
-	end
-end)
 
 local tasks, environment = loader.SetupTasks(context, howlFile)
 

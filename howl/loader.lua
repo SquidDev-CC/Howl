@@ -29,7 +29,7 @@ local function FindHowl()
 	end
 
 
-	return nil, "Cannot find HowlFile. Looking for '" .. table.concat(Names, "', '") .. "'"
+	return nil, "Cannot find HowlFile. Looking for '" .. table.concat(Names, "', '") .. "'."
 end
 
 --- Create an environment for running howl files
