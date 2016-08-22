@@ -76,16 +76,19 @@ end
 -- @tparam string newName The new variable name
 function Scope:RenameLocal(oldName, newName)
 	oldName = type(oldName) == 'string' and oldName or oldName.Name
-	local found = false
-	local var = self:GetLocal(oldName)
-	if var then
-		var.Name = newName
-		self.oldLocalNamesMap[oldName] = var
-		found = true
-	end
-	if not found and self.Parent then
-		self.Parent:RenameLocal(oldName, newName)
-	end
+
+	repeat
+		local var = self.LocalMap[oldName]
+		if var then
+			var.Name = newName
+			self.oldLocalNamesMap[oldName] = var
+			self.LocalMap[oldName] = nil
+			self.LocalMap[newName] = var
+			break
+		end
+
+		self = self.Parent
+	until not self
 end
 
 --- Add a global to this scope
