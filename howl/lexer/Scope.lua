@@ -130,52 +130,12 @@ function Scope:GetGlobal(name)
 	until not self
 end
 
---- Find a Global by its old name
--- @tparam string name The old name of the global
--- @treturn ?|Variable The variable
-function Scope:GetOldGlobal(name)
-	if self.oldGlobalNamesMap[name] then
-		return self.oldGlobalNamesMap[name]
-	end
-	print("Getting global")
-	return self:GetGlobal(name)
-end
-
---- Rename a global variable
--- @tparam string|Variable oldName The old variable name
--- @tparam string newName The new variable name
-function Scope:RenameGlobal(oldName, newName)
-	oldName = type(oldName) == 'string' and oldName or oldName.Name
-	local found = false
-	local var = self:GetGlobal(oldName)
-	if var then
-		var.Name = newName
-		self.oldGlobalNamesMap[oldName] = var
-		found = true
-	end
-	if not found and self.Parent then
-		self.Parent:RenameGlobal(oldName, newName)
-	end
-end
-
 --- Get a variable by name
 -- @tparam string name The name of the variable
 -- @treturn ?|Variable The found variable
 -- @fixme This is a very inefficient implementation, as with @{Scope:GetLocal} and @{Scope:GetGlocal}
 function Scope:GetVariable(name)
 	return self:GetLocal(name) or self:GetGlobal(name)
-end
-
---- Rename a variable
--- @tparam string|Variable oldName The old variable name
--- @tparam string newName The new variable name
-function Scope:RenameVariable(oldName, newName)
-	oldName = type(oldName) == 'string' and oldName or oldName.Name
-	if self:GetLocal(oldName) then
-		self:RenameLocal(oldName, newName)
-	else
-		self:RenameGlobal(oldName, newName)
-	end
 end
 
 --- Get all variables in the scope
@@ -267,7 +227,6 @@ local function NewScope(parent)
 		Globals = {},
 		GlobalMap = {},
 		oldLocalNamesMap = {},
-		oldGlobalNamesMap = {},
 		Children = {},
 	}, { __index = Scope })
 
