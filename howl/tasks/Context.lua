@@ -1,9 +1,10 @@
 --- Manages the running of tasks
 -- @classmod howl.tasks.Context
 
-local platform = require "howl.platform"
 local class = require "howl.class"
+local fs = require "howl.platform".fs
 local mixin = require "howl.class.mixin"
+local platform = require "howl.platform"
 
 --- Holds task contexts
 local Context = class("howl.tasks.Context"):include(mixin.sealed)

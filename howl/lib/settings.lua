@@ -1,22 +1,21 @@
+local platform = require "howl.platform"
+local fs = platform.fs
+local dump = require "howl.lib.dump"
+
 local currentSettings = {
 }
 
 if fs.exists(".howl.settings") then
-	local handle = fs.open(".howl.settings", "r")
-	local contents = handle.readAll()
-	handle.close()
+	local contents = fs.read(".howl.settings")
 
-	for k, v in pairs(textutils.unserialize(contents)) do
+	for k, v in pairs(dump.unserialise(contents)) do
 		currentSettings[k] = v
 	end
 end
 
-if settings then
-	if fs.exists(".settings") then settings.load(".settings") end
-
-	for k, v in pairs(currentSettings) do
-		currentSettings[k] = settings.get("howl." .. k, v)
-	end
+-- Things have to be defined in currentSettings for this to work. We need to improve this.
+for k, v in pairs(currentSettings) do
+	currentSettings[k] = platform.os.getEnv("howl." .. k, v)
 end
 
 return currentSettings

@@ -1,11 +1,12 @@
 --- Handles tasks and dependencies
 -- @classmod howl.tasks.Runner
 
-local Task = require "howl.tasks.Task"
-local Context = require "howl.tasks.Context"
-local colored = require "howl.lib.colored"
 local class = require "howl.class"
+local colored = require "howl.lib.colored"
+local Context = require "howl.tasks.Context"
 local mixin = require "howl.class.mixin"
+local os = require "howl.platform".os
+local Task = require "howl.tasks.Task"
 
 --- Handles a collection of tasks and running them
 -- @type Runner

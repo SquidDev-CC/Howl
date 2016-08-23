@@ -8,7 +8,7 @@ local type, tostring, format = type, tostring, string.format
 local getmetatable, error = getmetatable, error
 
 -- TODO: Switch to LuaCP's pprint
-local function dumpImpl(t, tracking, indent)
+local function dumpImpl(t, tracking, indent, tupleLength)
 	local objType = type(t)
 	if objType == "table" and not tracking[t] then
 		tracking[t] = true
@@ -96,7 +96,7 @@ local function dumpImpl(t, tracking, indent)
 end
 
 local function dump(t, n)
-	return dumpImpl(t, {}, "")
+	return dumpImpl(t, {}, "", n)
 end
 
 local keywords = createLookup {
@@ -167,8 +167,17 @@ local function serialise(object)
 	return internalSerialise(object, {}, Buffer()):toString()
 end
 
+local function unserialise(msg)
+	local func = loadstring("return " .. msg, "unserialise-temp", nil, {})
+	if not func then return nil end
+
+	local ok, res = pcall(func)
+	return ok and res
+end
 --- @export
 return {
 	serialise = serialise,
+	unserialise = unserialise,
+	deserialise = unserialise,
 	dump = dump,
 }

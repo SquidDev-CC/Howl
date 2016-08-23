@@ -1,9 +1,10 @@
 --- Various minification tasks
 -- @module howl.modules.minify
 
+local fs = require "howl.platform".fs
+local Mediator = require "howl.lib.mediator"
 local Rebuild = require "howl.lexer.rebuild"
 local Runner = require "howl.tasks.Runner"
-local Mediator = require "howl.lib.mediator"
 
 local minifyFile = Rebuild.MinifyFile
 local minifyDiscard = function(self, env, i, o)

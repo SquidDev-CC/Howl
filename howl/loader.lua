@@ -1,9 +1,9 @@
 --- Handles loading and creation of HowlFiles
 -- @module howl.loader
 
-local Utils = require "howl.lib.utils"
-local Runner = require "howl.tasks.Runner"
 local fs = require "howl.platform".fs
+local Runner = require "howl.tasks.Runner"
+local Utils = require "howl.lib.utils"
 
 --- Names to test when searching for Howlfiles
 local Names = { "Howlfile", "Howlfile.lua" }
@@ -36,10 +36,10 @@ end
 -- @tparam table variables A list of variables to include in the environment
 -- @treturn table The created environment
 local function SetupEnvironment(variables)
-	local env = setmetatable(variables or {}, { __index = getfenv() })
+	local env = setmetatable(variables or {}, { __index = _ENV })
 
 	function env.loadfile(path)
-		return setfenv(assert(loadfile(path)), env)
+		return assert(loadfile(path, env))
 	end
 
 	function env.dofile(path)

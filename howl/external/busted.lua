@@ -4,11 +4,12 @@
 -- TODO: Replace with BSRocks
 -- TODO: Fix verbose
 
-local Utils = require "howl.lib.utils"
+local fs = require "howl.platform".fs
 local Runner = require "howl.tasks.Runner"
+local Utils = require "howl.lib.utils"
 
 local combine, exists, isDir, loadfile, verbose = fs.combine, fs.exists, fs.isDir, loadfile, function() end
-local busted = busted
+local busted = _G.busted
 
 local names = { "busted.api.lua", "../lib/busted.api.lua", "busted.api", "../lib/busted.api", "busted", "../lib/busted" }
 

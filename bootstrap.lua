@@ -28,7 +28,41 @@ local function require(name)
 	loaded[name] = result
 	return result
 end
-local env = setmetatable({ require = require }, { __index = getfenv() })
+local sandEnv = setmetatable({
+	_G = _G,
+	require = require,
+	assert = assert,
+	error = error,
+	getmetatable = getmetatable,
+	ipairs = ipairs,
+	loadstring = loadstring, loadfile = loadfile, -- Try to avoid using these
+	math = math,
+	next = next,
+	pairs = pairs,
+	pcall = pcall,
+	print = print,
+	rawequal = rawequal, rawget = rawget, rawset = rawset,
+	require = require,
+	select = select,
+	setmetatable = setmetatable,
+	string = string,
+	table = table,
+	tonumber = tonumber, tostring = tostring,
+	type = type,
+	unpack = unpack,
+	xpcall = xpcall,
+}, {
+	__index = function(_, name) error("Attempt to get global " .. name, 2) end,
+	__newindex = function(self, name, value)
+		if name == "_ENV" then
+			rawset(self, name, value)
+		else
+			error("Attempt to set global " .. name, 2)
+		end
+	end,
+})
+
+local globalEnv = setmetatable({ require = require }, { __index = getfenv() })
 local root = fs.getDir(shell.getRunningProgram())
 
 local function toModule(file)
@@ -42,6 +76,8 @@ end
 local function loadModule(path)
 	local file = fs.open(path, "r")
 	if file then
+		local env = sandEnv
+		if path:find("howl/platform/", 1, true) then env = globalEnv end
 		local func, err = load(file.readAll(), path:sub(#root + 2), "t", env)
 		file.close()
 		if not func then error(err) end

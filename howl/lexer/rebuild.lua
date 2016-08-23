@@ -374,15 +374,11 @@ end
 local function MinifyFile(cd, inputFile, outputFile)
 	outputFile = outputFile or inputFile
 
-	local input = fs.open(fs.combine(cd, inputFile), "r")
-	local contents = input.readAll()
-	input.close()
+	local contents = platform.fs.read(platform.fs.combine(cd, inputFile))
 
 	contents = MinifyString(contents)
 
-	local result = fs.open(fs.combine(cd, outputFile), "w")
-	result.write(contents)
-	result.close()
+	platform.fs.write(platform.fs.combine(cd, outputFile))
 end
 
 --- @export

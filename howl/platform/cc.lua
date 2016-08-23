@@ -85,14 +85,41 @@ else
 	end
 end
 
+local getEnv
+if settings and fs.exists(".settings") then
+	settings.load(".settings")
+end
+
+if settings and shell.getEnv then
+	getEnv = function(name, default)
+		local value = shell.getEnv(name)
+		if value ~= nil then return value end
+
+		return settings.get(name, default)
+	end
+elseif settings then
+	getEnv = settings.get
+elseif shell.getEnv then
+	getEnv = function(name, default)
+		local value = shell.getEnv(name)
+		if value ~= nil then return value end
+		return default
+	end
+else
+	getEnv = function(name, default) return default end
+end
 
 return {
+	os = {
+		clock = os.clock,
+		getEnv = getEnv,
+	},
 	fs = {
 		-- Path manipulation
 		combine = fs.combine,
 		normalise = function(path) return fs.combine(path, "") end,
 		getDir = fs.getDir,
-		getName = getName,
+		getName = fs.getName,
 		currentDir = shell.dir,
 
 		-- File access
@@ -120,7 +147,10 @@ return {
 
 			term.setTextColor(col)
 		end,
-		resetColor = function() term.setTextColor(default) end
+		resetColor = function() term.setTextColor(default) end,
+
+		print = print,
+		write = io.write,
 	},
 	http = {
 		request = request,

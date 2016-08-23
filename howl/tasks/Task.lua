@@ -5,6 +5,7 @@ local assert = require "howl.lib.assert"
 local class = require "howl.class"
 local colored = require "howl.lib.colored"
 local mixin = require "howl.class.mixin"
+local os = require "howl.platform".os
 local utils = require "howl.lib.utils"
 
 local insert = table.insert

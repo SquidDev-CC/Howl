@@ -8,7 +8,7 @@ local term = require "howl.platform".term
 -- @param ... Values to print
 local function printColor(color, ...)
 	term.setColor(color)
-	print(...)
+	term.print(...)
 	term.resetColor(color)
 end
 
@@ -17,7 +17,7 @@ end
 -- @tparam string text Values to print
 local function writeColor(color, text)
 	term.setColor(color)
-	io.write(text)
+	term.write(text)
 	term.resetColor(color)
 end
 

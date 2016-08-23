@@ -111,7 +111,7 @@ mixins.optionGroup = {
 	end,
 
 	__newindex = function(self, key, value)
-		if keys[key] then
+		if self.class.options and self.class.options[key] then -- TODO: This is being applied to superclasses
 			self[key](self, value)
 		else
 			rawset(self, key, value)
