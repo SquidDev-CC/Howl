@@ -1,9 +1,3 @@
---[[
-	Hideously Smashed Together by Compilr, a Hideous Smash-Stuff-Togetherer, (c) 2014 oeed
-	This file REALLLLLLLY isn't suitable to be used for anything other than being executed
-	To extract all the files, run: "<filename> --extract" in the Shell
-]]
-
 local files = ${files}
 
 ${vfs}

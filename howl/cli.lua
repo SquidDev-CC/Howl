@@ -42,9 +42,9 @@ include(require "howl.modules.dependencies.FileDependency")
 include(require "howl.modules.dependencies.TaskDependency")
 include(require "howl.modules.list")
 include(require "howl.modules.tasks.clean")
-include(require "howl.modules.tasks.compilr")
 include(require "howl.modules.tasks.gist")
 include(require "howl.modules.tasks.minify")
+include(require "howl.modules.tasks.pack")
 include(require "howl.modules.tasks.require")
 
 -- SETUP TASKS

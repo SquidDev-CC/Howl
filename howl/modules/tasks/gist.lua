@@ -81,7 +81,7 @@ local function apply()
 end
 
 return {
-	name = "gist",
+	name = "gist task",
 	description = "A task that uploads files to a Gist.",
 	apply = apply,
 

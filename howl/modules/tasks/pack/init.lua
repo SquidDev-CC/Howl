@@ -1,5 +1,5 @@
---- A task to combine multiple files using Compilr.
--- @module howl.modules.tasks.compilr
+--- A task to combine multiple files into one which are then executed within a virtual file system.
+-- @module howl.modules.tasks.Pack
 
 local assert = require "howl.lib.assert"
 local dump = require "howl.lib.dump"
@@ -13,15 +13,15 @@ local Task = require "howl.tasks.Task"
 
 local formatTemplate = require "howl.lib.utils".formatTemplate
 
-local template = require "howl.modules.tasks.compilr.template"
-local vfs = require "howl.modules.tasks.compilr.vfs"
+local template = require "howl.modules.tasks.pack.template"
+local vfs = require "howl.modules.tasks.pack.vfs"
 
-local CompilrTask = Task:subclass("howl.modules.tasks.compilr.CompilrTask")
+local PackTask = Task:subclass("howl.modules.tasks.pack.PackTask")
 	:include(mixin.filterable)
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
 	:addOptions { "minify", "startup", "output" }
 
-function CompilrTask:initialize(context, name, dependencies)
+function PackTask:initialize(context, name, dependencies)
 	Task.initialize(self, name, dependencies)
 
 	self.root = context.root
@@ -35,16 +35,16 @@ function CompilrTask:initialize(context, name, dependencies)
 
 	self:exclude { ".git", ".svn", ".gitignore", context.out }
 
-	self:description("Combines multiple files using Compilr")
+	self:description("Combines multiple files using Pack")
 end
 
-function CompilrTask:configure(item)
+function PackTask:configure(item)
 	Task.configure(self, item)
 	self.sources:configure(item)
 end
 
 -- TODO: Add a custom "ouput" mixin
-function CompilrTask:output(value)
+function PackTask:output(value)
 	assert.argType(value, "string", "output", 1)
 	if self.options.output then error("Cannot set output multiple times") end
 
@@ -52,7 +52,7 @@ function CompilrTask:output(value)
 	self:Produces(value)
 end
 
-function CompilrTask:setup(context, runner)
+function PackTask:setup(context, runner)
 	Task.setup(self, context, runner)
 
 	if not self.options.startup then
@@ -65,7 +65,7 @@ function CompilrTask:setup(context, runner)
  	end
 end
 
-function CompilrTask:runAction(context)
+function PackTask:runAction(context)
 	local files = self.sources:gatherFiles(self.root)
 	local startup = self.options.startup
 	local output = self.options.output
@@ -91,20 +91,20 @@ function CompilrTask:runAction(context)
 end
 
 
-local CompilrExtensions = { }
+local PackExtensions = { }
 
-function CompilrExtensions:compilr(name, taskDepends)
-	return self:injectTask(CompilrTask(self.env, name, taskDepends))
+function PackExtensions:pack(name, taskDepends)
+	return self:injectTask(PackTask(self.env, name, taskDepends))
 end
 
 local function apply()
-	Runner:include(CompilrExtensions)
+	Runner:include(PackExtensions)
 end
 
 return {
-	name = "compilr task",
-	description = "A task to combine multiple files using Compilr.",
+	name = "pack task",
+	description = "A task to combine multiple files into one which are then executed within a virtual file system.",
 	apply = apply,
 
-	CompilrTask = CompilrTask,
+	PackTask = PackTask,
 }

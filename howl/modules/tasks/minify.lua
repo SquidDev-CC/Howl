@@ -82,7 +82,7 @@ local function setup(context)
 end
 
 return {
-	name = "minify",
+	name = "minify task",
 	description = "Adds various tasks to minify files.",
 	apply = apply,
 	setup = setup,
