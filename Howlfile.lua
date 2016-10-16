@@ -1,22 +1,19 @@
-Sources:File "download.lua"
-	:Name "download"
-	:Depends "json"
-Sources:File "json.lua" :Name "json"
-Sources:File "vfs.lua"  :Name "vfs"
+Tasks:clean()
 
-Sources:Main "WebBuild.lua"
-	:Depends "download"
-	:Depends "vfs"
+Tasks:require "main" {
+	include = {"WebBuild.lua", "json.lua", "download.lua", "vfs.lua"},
+	startup = "WebBuild.lua",
+	output = "build/WebBuild.lua",
+}
 
-Tasks:Clean("clean", "build")
-Tasks:Combine("combine", Sources, "build/WebBuild.lua", {"clean"})
-	:Verify()
-	--:Traceback()
-	--:LineMapping()
+Tasks:minify "minify" { input = "build/WebBuild.lua", output = "build/WebBuild.min.lua" }
 
-Tasks:Minify("minify", "build/WebBuild.lua", "build/WebBuild.min.lua")
+Tasks:require "boot" {
+	include = {"WebBuild.lua", "json.lua", "download.lua", "vfs.lua"},
+	startup = "WebBuild.lua",
+	output = "build/boot.lua",
+	link = true,
+}
 
-Tasks:CreateBootstrap("boot", Sources, "build/Boot.lua")
-
-Tasks:Task "build" { "combine", "minify", "boot" }
+Tasks:Task "build" { "clean", "minify", "boot" }
 Tasks:Default "build"

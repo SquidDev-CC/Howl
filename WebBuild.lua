@@ -1,3 +1,7 @@
+local download = require "download"
+local json = require "json"
+local vfs = require "vfs"
+
 local tries = 2
 local branch = "master"
 local once = false

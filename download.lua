@@ -1,3 +1,5 @@
+local json = require "json"
+
 --- Attempt to download a file listing
 -- @tparam string repo The name of the repo
 -- @tparam string branch The name of the branch

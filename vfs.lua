@@ -23,17 +23,19 @@ local function escapePattern(pattern)
 	return (pattern:gsub(".", matches))
 end
 
-local function matchesLocal(root, path) return path == root or path:sub(1, #root + 1) == root .. "/" end
-local function extractLocal(root, path) return path:sub(#root + 2) end
+local function matchesLocal(root, path)
+	return root == "" or path == root or path:sub(1, #root + 1) == root .. "/"
+end
+
+local function extractLocal(root, path)
+	if root == "" then
+		return path
+	else
+		return path:sub(#root + 2)
+	end
+end
 
 
--- local function matchesPreserve(root, preserve, path)
--- 	if matchesLocal(root, path) then
--- 		if preserve then
--- 			for k, item in pairs()
--- 		end
--- 	end
--- end
 local function copy(old)
 	local new = {}
 	for k, v in pairs(old) do new[k] = v end
@@ -43,10 +45,8 @@ end
 --[[
 	Emulates a basic file system.
 	This doesn't have to be too advanced as it is only for Howl's use
-
 	The files is a list of paths to file contents, or true if the file
 	is a directory.
-
 	TODO: Override IO
 ]]
 return function(root, files)
@@ -156,7 +156,7 @@ return function(root, files)
 		loadfile = function(name)
 			local file = env.fs.open(name, "r")
 			if file then
-				local func, err = loadstring(file.readAll(), fs.getName(name))
+				local func, err = loadstring(file.readAll(), fs.getName(name), env)
 				file.close()
 				return func, err
 			end
@@ -164,15 +164,16 @@ return function(root, files)
 		end,
 
 		dofile = function(name)
-			local file, e = env.loadfile(name)
+			local file, e = env.loadfile(name, env)
 			if file then
-				setfenv(file, getfenv(2))
 				return file()
 			else
 				error(e, 2)
 			end
-		end
+		end,
 	}
+
 	env._G = env
+	env._ENV = env
 	return env
 end
