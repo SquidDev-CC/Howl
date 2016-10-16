@@ -1,5 +1,5 @@
---- Deletes all specified files
--- @module howl.modules.clean
+--- A task that deletes all specified files
+-- @module howl.modules.tasks.clean
 
 local mixin = require "howl.class.mixin"
 local fs = require "howl.platform".fs
@@ -8,7 +8,7 @@ local Task = require "howl.tasks.Task"
 local Runner = require "howl.tasks.Runner"
 local Source = require "howl.files.Source"
 
-local CleanTask = Task:subclass("howl.modules.clean.CleanTask")
+local CleanTask = Task:subclass("howl.modules.tasks.clean.CleanTask")
 	:include(mixin.configurable)
 	:include(mixin.filterable)
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
@@ -46,12 +46,6 @@ end
 
 local CleanExtensions = {}
 
---- A task for cleaning a directory
--- Extends the @{howl.tasks.Runner} class
--- @tparam string name Name of the task
--- @tparam string directory The directory to clean
--- @tparam table taskDepends A list of tasks this task requires
--- @treturn howl.tasks.Task The created task
 function CleanExtensions:clean(name, taskDepends)
 	return self:injectTask(CleanTask(self.env, name or "clean", taskDepends))
 end
@@ -61,8 +55,8 @@ local function apply()
 end
 
 return {
-	name = "clean",
-	description = "Deletes all specified files.",
+	name = "clean task",
+	description = "A task that deletes all specified files.",
 	apply = apply,
 
 	CleanTask = CleanTask,

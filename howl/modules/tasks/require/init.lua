@@ -1,5 +1,5 @@
 --- A task that combines files that can be loaded using `require`.
--- @module howl.modules.require
+-- @module howl.modules.tasks.require
 
 local assert = require "howl.lib.assert"
 local fs = require "howl.platform".fs
@@ -10,7 +10,7 @@ local CopySource = require "howl.files.CopySource"
 local Runner = require "howl.tasks.Runner"
 local Task = require "howl.tasks.Task"
 
-local header = require "howl.modules.require.header"
+local header = require "howl.modules.tasks.require.header"
 local envSetup = "local env = setmetatable({ require = require }, { __index = getfenv() })\n"
 
 local function toModule(file)
@@ -114,8 +114,8 @@ local function apply()
 end
 
 return {
-	name = "require",
-	description = "Combines files that can be loaded using `require`.",
+	name = "require task",
+	description = "A task that combines files that can be loaded using `require`.",
 	apply = apply,
 
 	RequireTask = RequireTask,

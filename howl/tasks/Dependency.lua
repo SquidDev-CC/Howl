@@ -1,9 +1,9 @@
 --- An abstract class dependency
--- @classmod howl.tasks.dependency.Dependency
+-- @classmod howl.tasks.Dependency
 
 local class = require "howl.class"
 
-local Dependency = class("howl.tasks.dependency.Dependency")
+local Dependency = class("howl.tasks.Dependency")
 
 --- Create a new dependency
 function Dependency:initialize(task)

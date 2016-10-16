@@ -1,5 +1,5 @@
---- A task that uploads files to a Gist
--- @module howl.modules.gist
+--- A task that uploads files to a Gist.
+-- @module howl.modules.tasks.gist
 
 local assert = require "howl.lib.assert"
 local mixin = require "howl.class.mixin"
@@ -14,7 +14,7 @@ local Task = require "howl.tasks.Task"
 local Runner = require "howl.tasks.Runner"
 local CopySource = require "howl.files.CopySource"
 
-local GistTask = Task:subclass("howl.modules.gist.GistTask")
+local GistTask = Task:subclass("howl.modules.tasks.gist.GistTask")
 	:include(mixin.filterable)
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
 	:addOptions { "gist", "summary" }
@@ -82,7 +82,7 @@ end
 
 return {
 	name = "gist",
-	description = "Uploads files to a gist.",
+	description = "A task that uploads files to a Gist.",
 	apply = apply,
 
 	GistTask = GistTask,

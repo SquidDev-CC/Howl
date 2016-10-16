@@ -38,15 +38,14 @@ require "howl.depends.bootstrap"
 require "howl.depends.combiner"
 require "howl.external.busted"
 
-include(require "howl.modules.clean")
-include(require "howl.modules.compilr")
-include(require "howl.modules.gist")
+include(require "howl.modules.dependencies.FileDependency")
+include(require "howl.modules.dependencies.TaskDependency")
 include(require "howl.modules.list")
-include(require "howl.modules.minify")
-include(require "howl.modules.require")
-
-require "howl.tasks.dependency.TaskDependency".apply()
-require "howl.tasks.dependency.FileDependency".apply()
+include(require "howl.modules.tasks.clean")
+include(require "howl.modules.tasks.compilr")
+include(require "howl.modules.tasks.gist")
+include(require "howl.modules.tasks.minify")
+include(require "howl.modules.tasks.require")
 
 -- SETUP TASKS
 local taskList = options:Arguments()

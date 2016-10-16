@@ -1,5 +1,5 @@
---- Various minification tasks
--- @module howl.modules.minify
+--- Adds various tasks to minify files.
+-- @module howl.modules.tasks.minify
 
 local assert = require "howl.lib.assert"
 local rebuild = require "howl.lexer.rebuild"
@@ -12,7 +12,7 @@ local minifyDiscard = function(self, env, i, o)
 	return minifyFile(env.root, i, o)
 end
 
-local MinifyTask = Task:subclass("howl.modules.minify.MinifyTask")
+local MinifyTask = Task:subclass("howl.modules.minify.tasks.MinifyTask")
 	:addOptions { "input", "output" }
 
 function MinifyTask:initialize(context, name, dependencies)
@@ -83,7 +83,7 @@ end
 
 return {
 	name = "minify",
-	description = "Minifies files, reducing file size.",
+	description = "Adds various tasks to minify files.",
 	apply = apply,
 	setup = setup,
 }

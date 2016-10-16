@@ -1,6 +1,5 @@
---- [Compilr](https://github.com/oeed/Compilr) by Oeed ported to Howl by SquidDev
--- Combines files and emulates the fs API
--- @module howl.modules.compilr
+--- A task to combine multiple files using Compilr.
+-- @module howl.modules.tasks.compilr
 
 local assert = require "howl.lib.assert"
 local dump = require "howl.lib.dump"
@@ -14,10 +13,10 @@ local Task = require "howl.tasks.Task"
 
 local formatTemplate = require "howl.lib.utils".formatTemplate
 
-local template = require "howl.modules.compilr.template"
-local vfs = require "howl.modules.compilr.vfs"
+local template = require "howl.modules.tasks.compilr.template"
+local vfs = require "howl.modules.tasks.compilr.vfs"
 
-local CompilrTask = Task:subclass("howl.modules.compilr.CompilrTask")
+local CompilrTask = Task:subclass("howl.modules.tasks.compilr.CompilrTask")
 	:include(mixin.filterable)
 	:include(mixin.delegate("sources", {"from", "include", "exclude"}))
 	:addOptions { "minify", "startup", "output" }
@@ -103,8 +102,8 @@ local function apply()
 end
 
 return {
-	name = "compilr",
-	description = "Combines multiple files using Compilr",
+	name = "compilr task",
+	description = "A task to combine multiple files using Compilr.",
 	apply = apply,
 
 	CompilrTask = CompilrTask,
