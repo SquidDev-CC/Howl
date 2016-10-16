@@ -11,6 +11,7 @@ local minifyDiscard = function(self, env, i, o)
 	return minifyFile(env.root, i, o)
 end
 
+-- TODO: Convert this to a configurable task
 local MinifyExtensions = {}
 
 --- A task that minifies a source file

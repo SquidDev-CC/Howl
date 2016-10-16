@@ -1,4 +1,4 @@
---- Basic extensions to classes
+--- Deletes all specified files
 -- @module howl.modules.clean
 
 local mixin = require "howl.class.mixin"
@@ -20,7 +20,7 @@ function CleanTask:initialize(context, name, dependencies)
 	self.sources = Source()
 	self:exclude { ".git", ".svn", ".gitignore" }
 
-	self:Description "Deletes all files matching a pattern"
+	self:description "Deletes all files matching a pattern"
 end
 
 function CleanTask:configure(item)
@@ -39,7 +39,7 @@ end
 
 function CleanTask:RunAction(context)
 	for _, file in ipairs(self.sources:gatherFiles(self.root, true)) do
-		-- context.logger:verbose("Deleting " .. file.path)
+		context.logger:verbose("Deleting " .. file.path)
 		fs.delete(file.path)
 	end
 end
@@ -56,10 +56,14 @@ function CleanExtensions:clean(name, taskDepends)
 	return self:InjectTask(CleanTask(self.env, name or "clean", taskDepends))
 end
 
+local function apply()
+	Runner:include(CleanExtensions)
+end
+
 return {
 	name = "clean",
-	description = "Deletes all files.",
-	apply = function() Runner:include(CleanExtensions) end,
+	description = "Deletes all specified files.",
+	apply = apply,
 
 	CleanTask = CleanTask,
 }

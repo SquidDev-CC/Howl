@@ -24,6 +24,7 @@ end
 local Task = class("howl.tasks.Task")
 	:include(mixin.configurable)
 	:include(mixin.optionGroup)
+	:addOptions { "description" }
 
 --- Create a task
 -- @tparam string name The name of the task
@@ -43,7 +44,6 @@ function Task:initialize(name, dependencies, action)
 	self.name = name -- The name of the function
 	self.action = action -- The action to call
 	self.dependencies = {} -- Task dependencies
-	self.description = nil -- Description of the task
 	self.maps = {} -- Reads and produces list
 	self.produces = {} -- Files this task produces
 
@@ -101,14 +101,6 @@ end
 -- @treturn Task The current object (allows chaining)
 function Task:Action(action)
 	self.action = action
-	return self
-end
-
---- Set the description for this task
--- @tparam string text The description of the task
--- @treturn Task The current object (allows chaining)
-function Task:Description(text)
-	self.description = text
 	return self
 end
 

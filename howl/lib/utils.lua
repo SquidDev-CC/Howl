@@ -1,6 +1,8 @@
 --- Useful little helpers for things
 -- @module howl.lib.utils
 
+local assert = require "howl.lib.assert"
+
 local matches = {
 	["^"] = "%^",
 	["$"] = "%$",
@@ -105,6 +107,50 @@ local function startsWith(string, text)
 	end
 end
 
+--- Format a template string with data.
+-- Anything of the form `${var}` will be replaced with the appropriate variable in the table.
+-- @tparam string template The template to format
+-- @tparam table data The data to replace with
+-- @treturn string The formatted template
+local function formatTemplate(template, data)
+	return (template:gsub("${([^}]+)}", function(str)
+		local res = data[str]
+		if res == nil then 
+			return "${" .. str .. "}"
+		else
+			return tostring(res)
+		end
+	end))
+end
+
+--- Mark a function as deprecated
+-- @tparam string name The name of the function
+-- @tparam function function The function to delegate to
+-- @tparam string|nil msg Additional message to print 
+local function deprecated(name, func, msg)
+	assert.argType(name, "string", "deprecated", 1)
+	assert.argType(func, "function", "deprecated", 2)
+	
+	if msg ~= nil then
+		assert.argType(msg, "string", "msg", 4)
+		msg = " " .. msg
+	else
+		msg = ""
+	end
+
+	local doneDeprc = false
+	return function(...)
+		if not doneDeprc then
+			local _, callee = pcall(error, "", 3)
+			callee = callee:gsub(":%s*$", "")
+			print(name .. " is deprecated (called at " .. callee .. ")." .. msg)
+			doneDeprc = true
+		end
+
+		return func(...)
+	end
+end
+
 --- @export
 return {
 	escapePattern = escapePattern,
@@ -112,4 +158,6 @@ return {
 	createLookup = createLookup,
 	matchTables = matchTables,
 	startsWith = startsWith,
+	formatTemplate = formatTemplate,
+	deprecated = deprecated,
 }

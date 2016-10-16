@@ -1,4 +1,5 @@
---- A task that combines files that can be loaded using `require`.
+--- A task that uploads files to a Gist
+-- @module howl.modules.gist
 
 local assert = require "howl.lib.assert"
 local mixin = require "howl.class.mixin"
@@ -25,11 +26,11 @@ function GistTask:initialize(context, name, dependencies)
 	self.sources = CopySource()
 	self:exclude { ".git", ".svn", ".gitignore" }
 
-	self:Description "Uploads files to a gist"
+	self:description "Uploads files to a gist"
 end
 
 function GistTask:configure(item)
-	self:_configureOptions(item)
+	Task.setup(self, context, runner)
 	self.sources:configure(item)
 end
 
@@ -54,7 +55,6 @@ function GistTask:RunAction(context)
 		context.logger:verbose("Including " .. file.relative)
 		out[file.name] = { content = file.contents }
 	end
-
 
 	local url = "https://api.github.com/gists/" .. gist .. "?access_token=" .. token
 	local headers = { Accept = "application/vnd.github.v3+json", ["X-HTTP-Method-Override"] = "PATCH" }

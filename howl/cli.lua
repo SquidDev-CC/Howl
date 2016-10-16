@@ -41,10 +41,11 @@ require "howl.external.busted"
 require "howl.files.compilr"
 require "howl.files.require"
 
+include(require "howl.modules.clean")
+include(require "howl.modules.compilr")
 include(require "howl.modules.gist")
 include(require "howl.modules.minify")
 include(require "howl.modules.require")
-include(require "howl.modules.clean")
 
 require "howl.tasks.dependency.TaskDependency".apply()
 require "howl.tasks.dependency.FileDependency".apply()

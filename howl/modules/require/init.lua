@@ -1,13 +1,14 @@
 --- A task that combines files that can be loaded using `require`.
 
 local assert = require "howl.lib.assert"
+local deprecated = require "howl.lib.utils".deprecated
 local fs = require "howl.platform".fs
 local mixin = require "howl.class.mixin"
 
 local Buffer = require "howl.lib.Buffer"
-local Task = require "howl.tasks.Task"
-local Runner = require "howl.tasks.Runner"
 local CopySource = require "howl.files.CopySource"
+local Runner = require "howl.tasks.Runner"
+local Task = require "howl.tasks.Task"
 
 local header = require "howl.modules.require.header"
 local envSetup = "local env = setmetatable({ require = require }, { __index = getfenv() })\n"
@@ -39,6 +40,8 @@ function RequireTask:initialize(context, name, dependencies)
 	self.sources:modify(handleRes)
 
 	self:exclude { ".git", ".svn", ".gitignore", context.out }
+
+	self:description("Packages files together to allow require")
 end
 
 function RequireTask:configure(item)
@@ -103,10 +106,15 @@ end
 
 local RequireExtensions = { }
 
-function RequireExtensions:asRequire(name, taskDepends)
+function RequireExtensions:require(name, taskDepends)
 	return self:InjectTask(RequireTask(self.env, name, taskDepends))
-		:Description("Packages files together to allow require")
 end
+
+RequireExtensions.asRequire = deprecated(
+	"RequireExtensions.asRequire", 
+	RequireExtensions.require, 
+	"Use RequireExtensions.require instead."
+)
 
 local function apply()
 	Runner:include(RequireExtensions)

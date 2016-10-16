@@ -4,14 +4,14 @@ Tasks:clean()
 
 Tasks:minify("minify", "build/Howl.lua", "build/Howl.min.lua")
 
-Tasks:asRequire "main" {
+Tasks:require "main" {
 	include = "howl/*.lua",
 	startup = "howl/cli.lua",
 	output = "build/Howl.lua",
 	api = true,
 }
 
-Tasks:asRequire "develop" {
+Tasks:require "develop" {
 	include = "howl/*.lua",
 	startup = "howl/cli.lua",
 	output = "build/HowlD.lua",
