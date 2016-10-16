@@ -9,12 +9,6 @@ local howlFile, currentDirectory = loader.FindHowl()
 -- TODO: Don't pass the error message as the current directory: construct mediator/arg parser another time.
 local context = require "howl.context"(currentDirectory or shell.dir(), {...})
 
-local function include(module)
-	context.logger:verbose("Including " .. module.name .. ": " .. module.description)
-	module.apply()
-	if module.setup then module.setup(context) end
-end
-
 local options = context.arguments
 
 options
@@ -38,16 +32,19 @@ require "howl.depends.bootstrap"
 require "howl.depends.combiner"
 require "howl.external.busted"
 
-include(require "howl.modules.dependencies.FileDependency")
-include(require "howl.modules.dependencies.TaskDependency")
-include(require "howl.modules.list")
-include(require "howl.modules.tasks.clean")
-include(require "howl.modules.tasks.gist")
-include(require "howl.modules.tasks.minify")
-include(require "howl.modules.tasks.pack")
-include(require "howl.modules.tasks.require")
+context:include "howl.modules.dependencies.FileDependency"
+context:include "howl.modules.dependencies.TaskDependency"
+context:include "howl.modules.list"
+context:include "howl.modules.plugins"
+context:include "howl.modules.packages.gist"
+context:include "howl.modules.packages.pastebin"
+context:include "howl.modules.tasks.clean"
+context:include "howl.modules.tasks.gist"
+context:include "howl.modules.tasks.minify"
+context:include "howl.modules.tasks.pack"
+context:include "howl.modules.tasks.require"
 
--- SETUP TASKS
+-- Setup Tasks
 local taskList = options:Arguments()
 local function setHelp()
 	if options:Get "help" then
