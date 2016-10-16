@@ -23,8 +23,6 @@ function FileDependency:resolve(context, runner)
 	return runner:DoRequire(self.path)
 end
 
-local TaskExtensions = {}
-
 return {
 	apply = function()
 		Task:addDependency(FileDependency, "requires")

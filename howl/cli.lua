@@ -34,16 +34,14 @@ options
 	:Alias "h"
 	:Description "Print this help"
 
-require "howl.tasks.extensions"
 require "howl.depends.bootstrap"
 require "howl.depends.combiner"
 require "howl.external.busted"
-require "howl.files.compilr"
-require "howl.files.require"
 
 include(require "howl.modules.clean")
 include(require "howl.modules.compilr")
 include(require "howl.modules.gist")
+include(require "howl.modules.list")
 include(require "howl.modules.minify")
 include(require "howl.modules.require")
 
@@ -93,13 +91,13 @@ local tasks, environment = loader.SetupTasks(context, howlFile)
 
 -- Basic list tasks
 tasks:Task "list" (function()
-	tasks:ListTasks()
+	tasks:listTasks()
 end):Description "Lists all the tasks"
 
 tasks:Task "help" (function()
 	print("Howl [options] [task]")
 	colored.printColor("orange", "Tasks:")
-	tasks:ListTasks("  ")
+	tasks:listTasks("  ")
 
 	colored.printColor("orange", "\nOptions:")
 	options:Help("  ")
@@ -110,7 +108,7 @@ tasks:Default(function()
 	context.logger:error("No default task exists.")
 	context.logger:verbose("Use 'Tasks:Default' to define a default task")
 	colored.printColor("orange", "Choose from: ")
-	tasks:ListTasks("  ")
+	tasks:listTasks("  ")
 end)
 
 environment.dofile(fs.combine(currentDirectory, howlFile))

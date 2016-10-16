@@ -37,7 +37,7 @@ function CleanTask:setup(context, runner)
 	end
 end
 
-function CleanTask:RunAction(context)
+function CleanTask:runAction(context)
 	for _, file in ipairs(self.sources:gatherFiles(self.root, true)) do
 		context.logger:verbose("Deleting " .. file.path)
 		fs.delete(file.path)
@@ -53,7 +53,7 @@ local CleanExtensions = {}
 -- @tparam table taskDepends A list of tasks this task requires
 -- @treturn howl.tasks.Task The created task
 function CleanExtensions:clean(name, taskDepends)
-	return self:InjectTask(CleanTask(self.env, name or "clean", taskDepends))
+	return self:injectTask(CleanTask(self.env, name or "clean", taskDepends))
 end
 
 local function apply()

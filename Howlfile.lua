@@ -2,7 +2,10 @@ Options:Default "trace"
 
 Tasks:clean()
 
-Tasks:minify("minify", "build/Howl.lua", "build/Howl.min.lua")
+Tasks:minify "minify" {
+	input = "build/Howl.lua",
+	output = "build/Howl.min.lua",
+}
 
 Tasks:require "main" {
 	include = "howl/*.lua",

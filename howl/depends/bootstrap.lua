@@ -96,7 +96,7 @@ local BootstrapRunner = {}
 -- @treturn howl.tasks.Task The created task
 -- @see tasks.Runner
 function BootstrapRunner:CreateBootstrap(name, dependencies, outputFile, taskDepends)
-	return self:InjectTask(OptionTask(name, taskDepends, {"traceback"}, function(task, env)
+	return self:injectTask(OptionTask(name, taskDepends, {"traceback"}, function(task, env)
 		dependencies:CreateBootstrap(env, outputFile, task.options)
 	end))
 		:Description("Creates a 'dynamic' combination of files in '" .. outputFile .. "')")

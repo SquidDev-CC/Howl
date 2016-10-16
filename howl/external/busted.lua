@@ -86,7 +86,7 @@ end
 -- @treturn tasks.Task The task (for chaining)
 -- @see howl.tasks.Runner
 function Runner:Busted(name, options, taskDepends)
-	return self:AddTask(name, taskDepends, function(task, env)
+	return self:addTask(name, taskDepends, function(task, env)
 		local busted
 		if options and options.busted then
 			busted = findOneBusted(options.busted)

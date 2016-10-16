@@ -60,7 +60,7 @@ function CompilrTask:setup(context, runner)
  	end
 end
 
-function CompilrTask:RunAction(context)
+function CompilrTask:runAction(context)
 	local files = self.sources:gatherFiles(self.root)
 	local startup = self.options.startup
 	local output = self.options.output
@@ -107,7 +107,7 @@ end
 local CompilrExtensions = { }
 
 function CompilrExtensions:compilr(name, taskDepends)
-	return self:InjectTask(CompilrTask(self.env, name, taskDepends))
+	return self:injectTask(CompilrTask(self.env, name, taskDepends))
 end
 
 local function apply()
@@ -121,4 +121,3 @@ return {
 
 	CompilrTask = CompilrTask,
 }
-

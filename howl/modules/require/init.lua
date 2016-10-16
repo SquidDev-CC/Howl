@@ -1,7 +1,7 @@
 --- A task that combines files that can be loaded using `require`.
+-- @module howl.modules.require
 
 local assert = require "howl.lib.assert"
-local deprecated = require "howl.lib.utils".deprecated
 local fs = require "howl.platform".fs
 local mixin = require "howl.class.mixin"
 
@@ -34,7 +34,6 @@ local RequireTask = Task:subclass("howl.modules.require.RequireTask")
 function RequireTask:initialize(context, name, dependencies)
 	Task.initialize(self, name, dependencies)
 
-	self.root = context.root
 	self.sources = CopySource()
 	self.sources:rename(function(file) return toModule(file.name) end)
 	self.sources:modify(handleRes)
@@ -69,8 +68,8 @@ function RequireTask:setup(context, runner)
  	end
 end
 
-function RequireTask:RunAction(context)
-	local files = self.sources:gatherFiles(self.root)
+function RequireTask:runAction(context)
+	local files = self.sources:gatherFiles(context.root)
 	local startup = self.options.startup
 	local output = self.options.output
 	local link = self.options.link
@@ -107,14 +106,8 @@ end
 local RequireExtensions = { }
 
 function RequireExtensions:require(name, taskDepends)
-	return self:InjectTask(RequireTask(self.env, name, taskDepends))
+	return self:injectTask(RequireTask(self.env, name, taskDepends))
 end
-
-RequireExtensions.asRequire = deprecated(
-	"RequireExtensions.asRequire", 
-	RequireExtensions.require, 
-	"Use RequireExtensions.require instead."
-)
 
 local function apply()
 	Runner:include(RequireExtensions)

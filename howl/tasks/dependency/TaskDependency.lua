@@ -25,8 +25,6 @@ function TaskDependency:resolve(context, runner)
 	return runner:run(self.name)
 end
 
-local TaskExtensions = {}
-
 return {
 	apply = function()
 		Task:addDependency(TaskDependency, "depends")

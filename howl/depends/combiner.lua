@@ -148,7 +148,7 @@ end
 -- @see howl.tasks.Runner
 function Runner:Combine(name, dependencies, outputFile, taskDepends)
 	-- TODO: Switch fields to mediator channel
-	return self:InjectTask(OptionTask(name, taskDepends, {"header", "finalizer", "traceback", "lineMapping", "verify"}, function(task, env)
+	return self:injectTask(OptionTask(name, taskDepends, {"header", "finalizer", "traceback", "lineMapping", "verify"}, function(task, env)
 		dependencies:Combiner(env, outputFile, task.options)
 	end))
 		:Description("Combines files into '" .. outputFile .. "'")

@@ -30,7 +30,7 @@ function GistTask:initialize(context, name, dependencies)
 end
 
 function GistTask:configure(item)
-	Task.setup(self, context, runner)
+	Task.configure(self, context, runner)
 	self.sources:configure(item)
 end
 
@@ -44,7 +44,7 @@ function GistTask:setup(context, runner)
 	end
 end
 
-function GistTask:RunAction(context)
+function GistTask:runAction(context)
 	local files = self.sources:gatherFiles(self.root)
 	local gist = self.options.gist
 	local token = settings.githubKey
@@ -73,7 +73,7 @@ end
 local GistExtensions = { }
 
 function GistExtensions:gist(name, taskDepends)
-	return self:InjectTask(GistTask(self.env, name, taskDepends))
+	return self:injectTask(GistTask(self.env, name, taskDepends))
 end
 
 local function apply()

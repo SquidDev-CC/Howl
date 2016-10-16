@@ -42,7 +42,7 @@ end
 -- @tparam string name The name of the task to create
 -- @treturn function A builder for tasks
 function Runner:Task(name)
-	return function(dependencies, action) return self:AddTask(name, dependencies, action) end
+	return function(dependencies, action) return self:addTask(name, dependencies, action) end
 end
 
 --- Add a task to the collection
@@ -50,15 +50,15 @@ end
 -- @tparam table dependencies A list of tasks this task requires
 -- @tparam function action The action to run
 -- @treturn Task The created task
-function Runner:AddTask(name, dependencies, action)
-	return self:InjectTask(Task(name, dependencies, action))
+function Runner:addTask(name, dependencies, action)
+	return self:injectTask(Task(name, dependencies, action))
 end
 
 --- Add a Task object to the collection
 -- @tparam Task task The task to insert
 -- @tparam string name The name of the task (optional)
 -- @treturn Task The current task
-function Runner:InjectTask(task, name)
+function Runner:injectTask(task, name)
 	self.tasks[name or task.name] = task
 	return task
 end
