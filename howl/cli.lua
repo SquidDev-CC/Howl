@@ -92,7 +92,7 @@ local tasks, environment = loader.SetupTasks(context, howlFile)
 -- Basic list tasks
 tasks:Task "list" (function()
 	tasks:listTasks()
-end):Description "Lists all the tasks"
+end):description "Lists all the tasks"
 
 tasks:Task "help" (function()
 	print("Howl [options] [task]")
@@ -101,7 +101,7 @@ tasks:Task "help" (function()
 
 	colored.printColor("orange", "\nOptions:")
 	options:Help("  ")
-end):Description "Print out a detailed usage for Howl"
+end):description "Print out a detailed usage for Howl"
 
 -- If no other task exists run this
 tasks:Default(function()

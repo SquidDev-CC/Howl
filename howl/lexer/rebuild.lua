@@ -2,21 +2,21 @@
 -- Does not preserve whitespace
 -- @module howl.lexer.rebuild
 
-local Constants = require "howl.lexer.constants"
-local Parse = require "howl.lexer.parse"
+local constants = require "howl.lexer.constants"
+local parse = require "howl.lexer.parse"
 local platform = require "howl.platform"
 
-local lowerChars = Constants.LowerChars
-local upperChars = Constants.UpperChars
-local digits = Constants.Digits
-local symbols = Constants.Symbols
+local lowerChars = constants.LowerChars
+local upperChars = constants.UpperChars
+local digits = constants.Digits
+local symbols = constants.Symbols
 
 --- Join two statements together
 -- @tparam string left The left statement
 -- @tparam string right The right statement
 -- @tparam string sep The string used to separate the characters
 -- @treturn string The joined strings
-local function JoinStatements(left, right, sep)
+local function doJoinStatements(left, right, sep)
 	sep = sep or ' '
 	local leftEnd, rightStart = left:sub(-1, -1), right:sub(1, 1)
 	if upperChars[leftEnd] or lowerChars[leftEnd] or leftEnd == '_' then
@@ -53,7 +53,8 @@ end
 -- @tparam Node ast The AST tree
 -- @treturn string The minified string
 -- @todo Ability to control minification level
-local function Minify(ast)
+-- @todo Convert to a buffer
+local function minify(ast)
 	local formatStatlist, formatExpr
 	local count = 0
 	local function joinStatements(left, right, sep)
@@ -61,7 +62,7 @@ local function Minify(ast)
 			count = 0
 			return left .. "\n" .. right
 		else
-			return JoinStatements(left, right, sep)
+			return doJoinStatements(left, right, sep)
 		end
 	end
 
@@ -357,34 +358,35 @@ end
 --- Minify a string
 -- @tparam string input The input string
 -- @treturn string The minifyied string
-local function MinifyString(input)
-	local lex = Parse.LexLua(input)
+local function minifyString(input)
+	local lex = parse.LexLua(input)
 	platform.refreshYield()
 
-	local tree = Parse.ParseLua(lex)
+	local tree = parse.ParseLua(lex)
 	platform.refreshYield()
 
-	return Minify(tree)
+	local min = minify(tree)
+	platform.refreshYield()
+	return min
 end
 
 --- Minify a file
 -- @tparam string cd Current directory
 -- @tparam string inputFile File to read from
 -- @tparam string outputFile File to write to (Defaults to inputFile)
-local function MinifyFile(cd, inputFile, outputFile)
+local function minifyFile(cd, inputFile, outputFile)
 	outputFile = outputFile or inputFile
 
 	local contents = platform.fs.read(platform.fs.combine(cd, inputFile))
 
-	contents = MinifyString(contents)
+	contents = minifyString(contents)
 
 	platform.fs.write(platform.fs.combine(cd, outputFile))
 end
 
 --- @export
 return {
-	JoinStatements = JoinStatements,
-	Minify = Minify,
-	MinifyString = MinifyString,
-	MinifyFile = MinifyFile,
+	minify = minify,
+	minifyString = minifyString,
+	minifyFile = minifyFile,
 }

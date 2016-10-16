@@ -7,7 +7,7 @@ local rebuild = require "howl.lexer.rebuild"
 local Runner = require "howl.tasks.Runner"
 local Task = require "howl.tasks.Task"
 
-local minifyFile = rebuild.MinifyFile
+local minifyFile = rebuild.minifyFile
 local minifyDiscard = function(self, env, i, o)
 	return minifyFile(env.root, i, o)
 end
@@ -77,7 +77,7 @@ end
 
 local function setup(context)
 	context.mediator:subscribe({ "HowlFile", "env" }, function(env)
-		env.Minify = minifyFile
+		env.minify = minifyFile
 	end)
 end
 

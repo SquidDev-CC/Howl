@@ -31,3 +31,10 @@ Tasks:gist "upload" (function(spec)
 		include = { "Howl.lua", "Howl.min.lua" }
 	}
 end) :Requires { "build/Howl.lua", "build/Howl.min.lua" }
+
+Tasks:compilr "compilr" {
+	include = "howl/class/*",
+	startup = "howl/class/mixin.lua",
+	output = "build/compilr.lua",
+	minify = true,
+}

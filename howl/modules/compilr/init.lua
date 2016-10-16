@@ -8,7 +8,6 @@ local fs = require "howl.platform".fs
 local mixin = require "howl.class.mixin"
 local rebuild = require "howl.lexer.rebuild"
 
-local Buffer = require "howl.lib.Buffer"
 local CopySource = require "howl.files.CopySource"
 local Runner = require "howl.tasks.Runner"
 local Task = require "howl.tasks.Task"
@@ -16,6 +15,7 @@ local Task = require "howl.tasks.Task"
 local formatTemplate = require "howl.lib.utils".formatTemplate
 
 local template = require "howl.modules.compilr.template"
+local vfs = require "howl.modules.compilr.vfs"
 
 local CompilrTask = Task:subclass("howl.modules.compilr.CompilrTask")
 	:include(mixin.filterable)
@@ -27,6 +27,12 @@ function CompilrTask:initialize(context, name, dependencies)
 
 	self.root = context.root
 	self.sources = CopySource()
+	self.sources:modify(function(file)
+		local contents = file.contents
+		if self.options.minify and loadstring(contents) then
+			return rebuild.minifyString(contents)
+		end
+	end)
 
 	self:exclude { ".git", ".svn", ".gitignore", context.out }
 
@@ -69,35 +75,17 @@ function CompilrTask:runAction(context)
 	local resultFiles = {}
 	for _, file in pairs(files) do
 		context.logger:verbose("Including " .. file.relative)
-
-		local contents = file.contents
-
-		if minify and loadstring(contents) then -- This might contain non-lua files, ensure it doesn't
-			contents = rebuild.MinifyString(contents)
-		end
-
-		local root = resultFiles
-		local nodes = { file.name:match((file.name:gsub("[^/]+/?", "([^/]+)/?"))) }
-		nodes[#nodes] = nil
-		for _, node in pairs(nodes) do
-			local nRoot = root[node]
-			if not nRoot then
-				nRoot = {}
-				root[node] = nRoot
-			end
-			root = nRoot
-		end
-
-		root[fs.getName(file.name)] = contents
+		resultFiles[file.name] = file.contents
 	end
 
 	local result = formatTemplate(template, {
 		files = dump.serialise(resultFiles),
-		startup = ("%q"):format(startup)
+		startup = ("%q"):format(startup),
+		vfs = vfs,
 	})
 
 	if minify then
-		result = rebuild.MinifyString(result)
+		result = rebuild.minifyString(result)
 	end
 
 	fs.write(fs.combine(context.root, output), result)
