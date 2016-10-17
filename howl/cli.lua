@@ -28,10 +28,6 @@ options
 	:Alias "h"
 	:Description "Print this help"
 
-require "howl.depends.bootstrap"
-require "howl.depends.combiner"
-require "howl.external.busted"
-
 context:include "howl.modules.dependencies.FileDependency"
 context:include "howl.modules.dependencies.TaskDependency"
 context:include "howl.modules.list"
