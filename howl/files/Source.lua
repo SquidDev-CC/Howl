@@ -20,6 +20,8 @@ local function extractPattern(item)
 		return matcher.createMatcher(item)
 	elseif t == "table" and item.tag and item.predicate then
 		return item
+	elseif t == "table" and item.isInstanceOf and item:isInstanceOf(Source) then
+		return matcher.createMatcher(function(text) return item:matches(text) end)
 	else
 		return nil
 	end
@@ -140,6 +142,14 @@ end
 
 function Source:matches(text)
 	return self:included(text) and not self:excluded(text)
+end
+
+function Source:hasFiles()
+	if self.allowEmpty or #self.includes > 0 then return true end
+	for _, source in pairs(self.children) do
+		if source:hasFiles() then return true end
+	end
+	return false
 end
 
 function Source:gatherFiles(root, includeDirectories, outList)

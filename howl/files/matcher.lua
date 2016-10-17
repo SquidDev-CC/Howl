@@ -23,7 +23,10 @@ for k,v in pairs(basicMatches) do wildMatches[k] = v end
 -- @tfield (Pattern, string)->boolean match Predicate to check if this is a valid item
 
 local function patternAction(self, text) return text:match(self.text) end
-local function textAction(self, text) return self.text == text end
+local function textAction(self, text)
+	if self.text == "" then return true end
+	return text:sub(1, #self.text + 1) == self.text .. "/"
+end
 local function funcAction(self, text) return self.func(text) end
 
 --- Create a matcher

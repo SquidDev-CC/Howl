@@ -175,7 +175,7 @@ local function makeEnv(root, files)
 
 	env._G = env
 	env._ENV = env
-	return env
+	return setmetatable(env, {__index = _ENV or getfenv()})
 end
 
 local function extract(root, files, from, to)

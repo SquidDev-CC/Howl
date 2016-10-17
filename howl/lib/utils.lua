@@ -115,7 +115,7 @@ end
 local function formatTemplate(template, data)
 	return (template:gsub("${([^}]+)}", function(str)
 		local res = data[str]
-		if res == nil then 
+		if res == nil then
 			return "${" .. str .. "}"
 		else
 			return tostring(res)
@@ -126,11 +126,11 @@ end
 --- Mark a function as deprecated
 -- @tparam string name The name of the function
 -- @tparam function function The function to delegate to
--- @tparam string|nil msg Additional message to print 
+-- @tparam string|nil msg Additional message to print
 local function deprecated(name, func, msg)
 	assert.argType(name, "string", "deprecated", 1)
 	assert.argType(func, "function", "deprecated", 2)
-	
+
 	if msg ~= nil then
 		assert.argType(msg, "string", "msg", 4)
 		msg = " " .. msg
