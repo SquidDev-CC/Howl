@@ -167,7 +167,8 @@ function Source:gatherFiles(root, includeDirectories, outList)
 		local n = #outList
 		while queueN > 0 do
 			local path = queue[queueN]
-			local relative = path:sub(#root + 2)
+			local relative = path
+			if root ~= "" then relative = relative:sub(#root + 2) end
 			queueN = queueN - 1
 
 			if fs.isDir(path) then

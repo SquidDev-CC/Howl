@@ -66,19 +66,22 @@ local globalEnv = setmetatable({ require = require }, { __index = getfenv() })
 local root = fs.getDir(shell.getRunningProgram())
 
 local function toModule(file)
-	return file:sub(#root + 2):gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
+	if root ~= "" then file = file:sub(#root + 2) end
+	return file:gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
 end
 
 local function toResource(file)
-	return file:sub(#root + 2):gsub("%.res%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
+	if root ~= "" then file = file:sub(#root + 2) end
+	return file:gsub("%.res%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
 end
 
 local function loadModule(path)
 	local file = fs.open(path, "r")
 	if file then
 		local env = sandEnv
+		if root ~= "" then path = path:sub(#root + 2) end
 		if path:find("howl/platform/", 1, true) then env = globalEnv end
-		local func, err = load(file.readAll(), path:sub(#root + 2), "t", env)
+		local func, err = load(file.readAll(), path, "t", env)
 		file.close()
 		if not func then error(err) end
 		return func
