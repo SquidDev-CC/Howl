@@ -156,7 +156,7 @@ local function makeEnv(root, files)
 		loadfile = function(name)
 			local file = env.fs.open(name, "r")
 			if file then
-				local func, err = loadstring(file.readAll(), fs.getName(name), env)
+				local func, err = load(file.readAll(), fs.getName(name), nil, env)
 				file.close()
 				return func, err
 			end
