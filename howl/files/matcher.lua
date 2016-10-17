@@ -24,8 +24,7 @@ for k,v in pairs(basicMatches) do wildMatches[k] = v end
 
 local function patternAction(self, text) return text:match(self.text) end
 local function textAction(self, text)
-	if self.text == "" then return true end
-	return text:sub(1, #self.text + 1) == self.text .. "/"
+	return self.text == "" or self.text == text or text:sub(1, #self.text + 1) == self.text .. "/"
 end
 local function funcAction(self, text) return self.func(text) end
 
