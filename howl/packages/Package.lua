@@ -31,8 +31,8 @@ function Package:getName()
 end
 
 --- Get the files for a set of metadata
--- @tparam cache The previous cache metadata
--- @treturn table Hash lookup of files. They should not have a leading '/'.
+-- @param cache The previous cache metadata
+-- @treturn table Lookup of provided files to actual path. They should not have a leading '/'.
 function Package:files(cache)
 	error("files has not been overridden in " .. tostring(self.class), 2)
 end
@@ -42,7 +42,7 @@ end
 -- @param previous The previous cache metadata
 -- @tparam boolean refresh Force a refresh of dependencies
 -- @return The new cache metadata
-function Package:resolve(context, previous, refresh)
+function Package:require(context, previous, refresh)
 	error("refresh has not been overrriden in " .. tostring(self.class), 2)
 end
 

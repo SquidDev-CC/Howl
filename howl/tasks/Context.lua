@@ -70,7 +70,7 @@ function Context:DoRequire(path, quite)
 		return self:Run(name, from, to)
 	end
 
-	if fs.exists(fs.combine(self.env.root , path)) then
+	if fs.exists(fs.combine(self.env.root, path)) then
 		self.filesProduced[path] = true
 		return true
 	end

@@ -28,10 +28,11 @@ options
 	:Alias "h"
 	:Description "Print this help"
 
-context:include "howl.modules.dependencies.FileDependency"
-context:include "howl.modules.dependencies.TaskDependency"
+context:include "howl.modules.dependencies.file"
+context:include "howl.modules.dependencies.task"
 context:include "howl.modules.list"
 context:include "howl.modules.plugins"
+context:include "howl.modules.packages.file"
 context:include "howl.modules.packages.gist"
 context:include "howl.modules.packages.pastebin"
 context:include "howl.modules.tasks.clean"

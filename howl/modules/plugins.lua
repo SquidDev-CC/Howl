@@ -43,9 +43,9 @@ function Plugins:addPlugin(data)
 		file = next(fetchedFiles)
 	end
 
-	local func, msg = loadfile(fs.combine(package.installDir, file), _ENV)
+	local func, msg = loadfile(fetchedFiles[file], _ENV)
 	if not func then
-		self.context.logger:error("Cannot load plugin file " .. file)
+		self.context.logger:error("Cannot load plugin file " .. file .. ": " .. msg)
 		error("Error adding plugin")
 	end
 

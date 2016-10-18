@@ -24,13 +24,17 @@ end
 
 function GistPackage:files(previous)
 	if previous then
-		return previous.files
+		local files = {}
+		for k, _ in pairs(previous.files) do
+			files[k] = platform.fs.combine(self.installDir, k)
+		end
+		return files
 	else
 		return {}
 	end
 end
 
-function GistPackage:resolve(context, previous, refresh)
+function GistPackage:require(context, previous, refresh)
 	local id = self.options.id
 	local dir = self.installDir
 
@@ -39,6 +43,7 @@ function GistPackage:resolve(context, previous, refresh)
 	end
 
 	-- TODO: Fetch gists/:id/commits [1].version first if we have a hash
+	-- TODO: Worth storing individual versions?
 	local success, request = platform.http.request("https://api.github.com/gists/" .. id)
 	if not success or not request then
 		context.logger:error("Cannot find gist " .. id)

@@ -63,7 +63,7 @@ function GistTask:runAction(context)
 	local ok, handle, message = http.request(url, data, headers)
 	if not ok then
 		if handle then
-			printError(handle.readAll())
+			context.logger:error(handle.readAll())
 		end
 
 		error(result, 0)

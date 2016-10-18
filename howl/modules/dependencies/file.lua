@@ -1,11 +1,11 @@
 --- Allows depending on a file.
--- @module howl.modules.dependencies.FileDependency
+-- @module howl.modules.dependencies.file
 
 local assert = require "howl.lib.assert"
 local Task = require "howl.tasks.Task"
 local Dependency = require "howl.tasks.Dependency"
 
-local FileDependency = Dependency:subclass("howl.modules.dependencies.FileDependency")
+local FileDependency = Dependency:subclass("howl.modules.dependencies.file.FileDependency")
 
 --- Create a new task dependency
 function FileDependency:initialize(task, path)

@@ -65,7 +65,7 @@ function Manager:require(package, files, force)
 		end
 	end
 
-	local newData = package:resolve(self.context, data, force)
+	local newData = package:require(self.context, data, force)
 
 	-- TODO: Decent equality checking
 	if newData ~= data then

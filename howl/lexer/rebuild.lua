@@ -381,7 +381,7 @@ local function minifyFile(cd, inputFile, outputFile)
 
 	contents = minifyString(contents)
 
-	platform.fs.write(platform.fs.combine(cd, outputFile))
+	platform.fs.write(platform.fs.combine(cd, outputFile), contents)
 end
 
 --- @export

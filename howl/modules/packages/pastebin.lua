@@ -1,5 +1,5 @@
---- A package provider that installs gists.
--- @module howl.modules.packages.gist
+--- A package provider that installs pastebins.
+-- @module howl.modules.packages.pastebin
 
 local class = require "howl.class"
 local platform = require "howl.platform"
@@ -7,13 +7,13 @@ local platform = require "howl.platform"
 local Manager = require "howl.packages.Manager"
 local Package = require "howl.packages.Package"
 
-local PastebinPackage = Package:subclass("howl.modules.packages.gist.PastebinPackage")
+local PastebinPackage = Package:subclass("howl.modules.packages.pastebin.PastebinPackage")
 	:addOptions { "id" }
 
 --- Setup the dependency, checking if it cannot be resolved
 function PastebinPackage:setup(context, runner)
 	if not self.options.id then
-		context.logger:error("Gist has no ID")
+		context.logger:error("Pastebin has no ID")
 	end
 end
 
@@ -25,11 +25,11 @@ function PastebinPackage:files(previous)
 	if previous then
 		return {}
 	else
-		return { ["init.lua"] = true }
+		return { ["init.lua"] = platform.fs.combine(self.installDir, "init.lua") }
 	end
 end
 
-function PastebinPackage:resolve(context, previous, refresh)
+function PastebinPackage:require(context, previous, refresh)
 	local id = self.options.id
 	local dir = self.installDir
 
