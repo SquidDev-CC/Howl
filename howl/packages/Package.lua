@@ -43,7 +43,7 @@ end
 -- @tparam boolean refresh Force a refresh of dependencies
 -- @return The new cache metadata
 function Package:require(context, previous, refresh)
-	error("refresh has not been overrriden in " .. tostring(self.class), 2)
+	error("require has not been overrriden in " .. tostring(self.class), 2)
 end
 
 return Package

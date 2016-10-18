@@ -14,8 +14,10 @@ local FilePackage = Package:subclass("howl.modules.packages.file.FilePackage")
 function FilePackage:setup(context, runner)
 	if not self.options.path then
 		context.logger:error("No path specified")
-	elseif self.options.path:sub(1, 1) ~= "/" then
-		self.options.path = fs.combine(context.root, self.options.path)
+	elseif self.options.path:sub(1, 1) == "/" then
+		self.options.fullPath = path
+	else
+		self.options.fullPath = fs.combine(context.root, self.options.path)
 	end
 end
 
@@ -24,16 +26,14 @@ function FilePackage:getName()
 end
 
 function FilePackage:files(previous)
-	return { [self.options.path] = self.options.path }
+	return { [self.options.path] = self.options.fullPath }
 end
 
 function FilePackage:require(context, previous, refresh)
 	local id = self.options.id
-	if not fs.exists(self.options.path) then
+	if not fs.exists(self.options.fullPath) then
 		context.logger:error("Cannot find file " .. self.options.path)
 	end
-
-	return true
 end
 
 

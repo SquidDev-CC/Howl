@@ -30,7 +30,8 @@ local function require(name)
 end
 local sandEnv = setmetatable({
 	_G = _G,
-	require = require,
+	_NATIVE = _ENV or _G,
+	require = require, preload = preload,
 	assert = assert,
 	error = error,
 	getmetatable = getmetatable,

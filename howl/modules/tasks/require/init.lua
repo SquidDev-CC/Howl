@@ -11,7 +11,7 @@ local Runner = require "howl.tasks.Runner"
 local Task = require "howl.tasks.Task"
 
 local header = require "howl.modules.tasks.require.header"
-local envSetup = "local env = setmetatable({ require = require }, { __index = getfenv() })\n"
+local envSetup = "local env = setmetatable({ require = require, preload = preload, }, { __index = getfenv() })\n"
 
 local function toModule(file)
 	if file:find("%.lua$") then
@@ -91,12 +91,14 @@ function RequireTask:runAction(context)
 	end
 
 	if self.options.api then
-		result:append("if shell then\n")
+		result:append("if not shell or type(... or nil) == 'table' then\n")
+		result:append("local tbl = ... or {}\n")
+		result:append("tbl.require = require tbl.preload = preload\n")
+		result:append("return tbl\n")
+		result:append("else\n")
 	end
 	result:append("return preload[\"" .. toModule(startup) .. "\"](...)\n")
 	if self.options.api then
-		result:append("else\n")
-		result:append("return { require = require, preload = preload }\n")
 		result:append("end\n")
 	end
 

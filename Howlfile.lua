@@ -14,14 +14,6 @@ Tasks:require "main" {
 	api = true,
 }
 
-Tasks:require "develop" {
-	include = "howl/*.lua",
-	startup = "howl/cli.lua",
-	output = "build/HowlD.lua",
-	link = true,
-	api = true,
-}
-
 Tasks:Task "build" { "clean", "minify" } :Description "Main build task"
 
 Tasks:gist "upload" (function(spec)

@@ -35,14 +35,25 @@ function Plugins:addPlugin(data)
 		data.file = nil
 	end
 
+	self.context.logger:verbose("Adding plugin type " .. type)
 	local manager = self.context.packages
 	local package = manager:addPackage(type, data)
 	local fetchedFiles = manager:require(package, file and {file})
 
 	if not file then
-		file = next(fetchedFiles)
+		if fetchedFiles["init.lua"] then
+			file = "init.lua"
+		else
+			file = next(fetchedFiles)
+		end
 	end
 
+	if not file then
+		self.context.logger:error(package:getName() .. " does not export any files")
+		error("Error adding plugin")
+	end
+
+	self.context.logger:verbose("Using package " .. package:getName() .. " with " .. file)
 	local func, msg = loadfile(fetchedFiles[file], _ENV)
 	if not func then
 		self.context.logger:error("Cannot load plugin file " .. file .. ": " .. msg)

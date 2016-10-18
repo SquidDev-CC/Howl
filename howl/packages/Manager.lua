@@ -6,6 +6,8 @@ local fs = require "howl.platform".fs
 local dump = require "howl.lib.dump"
 local mixin = require "howl.class.mixin"
 
+local emptyCache = {}
+
 local Manager = class("howl.packages.Manager")
 Manager.providers = {}
 
@@ -65,13 +67,19 @@ function Manager:require(package, files, force)
 		end
 	end
 
+	if data == emptyCache then data = nil end
+
 	local newData = package:require(self.context, data, force)
 
 	-- TODO: Decent equality checking
 	if newData ~= data then
 		self.context.logger:verbose("Package " .. name .. " updated")
-		self.cache[name] = newData
-		fs.write(path, dump.serialise(newData))
+		if newData == nil then
+			self.cache[name] = emptyCache
+		else
+			self.cache[name] = newData
+			fs.write(path, dump.serialise(newData))
+		end
 	end
 
 	local newFiles = package:files(newData)
