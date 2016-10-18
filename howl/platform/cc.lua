@@ -109,9 +109,17 @@ else
 	getEnv = function(name, default) return default end
 end
 
+local time
+if profiler and profiler.milliTime then
+	time = function() return profiler.milliTime() * 1e-3 end
+else
+	time = os.time
+end
+
 return {
 	os = {
 		clock = os.clock,
+		time = time,
 		getEnv = getEnv,
 	},
 	fs = {

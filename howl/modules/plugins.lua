@@ -51,15 +51,18 @@ function Plugins:addPlugin(data)
 
 	local root = "external." .. package:getName()
 
+	local count = 0
 	for file, loc in pairs(fetchedFiles) do
 		if file:find("%.lua$") then
+			count = count + 1
+
 			local func, msg = loadfile(fetchedFiles[file], _ENV)
 			if func then
 				local name = toModule(root, file)
 				preload[name] = func
 				self.context.logger:verbose("Including plugin file " .. file .. " as " .. name)
 			else
-				self.context.logger:warn("Cannot load plugin file " .. file .. ": " .. msg)
+				self.context.logger:warning("Cannot load plugin file " .. file .. ": " .. msg)
 			end
 		end
 	end
@@ -67,14 +70,15 @@ function Plugins:addPlugin(data)
 	if not file then
 		if fetchedFiles["init.lua"] then
 			file = "init.lua"
-		else
+		elseif count == 1 then
 			file = next(fetchedFiles)
+		elseif count == 0 then
+			self.context.logger:error(package:getName() .. " does not export any files")
+			error("Error adding plugin")
+		else
+			self.context.logger:error("Cannot guess a file for " .. package:getName())
+			error("Error adding plugin")
 		end
-	end
-
-	if not file then
-		self.context.logger:error(package:getName() .. " does not export any files")
-		error("Error adding plugin")
 	end
 
 	self.context.logger:verbose("Using package " .. package:getName() .. " with " .. file)

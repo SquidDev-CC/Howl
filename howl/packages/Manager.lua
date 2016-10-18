@@ -90,7 +90,7 @@ function Manager:require(package, files, force)
 			self.cache[name] = emptyCache
 		else
 			self.cache[name] = newData
-			fs.write(path, dump.serialise(newData))
+			fs.write(fs.combine(self.root, name .. ".lua"), dump.serialise(newData))
 		end
 	end
 
