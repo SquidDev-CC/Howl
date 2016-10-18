@@ -11,9 +11,9 @@ local PastebinPackage = Package:subclass("howl.modules.packages.pastebin.Pastebi
 	:addOptions { "id" }
 
 --- Setup the dependency, checking if it cannot be resolved
-function PastebinPackage:setup(context, runner)
+function PastebinPackage:setup(runner)
 	if not self.options.id then
-		context.logger:error("Pastebin has no ID")
+		self.context.logger:error("Pastebin has no ID")
 	end
 end
 
@@ -29,7 +29,7 @@ function PastebinPackage:files(previous)
 	end
 end
 
-function PastebinPackage:require(context, previous, refresh)
+function PastebinPackage:require(previous, refresh)
 	local id = self.options.id
 	local dir = self.installDir
 
@@ -39,7 +39,7 @@ function PastebinPackage:require(context, previous, refresh)
 
 	local success, request = platform.http.request("http://pastebin.com/raw/" .. id)
 	if not success or not request then
-		context.logger:error("Cannot find pastebin " .. id)
+		self.context.logger:error("Cannot find pastebin " .. id)
 		return previous
 	end
 

@@ -6,6 +6,8 @@ local fs = require "howl.platform".fs
 local dump = require "howl.lib.dump"
 local mixin = require "howl.class.mixin"
 
+local Proxy = require "howl.packages.Proxy"
+
 local emptyCache = {}
 
 local Manager = class("howl.packages.Manager")
@@ -29,7 +31,7 @@ function Manager:addPackage(type, details)
 	local provider = Manager.providers[type]
 	if not provider then error("No such package provider " .. type, 2) end
 
-	local package = provider()
+	local package = provider(self.context, self.root)
 	package:configure(details)
 	local name = type .. "-" .. package:getName()
 	package.installDir = fs.combine(self.root, name)
@@ -42,7 +44,23 @@ function Manager:addPackage(type, details)
 		error("Error setting up " .. name, 2)
 	end
 
-	return package
+	return Proxy(self, name, package)
+end
+
+function Manager:getCache(name)
+	if not self.packages[name] then
+		error("No such package " .. name, 2)
+	end
+
+	local cache = self.cache[name]
+	local path = fs.combine(self.root, name .. ".lua")
+	if cache == nil and fs.exists(path) then
+		cache = dump.unserialise(fs.read(path))
+	end
+
+	if cache == emptyCache then cache = nil end
+
+	return cache
 end
 
 function Manager:require(package, files, force)
@@ -51,14 +69,10 @@ function Manager:require(package, files, force)
 
 	force = force or self.alwaysRefresh
 
-	local data = self.cache[name]
-	local path = fs.combine(self.root, name .. ".lua")
-	if data == nil and fs.exists(path) then
-		data = dump.unserialise(fs.read(path))
-	end
+	local cache = self:getCache(name)
 
-	if data and files and not force then
-		local existing = package:files(data)
+	if cache and files and not force then
+		local existing = package:files(cache)
 		for _, file in ipairs(files) do
 			if not existing[file] then
 				force = true
@@ -67,12 +81,10 @@ function Manager:require(package, files, force)
 		end
 	end
 
-	if data == emptyCache then data = nil end
-
-	local newData = package:require(self.context, data, force)
+	local newData = package:require(cache, force)
 
 	-- TODO: Decent equality checking
-	if newData ~= data then
+	if newData ~= cache then
 		self.context.logger:verbose("Package " .. name .. " updated")
 		if newData == nil then
 			self.cache[name] = emptyCache

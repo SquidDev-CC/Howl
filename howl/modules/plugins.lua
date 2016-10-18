@@ -23,6 +23,15 @@ function Plugins:configure(data)
 	end
 end
 
+local function toModule(root, file)
+	local name = file:gsub("%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
+	if name == "" or name == "init" then
+		return root
+	else
+		return root .. "." .. name
+	end
+end
+
 function Plugins:addPlugin(data)
 	if not data.type then error("No plugin type specified") end
 
@@ -35,10 +44,25 @@ function Plugins:addPlugin(data)
 		data.file = nil
 	end
 
-	self.context.logger:verbose("Adding plugin type " .. type)
-	local manager = self.context.packages
+	local manager = self.context.packageManager
 	local package = manager:addPackage(type, data)
-	local fetchedFiles = manager:require(package, file and {file})
+	self.context.logger:verbose("Using plugin from package " .. package:getName())
+	local fetchedFiles = package:require(file and {file})
+
+	local root = "external." .. package:getName()
+
+	for file, loc in pairs(fetchedFiles) do
+		if file:find("%.lua$") then
+			local func, msg = loadfile(fetchedFiles[file], _ENV)
+			if func then
+				local name = toModule(root, file)
+				preload[name] = func
+				self.context.logger:verbose("Including plugin file " .. file .. " as " .. name)
+			else
+				self.context.logger:warn("Cannot load plugin file " .. file .. ": " .. msg)
+			end
+		end
+	end
 
 	if not file then
 		if fetchedFiles["init.lua"] then
@@ -54,14 +78,13 @@ function Plugins:addPlugin(data)
 	end
 
 	self.context.logger:verbose("Using package " .. package:getName() .. " with " .. file)
-	local func, msg = loadfile(fetchedFiles[file], _ENV)
-	if not func then
-		self.context.logger:error("Cannot load plugin file " .. file .. ": " .. msg)
+	local name = toModule(root, file)
+	if not preload[name] then
+		self.context.logger:error("Cannot load plugin as " .. name .. " could not be loaded")
 		error("Error adding plugin")
 	end
 
-	self.context:include(func())
-
+	self.context:include(require(name))
 	return self
 end
 

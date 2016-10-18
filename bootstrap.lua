@@ -17,7 +17,7 @@ local function require(name)
 	loaded[name] = loading
 	local contents = preload[name]
 	if contents then
-		result = contents()
+		result = contents(name)
 	elseif oldRequire then
 		result = oldRequire(name)
 	else

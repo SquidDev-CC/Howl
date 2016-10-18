@@ -24,7 +24,8 @@ function Context:initialize(root, args)
 	self.mediator = mediator
 	self.arguments = argparse.Options(self.mediator, args)
 	self.logger = Logger(self)
-	self.packages = Manager(self)
+	self.packageManager = Manager(self)
+	self.modules = {}
 end
 
 --- Include a module in this context
@@ -34,13 +35,26 @@ function Context:include(module)
 		module = require(module)
 	end
 
+	if self.modules[module.name] then
+		self.logger:warn(module.name .. " already included, skipping")
+		return
+	end
+
+	local data = { module = module, }
+	self.modules[module.name] = data
+
+	self.logger:verbose("Including " .. module.name .. ": " .. module.description)
+
 	if not module.applied then
-		self.logger:verbose("Including " .. module.name .. ": " .. module.description)
 		module.applied = true
 		if module.apply then module.apply() end
 	end
 
-	if module.setup then module.setup(self) end
+	if module.setup then module.setup(self, data) end
+end
+
+function Context:getModuleData(name)
+	return self.modules[name]
 end
 
 return Context

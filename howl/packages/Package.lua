@@ -10,17 +10,18 @@ local Package = class("howl.packages.Package")
 	:include(mixin.optionGroup)
 
 --- Create a new package
-function Package:initialize(root)
+function Package:initialize(context, root)
 	if self.class == Package then
 		error("Cannot create instance of abstract class " .. tostring(Package), 2)
 	end
 
+	self.context = context
 	self.root = root
 	self.options = {}
 end
 
 --- Setup the package, checking if it is well formed
-function Package:setup(context)
+function Package:setup()
 	error("setup has not been overridden in " .. tostring(self.class), 2)
 end
 
@@ -38,11 +39,10 @@ function Package:files(cache)
 end
 
 --- Resolve this package, fetching if required
--- @tparam howl.Context context The current context
 -- @param previous The previous cache metadata
 -- @tparam boolean refresh Force a refresh of dependencies
 -- @return The new cache metadata
-function Package:require(context, previous, refresh)
+function Package:require(previous, refresh)
 	error("require has not been overrriden in " .. tostring(self.class), 2)
 end
 

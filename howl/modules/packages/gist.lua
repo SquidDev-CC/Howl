@@ -12,9 +12,9 @@ local GistPackage = Package:subclass("howl.modules.packages.gist.GistPackage")
 	:addOptions { "id" }
 
 --- Setup the dependency, checking if it cannot be resolved
-function GistPackage:setup(context, runner)
+function GistPackage:setup(runner)
 	if not self.options.id then
-		context.logger:error("Gist has no ID")
+		self.context.logger:error("Gist has no ID")
 	end
 end
 
@@ -34,7 +34,7 @@ function GistPackage:files(previous)
 	end
 end
 
-function GistPackage:require(context, previous, refresh)
+function GistPackage:require(previous, refresh)
 	local id = self.options.id
 	local dir = self.installDir
 
@@ -46,7 +46,7 @@ function GistPackage:require(context, previous, refresh)
 	-- TODO: Worth storing individual versions?
 	local success, request = platform.http.request("https://api.github.com/gists/" .. id)
 	if not success or not request then
-		context.logger:error("Cannot find gist " .. id)
+		self.context.logger:error("Cannot find gist " .. id)
 		return false
 	end
 
@@ -63,7 +63,7 @@ function GistPackage:require(context, previous, refresh)
 		current = { hash = hash, files = {} }
 		for path, file in pairs(data.files) do
 			if file.truncated then
-				context.logger:error("Skipping " .. path .. " as it is truncated")
+				self.context.logger:error("Skipping " .. path .. " as it is truncated")
 			else
 				platform.fs.write(platform.fs.combine(dir, path), file.content)
 				current.files[path] = true

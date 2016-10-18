@@ -103,8 +103,17 @@ mixins.optionGroup = {
 	configure = function(self, item)
 		assert.argType(item, "table", "configure", 1)
 
+		local class = self.class
+		local options = class.options
+		while class and not options do
+			options = class.options
+			class = class.super
+		end
+
+		if not options then return end
+
 		for k, v in pairs(item) do
-			if self.class.options[k] then
+			if options[k] then
 				self[k](self, v)
 			end
 		end
