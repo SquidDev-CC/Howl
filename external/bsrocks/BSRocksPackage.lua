@@ -8,8 +8,8 @@ local Package = require "howl.packages.Package"
 local BSRocksPackage = Package:subclass(...)
 	:addOptions { "package", "version" }
 
---- Setup the dependency, checking if it cannot be resolved
-function BSRocksPackage:setup(runner)
+--- Setup this package, assuring all config options are valid
+function BSRocksPackage:setup()
 	if not self.options.package then
 		self.context.logger:error("BSRocks module must specify a package name")
 	end
@@ -27,12 +27,24 @@ function BSRocksPackage:files(previous)
 
 	local installDir = brequire "bsrocks.lib.settings".installDirectory
 
-	local files = {}
-	for _, file in pairs(previous.files) do
-		if file:sub(1, 4) == "bin/" then
-			files[file] = fs.combine(installDir, file .. ".lua")
-		else
-			files[file] = fs.combine(installDir, fs.combine("lib", file))
+	local files = { }
+	if previous.modules then
+		local moduleDir = fs.combine(installDir, "lib")
+		for module, file in pairs(previous.modules) do
+			files[file] = fs.combine(moduleDir, module:gsub("%.", "/") .. ".lua")
+		end
+	end
+
+	-- Extract install locations
+	if previous.install then
+		for name, install in pairs(previous.install) do
+			local dir = fs.combine(installDir, name)
+			for name, file in pairs(install) do
+				if type(name) == "number" and name >= 1 and name <= #install then
+					name = file
+				end
+				files[file] = fs.combine(dir, name .. ".lua")
+			end
 		end
 	end
 
@@ -47,7 +59,6 @@ function BSRocksPackage:require(previous, refresh)
 	if not brequire then return previous end
 
 	local install = brequire "bsrocks.rocks.install"
-	local rockspec = brequire "bsrocks.rocks.rockspec"
 
 	local rock = install.getInstalled()[self.options.package]
 	if not rock then
@@ -55,7 +66,11 @@ function BSRocksPackage:require(previous, refresh)
 		rock = install.getInstalled()[self.options.package]
 	end
 
-	return { files = rockspec.extractFiles(rock) }
+	local build = rock.build
+	return {
+		modules = build and build.modules,
+		install = build and build.install,
+	}
 end
 
 return BSRocksPackage

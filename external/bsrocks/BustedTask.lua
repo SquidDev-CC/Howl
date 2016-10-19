@@ -126,6 +126,8 @@ function BustedTask:runAction(context)
 
 	busted.publish({ 'exit' })
 
+	for _, v in pairs(env.cleanup) do v() end
+
 	if failures > 0 or errors > 0 then
 		error("Tests failed!", 0)
 	end

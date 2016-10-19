@@ -1,9 +1,12 @@
+--- The main BSRocks extension bootstrapper
+-- @module howl.external.bsrocks
 local root = ...
 
 local fs = require "howl.platform".fs
 
 local BSRocksPackage = require(root .. ".BSRocksPackage")
 local BustedTask = require(root .. ".BustedTask")
+local LDocTask = require(root .. ".LDocTask")
 
 local Manager = require "howl.packages.Manager"
 local Runner = require "howl.tasks.Runner"
@@ -39,6 +42,9 @@ return {
 		Runner:include {
 			busted = function(self, name, taskDepends)
 				return self:injectTask(BustedTask(self.env, name, taskDepends))
+			end,
+			ldoc = function(self, name, taskDepends)
+				return self:injectTask(LDocTask(self.env, name, taskDepends))
 			end,
 		}
 	end,

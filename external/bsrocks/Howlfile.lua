@@ -5,3 +5,4 @@ plugins {
 }
 
 Tasks:busted "busted" { }
+Tasks:ldoc "ldoc" { }
