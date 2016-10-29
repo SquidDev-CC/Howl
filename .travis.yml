@@ -1,0 +1,9 @@
+sudo: required
+notifications:
+  email: false
+jdk:
+  - oraclejdk8
+install:
+  - wget -O howlci.jar https://dl.bintray.com/squiddev/maven/org/squiddev/howl.ci/0.1/howl.ci-0.1.jar
+script:
+  - java -jar howlci.jar
