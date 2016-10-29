@@ -63,7 +63,7 @@ local sandEnv = setmetatable({
 	end,
 })
 
-local globalEnv = setmetatable({ require = require }, { __index = getfenv() })
+local globalEnv = setmetatable({ require = require }, { __index = _ENV })
 local root = fs.getDir(shell.getRunningProgram())
 
 local function toModule(file)
@@ -76,12 +76,12 @@ local function toResource(file)
 	return file:gsub("%.res%.lua$", ""):gsub("/", "."):gsub("^(.*)%.init$", "%1")
 end
 
-local function loadModule(path)
+local function loadModule(path, global)
 	local file = fs.open(path, "r")
 	if file then
 		local env = sandEnv
 		if root ~= "" then path = path:sub(#root + 2) end
-		if path:find("howl/platform/", 1, true) then env = globalEnv end
+		if global or path:find("howl/platform/", 1, true) then env = globalEnv end
 		local func, err = load(file.readAll(), path, "t", env)
 		file.close()
 		if not func then error(err) end
@@ -116,7 +116,7 @@ include(fs.combine(root, "howl"))
 local args = { ... }
 
 if args[1] == "repl" then
-	preload["howl.cli"] = loadModule(shell.resolveProgram("lua"))
+	preload["howl.cli"] = loadModule(shell.resolveProgram("lua"), true)
 	args = {}
 elseif args[1] == "exec" then
 	preload["howl.cli"] =  loadModule(shell.resolveProgram(args[2]))
