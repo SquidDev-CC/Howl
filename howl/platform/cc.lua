@@ -116,6 +116,13 @@ else
 	time = os.time
 end
 
+local log
+if howlci then
+	log = howlci.log
+else
+	log = function() end
+end
+
 return {
 	os = {
 		clock = os.clock,
@@ -163,6 +170,7 @@ return {
 	http = {
 		request = request,
 	},
+	log = log,
 
 	refreshYield = refreshYield,
 }

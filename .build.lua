@@ -7,7 +7,9 @@ end
 local ok, msg = pcall(func, "-v")
 if not ok then
 	howlci.status("fail", "Failed running task: " .. (msg or "<no msg>"))
-	return
+else
+	howlci.status("ok", "Everything built correctly!")
 end
 
-howlci.status("ok", "Everything built correctly!")
+sleep(2)
+howlci.close()

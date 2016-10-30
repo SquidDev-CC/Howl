@@ -4,6 +4,6 @@ notifications:
 jdk:
   - oraclejdk8
 install:
-  - wget -O howlci.jar https://dl.bintray.com/squiddev/maven/org/squiddev/howl.ci/0.1/howl.ci-0.1.jar
+  - wget -O howlci.jar https://dl.bintray.com/squiddev/maven/org/squiddev/howl.ci/0.1.3/howl.ci-0.1.3.jar
 script:
   - java -jar howlci.jar

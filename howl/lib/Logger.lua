@@ -5,6 +5,16 @@ local class = require "howl.class"
 local mixin = require "howl.class.mixin"
 local dump = require "howl.lib.dump".dump
 local colored = require "howl.lib.colored"
+local platformLog = require "howl.platform".log
+
+local select, tostring = select, tostring
+local function concat(...)
+	local buffer = {}
+	for i = 1, select('#', ...) do
+		buffer[i] = tostring(select(i, ...))
+	end
+	return table.concat(buffer, " ")
+end
 
 local Logger = class("howl.lib.Logger")
 	:include(mixin.sealed)
@@ -23,6 +33,7 @@ function Logger:verbose(...)
 		local _, m = pcall(function() error("", 4) end)
 		colored.writeColor("gray", m)
 		colored.printColor("lightGray", ...)
+		platformLog("verbose", m .. concat(...))
 	end
 end
 
@@ -44,6 +55,7 @@ function Logger:dump(...)
 			end
 
 			if i > 1 then value = " " .. value end
+			-- TODO: use platformLog too.
 			colored.writeColor("lightGray", value)
 		end
 		print()
@@ -66,15 +78,21 @@ for _, v in ipairs(types) do
 	local color = v[3]
 	local format = '[' .. v[2] .. ']' .. (' '):rep(max - #v[2] + 1)
 	local field = "has" .. v[2]:gsub("^%l", string.upper)
+	local name = v[1]
 
-	Logger[v[1]] = function(self, fmt, ...)
+	Logger[name] = function(self, fmt, ...)
 		self[field] = true
 		colored.writeColor(color, format)
+
+		local text
 		if type(fmt) == "string" then
-			print(fmt:format(...))
+			text = fmt:format(...)
 		else
-			print(fmt, ...)
+
 		end
+
+		colored.printColor(color, text)
+		platformLog(name, text)
 	end
 end
 
