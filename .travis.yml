@@ -4,6 +4,13 @@ notifications:
 jdk:
   - oraclejdk8
 install:
-  - wget -O howlci.jar https://dl.bintray.com/squiddev/maven/org/squiddev/howl.ci/0.1.3/howl.ci-0.1.3.jar
+  - mkdir -p $HOME/.cc-jars
+  - wget -O howlci.jar https://dl.bintray.com/squiddev/maven/org/squiddev/howl.ci/0.1.5/howl.ci-0.1.5.jar
 script:
   - java -jar howlci.jar
+cache:
+  directories:
+  - $HOME/.cc-jars
+env:
+  - CC_VERSION=1.79 CC_SPEC=2291/384/ComputerCraft1.79.jar
+  - CC_VERSION=1.75 CC_SPEC=2269/339/ComputerCraft1.75.jar
