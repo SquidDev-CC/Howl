@@ -181,11 +181,12 @@ end
 local function extract(root, files, from, to)
 	local pattern = "^" .. escapePattern(extractLocal(root, from))
 	if pattern ~= "^" then pattern = pattern .. '/' end
-	pattern = pattern .. '([^/]+)$'
+	pattern = pattern .. '(.*)$'
 
 	for file, contents in pairs(files) do
 		local name = file:match(pattern)
 		if name then
+			print("Extracting " .. name)
 			local handle = fs.open(fs.combine(to, name), "w")
 			handle.write(contents)
 			handle.close()

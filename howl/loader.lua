@@ -64,6 +64,7 @@ local function SetupTasks(context, howlFile)
 	-- Setup an environment
 	local environment = SetupEnvironment({
 		-- Core globals
+		require = require,
 		CurrentDirectory = context.root,
 		Tasks = tasks,
 		Options = context.arguments,
