@@ -9,7 +9,7 @@ handle.close()
 
 local func, msg = loadfile("bootstrap.lua", _ENV)
 if not func then
-	howlci.status("fail", "Cannot load boostrapper: " .. (msg or "<no msg>"))
+	howlci.status("fail", "Cannot load bootstrapper: " .. (msg or "<no msg>"))
 	return
 end
 
