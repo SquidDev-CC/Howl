@@ -142,6 +142,7 @@ return {
 		write = write,
 		readDir = readDir,
 		writeDir = writeDir,
+		getSize = fs.getSize,
 
 		-- Type checking
 		assertExists = assertExists,
