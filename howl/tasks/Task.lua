@@ -5,9 +5,7 @@ local assert = require "howl.lib.assert"
 local class = require "howl.class"
 local colored = require "howl.lib.colored"
 local mixin = require "howl.class.mixin"
-local platform = require "howl.platform"
-local os = platform.os
-local fs = platform.fs
+local os = require "howl.platform".os
 local utils = require "howl.lib.utils"
 
 local insert = table.insert
@@ -170,16 +168,6 @@ function Task:Run(context, ...)
 
 	if s then
 		context.env.logger:success("%s finished", self.name)
-		if self.description=="Minify a file" then
-			--For minify tasks, show reduction percent
-			local oldSize = fs.getSize()
-			local newSize = fs.getSize()
-			oldFile:close()
-			newFile:close()
-			local percentDecreased = (oldSize-newSize)/oldSize
-			percentDecreased = percentDecreased * 100
-			context.env.logger:verbose("%.0f%% decrease in file size",percentDecreased)
-		end
 	else
 		context.env.logger:error("%s: %s", self.name, err or "no message")
 		error("Error running tasks", 0)
