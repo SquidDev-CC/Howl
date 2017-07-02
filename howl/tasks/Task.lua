@@ -168,6 +168,18 @@ function Task:Run(context, ...)
 
 	if s then
 		context.env.logger:success("%s finished", self.name)
+		if self.description=="Minify a file" then
+			--For minify tasks, show reduction percent
+			local oldFile = io:open(self.options.input,"r")
+			local newFile = io:open(self.options.output,"r")
+			local oldSize = oldFile:seek("end")
+			local newSize = newFile:seek("end")
+			oldFile:close()
+			newFile:close()
+			local percentDecreased = (oldSize-newSize)/oldSize
+			percentDecreased = percentDecreased * 100
+			context.env.logger:info("%s%% decrease in file size",string.format("%.0f",percentDecreased))
+		end
 	else
 		context.env.logger:error("%s: %s", self.name, err or "no message")
 		error("Error running tasks", 0)
