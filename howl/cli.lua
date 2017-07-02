@@ -70,7 +70,7 @@ if not howlFile then
 		colored.printColor("orange", "\nOptions:")
 		options:Help("  ")
 	elseif #taskList == 0 then
-		error(currentDirectory .. " Use " .. shell.getRunningProgram() .. " --help to dislay usage.", 0)
+		error(currentDirectory .. " Use " .. fs.getName(shell.getRunningProgram()) .. " --help to dislay usage.", 0)
 	else
 		error(currentDirectory, 0)
 	end
