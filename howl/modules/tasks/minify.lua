@@ -52,6 +52,11 @@ end
 
 function MinifyTask:runAction(context)
 	minifyFile(context.root, self.options.input, self.options.output)
+	local oldSize = fs.getSize(self.options.input)
+	local newSize = fs.getSize(self.options.output)
+	local percentDecreased = (oldSize-newSize)/oldSize
+	percentDecreased = percentDecreased * 100
+	context.env.logger:verbose("%.0f%% decrease in file size",percentDecreased)
 end
 
 local MinifyExtensions = {}
