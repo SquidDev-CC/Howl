@@ -40,6 +40,12 @@ return {
 		write = file.write,
 		readDir = notImplemented("fs.readDir"),
 		writeDir = notImplemented("fs.writeDir"),
+		getSize = function(n)
+			local file = io:open(n,"r")
+			local size = file:seek("end")
+			file:close()
+			return size
+		end,
 
 		assertExists = function(file)
 			if not path.exists(file) then
