@@ -5,6 +5,14 @@ local dump = require "howl.lib.dump"
 local currentSettings = {
 }
 
+if fs.exists(".howl.settings.lua") then
+	local contents = fs.read(".howl.settings.lua")
+
+	for k, v in pairs(dump.unserialise(contents)) do
+		currentSettings[k] = v
+	end
+end
+
 if fs.exists(".howl/settings.lua") then
 	local contents = fs.read(".howl/settings.lua")
 
