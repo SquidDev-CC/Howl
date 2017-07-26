@@ -7,7 +7,7 @@ local fs = require "howl.platform".fs
 
 local howlFile, currentDirectory = loader.FindHowl()
 -- TODO: Don't pass the error message as the current directory: construct mediator/arg parser another time.
-local context = require "howl.context"(currentDirectory or shell.dir(), {...})
+local context = require "howl.context"(currentDirectory or fs.currentDir(), {...})
 
 local options = context.arguments
 
@@ -63,14 +63,17 @@ if not howlFile then
 			Then you need to define some tasks. Maybe something like this:
 		]]):gsub("\t", ""):gsub("\n+$", "")))
 
-		colored.printColor("magenta", 'Tasks:minify("minify", "file.lua", "file.min.lua")')
+		colored.printColor("magenta", 'Tasks:minify "minify" {')
+		colored.printColor("magenta", '  input = "build/Howl.lua",')
+		colored.printColor("magenta", '  output = "build/Howl.min.lua",')
+		colored.printColor("magenta", '}')
 
-		colored.printColor("white", "Now just run '" .. shell.getRunningProgram() .. " minify'!")
+		colored.printColor("white", "Now just run '" .. fs.getName(fs.currentProgram()) .. " minify'!")
 
 		colored.printColor("orange", "\nOptions:")
 		options:Help("  ")
 	elseif #taskList == 0 then
-		error(currentDirectory .. " Use " .. fs.getName(shell.getRunningProgram()) .. " --help to dislay usage.", 0)
+		error(currentDirectory .. " Use " .. fs.getName(fs.currentProgram()) .. " --help to dislay usage.", 0)
 	else
 		error(currentDirectory, 0)
 	end

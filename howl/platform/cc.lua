@@ -136,6 +136,7 @@ return {
 		getDir = fs.getDir,
 		getName = fs.getName,
 		currentDir = shell.dir,
+		currentProgram = shell.getRunningProgram,
 
 		-- File access
 		read = read,
