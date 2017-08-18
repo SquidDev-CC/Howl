@@ -4,7 +4,7 @@
 if fs and term then
 	return require "howl.platform.cc"
 else
-	if require("component") and pcall(function() return require("component").computer end) then
+	if _G.component then
 		return require "howl.platform.oc"
 	else
 		return require "howl.platform.native"
