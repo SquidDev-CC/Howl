@@ -4,8 +4,7 @@
 local filesystem = require("filesystem")
 local term = require("term")
 local component = require("component")
-local internet = component.internet
-local hasInternet = internet~=nil
+local hasInternet, internet = pcall(function() return component.internet end)
 
 local function read(filename)
   local fh = filesystem.open(filename)
