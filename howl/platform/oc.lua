@@ -7,10 +7,9 @@ local component = require("component")
 local hasInternet, internet = pcall(function() return component.internet end)
 
 local function read(filename)
+  local size = getSize(filename)
   local fh = filesystem.open(filename)
-  local end = fh:seek("end")
-  fh:seek("set")
-  local contents = fh:read(end)
+  local contents = fh:read(size)
   fh:close()
   return contents
 end
@@ -28,15 +27,22 @@ local function assertExists(file,name,level)
   end
 end
 
+local function getSize(file)
+  local fh = filesystem.open(file)
+  local size = fh:seek("end")
+  fh:close()
+  return size
+end
+
 local function notImplemented(name)
   return function() error(name.." has not been implemented for OpenComputers!") end
 end
 
 return {
 	os = {
-		clock = notImplemented("os.clock"),
-		time = notImplemented("os.time"),
-		getEnv = notImplemented("os.getEnv"),
+		clock = os.clock,
+		time = os.time,
+		getEnv = os.getEnv,
 	},
 	fs = {
 		-- Path manipulation
