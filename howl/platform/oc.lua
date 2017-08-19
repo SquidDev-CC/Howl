@@ -78,5 +78,5 @@ return {
 	},
 	log = notImplemented("log"),
 
-	refreshYield = function() return end,
+	refreshYield = function() os.sleep(0) end,
 }
