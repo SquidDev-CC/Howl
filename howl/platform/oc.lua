@@ -4,7 +4,9 @@
 local filesystem = require("filesystem")
 local term = require("term")
 local component = require("component")
-local hasInternet, internet = pcall(function() return component.internet end)
+local hasInternet = pcall(function() return component.internet end)
+local internet = require("internet")
+local gpu = component.gpu
 
 local function read(filename)
   local size = getSize(filename)
@@ -73,8 +75,8 @@ return {
 		copy = filesystem.copy,
 	},
 	term = {
-		setColor = notImplemented("term.setColor"),
-		resetColor = notImplemented("term.resetColor"),
+		setColor = gpu.setForeground,
+		resetColor = function() gpu.setForeground(colors.white) end,
 
 		print = print,
 		write = io.write,
@@ -82,7 +84,7 @@ return {
 	http = {
 		request = notImplemented("http.request"),
 	},
-	log = notImplemented("log"),
+	log = function() return end,
 
 	refreshYield = function() os.sleep(0) end,
 }
