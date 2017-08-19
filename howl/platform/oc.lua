@@ -16,6 +16,36 @@ local function read(filename)
   return contents
 end
 
+--readDir and writeDir copied semi-verbatim from CC platform (with a slight modification)
+local function readDir(directory)
+	local offset = #directory + 2
+	local stack, n = { directory }, 1
+
+	local files = {}
+
+	while n > 0 do
+		local top = stack[n]
+		n = n - 1
+
+		if fs.isDir(top) then
+			for _, file in ipairs(filesystem.list(top)) do
+				n = n + 1
+				stack[n] = filesystem.combine(top, file)
+			end
+		else
+			files[top:sub(offset)] = read(top)
+		end
+	end
+
+	return files
+end
+
+local function writeDir(dir, files)
+	for file, contents in pairs(files) do
+		write(filesystem.combine(dir, file), contents)
+	end
+end
+
 local function write(filename,contents)
   local fh = filesystem.open(filename,"w")
   local ok, err = fh:write(contents)
@@ -37,7 +67,7 @@ local function getSize(file)
 end
 
 local function notImplemented(name)
-  return function() error(name.." has not been implemented for OpenComputers!") end
+  return function() error(name.." has not been implemented for OpenComputers!",2) end
 end
 
 return {
@@ -58,8 +88,8 @@ return {
 		-- File access
 		read = read,
 		write = write,
-		readDir = notImplemented("fs.readDir"),
-		writeDir = notImplemented("fs.writeDir"),
+		readDir = readDir,
+		writeDir = writeDir,
 		getSize = getSize,
 
 		-- Type checking
