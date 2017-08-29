@@ -136,12 +136,14 @@ return {
 		getDir = fs.getDir,
 		getName = fs.getName,
 		currentDir = shell.dir,
+		currentProgram = shell.getRunningProgram,
 
 		-- File access
 		read = read,
 		write = write,
 		readDir = readDir,
 		writeDir = writeDir,
+		getSize = fs.getSize,
 
 		-- Type checking
 		assertExists = assertExists,

@@ -51,7 +51,12 @@ function MinifyTask:setup(context, runner)
 end
 
 function MinifyTask:runAction(context)
-	minifyFile(context.root, self.options.input, self.options.output)
+	local oldSize, newSize = minifyFile(context.root, self.options.input, self.options.output)
+	local percentDecreased = (oldSize - newSize) / oldSize * 100
+
+	-- Ugly hack as length specifiers don't work on %f under LuaJ.
+	percentDecreased = math.floor(percentDecreased * 100) / 100
+	context.logger:verbose(("%.20f%% decrease in file size"):format(percentDecreased))
 end
 
 local MinifyExtensions = {}
