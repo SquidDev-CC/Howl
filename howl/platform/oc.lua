@@ -66,6 +66,15 @@ local function getSize(file)
   return size
 end
 
+local function request(url,post,headers)
+  if not hasInternet then error("No internet card found",0) end
+	local resp = ""
+  for chunk in internet.request(url,post,headers) do
+    resp += chunk
+  end
+  return resp
+end
+
 local function notImplemented(name)
   return function() error(name.." has not been implemented for OpenComputers!",2) end
 end
@@ -112,7 +121,7 @@ return {
 		write = io.write,
 	},
 	http = {
-		request = notImplemented("http.request"),
+		request = request,
 	},
 	log = function() return end,
 
