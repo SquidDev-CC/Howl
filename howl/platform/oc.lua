@@ -92,7 +92,7 @@ return {
 		getDir = filesystem.path,
 		getName = filesystem.name,
 		currentDir = shell.getWorkingDirectory,
-		currentProgram = notImplemented("fs.currentProgram"),
+		currentProgram = function() return process.info().command end,
 
 		-- File access
 		read = read,
