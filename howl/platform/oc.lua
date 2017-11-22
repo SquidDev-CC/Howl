@@ -9,11 +9,11 @@ local internet = require("internet")
 local gpu = component.gpu
 
 local function read(filename)
-  local size = getSize(filename)
-  local fh = filesystem.open(filename)
-  local contents = fh:read(size)
-  fh:close()
-  return contents
+	local size = getSize(filename)
+	local fh = filesystem.open(filename)
+	local contents = fh:read(size)
+	fh:close()
+	return contents
 end
 
 --readDir and writeDir copied semi-verbatim from CC platform (with a slight modification)
@@ -47,36 +47,36 @@ local function writeDir(dir, files)
 end
 
 local function write(filename,contents)
-  local fh = filesystem.open(filename,"w")
-  local ok, err = fh:write(contents)
-  if not ok then io.stderr:write(err) end
-  fh:close()
+	local fh = filesystem.open(filename,"w")
+	local ok, err = fh:write(contents)
+	if not ok then io.stderr:write(err) end
+	fh:close()
 end
 
 local function assertExists(file,name,level)
-  if not filesystem.exists(file) then
-    error("Cannot find "..name.." (looking for "..file..")",level or 1)
-  end
+	if not filesystem.exists(file) then
+		error("Cannot find "..name.." (looking for "..file..")",level or 1)
+	end
 end
 
 local function getSize(file)
-  local fh = filesystem.open(file)
-  local size = fh:seek("end")
-  fh:close()
-  return size
+	local fh = filesystem.open(file)
+	local size = fh:seek("end")
+	fh:close()
+	return size
 end
 
 local function request(url,post,headers)
-  if not hasInternet then error("No internet card found",0) end
-	local resp = ""
-  for chunk in internet.request(url,post,headers) do
-    resp += chunk
-  end
-  return resp
+	if not hasInternet then error("No internet card found",0) end
+		local resp = ""
+	for chunk in internet.request(url,post,headers) do
+		resp = resp..chunk
+	end
+	return resp
 end
 
 local function notImplemented(name)
-  return function() error(name.." has not been implemented for OpenComputers!",2) end
+	return function() error(name.." has not been implemented for OpenComputers!",2) end
 end
 
 return {
