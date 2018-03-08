@@ -4,14 +4,24 @@
 local default = term.getTextColor and term.getTextColor() or colors.white
 
 local function read(file)
-	local handle = fs.open(file, "r")
+	local handle, err = fs.open(file, "r")
+	if not handle then
+		if not err:find(":") then err = file .. ": " .. tostring(err) end
+		error(err, 2)
+	end
+
 	local contents = handle.readAll()
 	handle.close()
 	return contents
 end
 
 local function write(file, contents)
-	local handle = fs.open(file, "w")
+	local handle, err = fs.open(file, "w")
+	if not handle then
+		if not err:find(":") then err = file .. ": " .. tostring(err) end
+		error(err, 2)
+	end
+
 	handle.write(contents)
 	handle.close()
 end
