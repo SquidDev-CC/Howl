@@ -5,12 +5,13 @@ jdk:
   - oraclejdk8
 install:
   - mkdir -p $HOME/.cc-jars
-  - wget -O howlci.jar https://dl.bintray.com/squiddev/maven/org/squiddev/howl.ci/0.1.5/howl.ci-0.1.5.jar
+  - wget -O howlci.jar https://dl.bintray.com/squiddev/maven/org/squiddev/howl.ci/$HOWLCI_VERSION/howl.ci-$HOWLCI_VERSION.jar
 script:
   - java -jar howlci.jar
 cache:
   directories:
   - $HOME/.cc-jars
 env:
-  - CC_VERSION=1.79 CC_SPEC=2291/384/ComputerCraft1.79.jar
-  - CC_VERSION=1.75 CC_SPEC=2269/339/ComputerCraft1.75.jar
+  - HOWLCI_VERSION=0.2.0 CC_VERSION=1.80pr1 CC_URL=https://cc.crzd.me/maven/dan200/computercraft/ComputerCraft/1.80pr1-build5/ComputerCraft-1.80pr1-build5.jar
+  - HOWLCI_VERSION=0.1.9 CC_VERSION=1.79    CC_URL=https://addons-origin.cursecdn.com/files/2291/384/ComputerCraft1.79.jar
+  - HOWLCI_VERSION=0.1.9 CC_VERSION=1.75    CC_URL=https://addons-origin.cursecdn.com/files/2269/339/ComputerCraft1.75.jar
