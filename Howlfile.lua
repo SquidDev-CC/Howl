@@ -11,7 +11,6 @@ Tasks:require "main" {
 	include = "howl/*.lua",
 	startup = "howl/cli.lua",
 	output = "build/Howl.lua",
-	api = true,
 }
 
 Tasks:Task "build" { "clean", "minify" } :Description "Main build task"

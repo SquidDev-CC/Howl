@@ -87,8 +87,6 @@ for _, v in ipairs(types) do
 		local text
 		if type(fmt) == "string" then
 			text = fmt:format(...)
-		else
-
 		end
 
 		colored.printColor(color, text)

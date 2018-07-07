@@ -11,7 +11,7 @@ local Runner = require "howl.tasks.Runner"
 local Task = require "howl.tasks.Task"
 
 local header = require "howl.modules.tasks.require.header"
-local envSetup = "local env = setmetatable({ require = require, preload = preload, }, { __index = getfenv() })\n"
+local envSetup = "local env = setmetatable({ require = require, }, { __index = _ENV })\n"
 
 local function toModule(file)
 	if file:find("%.lua$") then
@@ -65,7 +65,7 @@ function RequireTask:setup(context, runner)
 
 	if not self.options.output then
 		context.logger:error("Task '%s': No output file", self.name)
- 	end
+	end
 end
 
 function RequireTask:runAction(context)
@@ -84,22 +84,16 @@ function RequireTask:runAction(context)
 		result:append("preload[\"" .. file.name .. "\"] = ")
 		if link then
 			assert(fs.exists(file.path), "Cannot find " .. file.relative)
-			result:append("setfenv(assert(loadfile(\"" .. file.path .. "\")), env)\n")
+			result:append("assert(loadfile(\"" .. file.path .. "\", env))\n")
 		else
 			result:append("function(...)\n" .. file.contents .. "\nend\n")
 		end
 	end
 
 	if self.options.api then
-		result:append("if not shell or type(... or nil) == 'table' then\n")
-		result:append("local tbl = ... or {}\n")
-		result:append("tbl.require = require tbl.preload = preload\n")
-		result:append("return tbl\n")
-		result:append("else\n")
-	end
-	result:append("return preload[\"" .. toModule(startup) .. "\"](...)\n")
-	if self.options.api then
-		result:append("end\n")
+		result:append("return require")
+	else
+		result:append("return preload[\"" .. toModule(startup) .. "\"](...)\n")
 	end
 
 	fs.write(fs.combine(context.root, output), result:toString())
