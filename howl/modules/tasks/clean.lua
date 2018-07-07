@@ -33,7 +33,7 @@ function CleanTask:setup(context, runner)
 	local root = self.sources
 	if root.allowEmpty and #root.includes == 0 then
 		-- Include the build directory if nothing is set
-		root:include(fs.combine(context.out, "*"))
+		root:from(context.out, { include = "*" })
 	end
 end
 

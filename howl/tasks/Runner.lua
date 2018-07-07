@@ -102,6 +102,7 @@ function Runner:RunMany(names)
 	else
 		for _, name in ipairs(names) do
 			value = context:Start(name)
+			if not value then break end
 		end
 	end
 

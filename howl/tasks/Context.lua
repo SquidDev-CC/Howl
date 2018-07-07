@@ -117,7 +117,7 @@ function Context:Run(name, ...)
 		self.ran[task] = ran
 	else
 		for i = 1, #ran do
-			if arrayEquals(args, ran[i]) then return false end
+			if arrayEquals(args, ran[i]) then return true end
 		end
 		ran[#ran + 1] = args
 	end
