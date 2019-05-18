@@ -56,7 +56,7 @@ function MinifyTask:runAction(context)
 
 	-- Ugly hack as length specifiers don't work on %f under LuaJ.
 	percentDecreased = math.floor(percentDecreased * 100) / 100
-	context.logger:verbose(("%.20f%% decrease in file size"):format(percentDecreased))
+	context.logger:verbose(("%.2f%% decrease in file size"):format(percentDecreased))
 end
 
 local MinifyExtensions = {}

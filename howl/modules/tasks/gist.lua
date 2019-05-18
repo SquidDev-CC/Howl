@@ -68,7 +68,7 @@ function GistTask:runAction(context)
 			context.logger:error(handle.readAll())
 		end
 
-		error(result, 0)
+		error(message, 0)
 	end
 end
 

@@ -22,3 +22,5 @@ Tasks:gist "upload" (function(spec)
 		include = { "Howl.lua", "Howl.min.lua" }
 	}
 end) :Requires { "build/Howl.lua", "build/Howl.min.lua" }
+
+Tasks:Default "main"

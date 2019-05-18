@@ -174,7 +174,7 @@ function Task:Run(context, ...)
 	end
 
 	if context.ShowTime then
-		print(" ", "Took " .. os.clock() - oldTime .. "s")
+		print(" ", ("Took %.2fs"):format(os.clock() - oldTime))
 	end
 
 	return true

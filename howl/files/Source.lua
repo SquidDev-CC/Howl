@@ -73,7 +73,7 @@ function Source:from(path, configure)
 
 	local source = self.children[path]
 	if not source then
-		source = self.class(true)
+		source = self.class(true, self)
 		self.children[path] = source
 		self.allowEmpty = false
 	end

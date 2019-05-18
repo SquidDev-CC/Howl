@@ -79,9 +79,12 @@ function RequireTask:runAction(context)
 
 	if link then result:append(envSetup) end
 
+	local startup_path, startup_name = startup and fs.combine(context.root, startup)
 	for _, file in pairs(files) do
 		context.logger:verbose("Including " .. file.relative)
 		result:append("preload[\"" .. file.name .. "\"] = ")
+		if file.path == startup_path then startup_name = file.name end
+
 		if link then
 			assert(fs.exists(file.path), "Cannot find " .. file.relative)
 			result:append("assert(loadfile(\"" .. file.path .. "\", env))\n")
@@ -93,7 +96,7 @@ function RequireTask:runAction(context)
 	if self.options.api then
 		result:append("return require")
 	else
-		result:append("return preload[\"" .. toModule(startup) .. "\"](...)\n")
+		result:append("return preload[\"" .. startup_name .. "\"](...)\n")
 	end
 
 	fs.write(fs.combine(context.root, output), result:toString())

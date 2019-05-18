@@ -68,30 +68,12 @@ local function writeDir(dir, files)
 	end
 end
 
-local request
-if http.fetch then
-	request = function(url, post, headers)
-		local ok, err = http.fetch(url, post, headers)
-		if ok then
-			while true do
-				local event, param1, param2, param3 = os.pullEvent(e)
-				if event == "http_success" and param1 == url then
-					return true, param2
-				elseif event == "http_failure" and param1 == url then
-					return false, param3, param2
-				end
-			end
-		end
-		return false, nil, err
-	end
-else
-	request = function(...)
-		local ok, result = http.post(...)
-		if ok then
-			return true, result
-		else
-			return false, nil, result
-		end
+local request= function(...)
+	local ok, result, err_handle = http.post(...)
+	if ok then
+		return true, result
+	else
+		return false, err_handle, result
 	end
 end
 

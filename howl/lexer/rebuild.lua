@@ -14,37 +14,11 @@ local symbols = constants.Symbols
 --- Join two statements together
 -- @tparam string left The left statement
 -- @tparam string right The right statement
--- @tparam string sep The string used to separate the characters
--- @treturn string The joined strings
-local function doJoinStatements(left, right, sep)
-	sep = sep or ' '
-	local leftEnd, rightStart = left:sub(-1, -1), right:sub(1, 1)
-	if upperChars[leftEnd] or lowerChars[leftEnd] or leftEnd == '_' then
-		if not (rightStart == '_' or upperChars[rightStart] or lowerChars[rightStart] or digits[rightStart]) then
-			--rightStart is left symbol, can join without seperation
-			return left .. right
-		else
-			return left .. sep .. right
-		end
-	elseif digits[leftEnd] then
-		if rightStart == '(' then
-			--can join statements directly
-			return left .. right
-		elseif symbols[rightStart] then
-			return left .. right
-		else
-			return left .. sep .. right
-		end
-	elseif leftEnd == '' then
-		return left .. right
-	else
-		if rightStart == '(' then
-			--don't want to accidentally call last statement, can't join directly
-			return left .. sep .. right
-		else
-			return left .. right
-		end
-	end
+-- @treturn string|nil The separator, or nil
+local function get_separator(left, right)
+	local left_end, right_start = left:sub(-1, -1), right:sub(1, 1)
+	if left_end:find("[%w_]") and right_start:find("[%w_]") then return " " end
+	return nil
 end
 
 --- Returns the minified version of an AST. Operations which are performed:
@@ -56,282 +30,294 @@ end
 -- @todo Convert to a buffer
 local function minify(ast)
 	local formatStatlist, formatExpr
-	local count = 0
-	local function joinStatements(left, right, sep)
-		if count > 150 then
-			count = 0
-			return left .. "\n" .. right
-		else
-			return doJoinStatements(left, right, sep)
+
+	local out_buf, out_n, line_len = {}, 0, 0
+	local function append(str)
+		if type(str) ~= "string" then error("expected string") end
+
+		local prev = out_buf[out_n]
+		if prev then
+			local sep = get_separator(prev, str)
+			if sep then
+				out_buf[out_n + 1], out_n = sep, out_n + 1
+				line_len = line_len + #sep
+			end
 		end
+
+		if line_len > 80 and line_len + #str > 120 and str:sub(1,1) ~= "(" then
+			out_buf[out_n + 1], out_n = "\n", out_n + 1
+			line_len = 0
+		end
+
+		out_buf[out_n + 1], out_n = str, out_n + 1
+		line_len = line_len + #str
 	end
 
 	formatExpr = function(expr, precedence)
-		local precedence = precedence or 0
-		local currentPrecedence = 0
-		local skipParens = false
-		local out = ""
+		precedence = precedence or 0
 		if expr.AstType == 'VarExpr' then
 			if expr.Variable then
-				out = out .. expr.Variable.Name
+				append(expr.Variable.Name)
 			else
-				out = out .. expr.Name
+				append(expr.Name)
 			end
 
 		elseif expr.AstType == 'NumberExpr' then
-			out = out .. expr.Value.Data
+			append(expr.Value.Data)
 
 		elseif expr.AstType == 'StringExpr' then
-			out = out .. expr.Value.Data
+			append(expr.Value.Data)
 
 		elseif expr.AstType == 'BooleanExpr' then
-			out = out .. tostring(expr.Value)
+			append(tostring(expr.Value))
 
 		elseif expr.AstType == 'NilExpr' then
-			out = joinStatements(out, "nil")
+			append("nil")
 
 		elseif expr.AstType == 'BinopExpr' then
-			currentPrecedence = expr.OperatorPrecedence
-			out = joinStatements(out, formatExpr(expr.Lhs, currentPrecedence))
-			out = joinStatements(out, expr.Op)
-			out = joinStatements(out, formatExpr(expr.Rhs))
+			local currentPrecedence = expr.OperatorPrecedence
+			if currentPrecedence < precedence then
+				append(string.rep('(', expr.ParenCount or 0))
+			end
+
+			formatExpr(expr.Lhs, currentPrecedence)
+			append(expr.Op)
+			formatExpr(expr.Rhs)
 			if expr.Op == '^' or expr.Op == '..' then
 				currentPrecedence = currentPrecedence - 1
 			end
 
 			if currentPrecedence < precedence then
-				skipParens = false
-			else
-				skipParens = true
+				append(string.rep(')', expr.ParenCount or 0))
 			end
 		elseif expr.AstType == 'UnopExpr' then
-			out = joinStatements(out, expr.Op)
-			out = joinStatements(out, formatExpr(expr.Rhs))
+			append(expr.Op)
+			formatExpr(expr.Rhs)
 
 		elseif expr.AstType == 'DotsExpr' then
-			out = out .. "..."
+			append("...")
 
 		elseif expr.AstType == 'CallExpr' then
-			out = out .. formatExpr(expr.Base)
-			out = out .. "("
+			formatExpr(expr.Base)
+			append("(")
 			for i = 1, #expr.Arguments do
-				out = out .. formatExpr(expr.Arguments[i])
-				if i ~= #expr.Arguments then
-					out = out .. ","
-				end
+				formatExpr(expr.Arguments[i])
+				if i ~= #expr.Arguments then append(",") end
 			end
-			out = out .. ")"
+			append(")")
 
 		elseif expr.AstType == 'TableCallExpr' then
-			out = out .. formatExpr(expr.Base)
-			out = out .. formatExpr(expr.Arguments[1])
+			formatExpr(expr.Base)
+			formatExpr(expr.Arguments[1])
 
 		elseif expr.AstType == 'StringCallExpr' then
-			out = out .. formatExpr(expr.Base)
-			out = out .. expr.Arguments[1].Data
+			formatExpr(expr.Base)
+			append(expr.Arguments[1].Data)
 
 		elseif expr.AstType == 'IndexExpr' then
-			out = out .. formatExpr(expr.Base) .. "[" .. formatExpr(expr.Index) .. "]"
+			formatExpr(expr.Base)
+			append("[")
+			formatExpr(expr.Index)
+			append("]")
 
 		elseif expr.AstType == 'MemberExpr' then
-			out = out .. formatExpr(expr.Base) .. expr.Indexer .. expr.Ident.Data
+			formatExpr(expr.Base)
+			append(expr.Indexer)
+			append(expr.Ident.Data)
 
 		elseif expr.AstType == 'Function' then
 			expr.Scope:ObfuscateLocals()
-			out = out .. "function("
+			append("function(")
 			if #expr.Arguments > 0 then
 				for i = 1, #expr.Arguments do
-					out = out .. expr.Arguments[i].Name
+					append(expr.Arguments[i].Name)
 					if i ~= #expr.Arguments then
-						out = out .. ","
+						append(",")
 					elseif expr.VarArg then
-						out = out .. ",..."
+						append(",...")
 					end
 				end
 			elseif expr.VarArg then
-				out = out .. "..."
+				append("...")
 			end
-			out = out .. ")"
-			out = joinStatements(out, formatStatlist(expr.Body))
-			out = joinStatements(out, "end")
+			append(")")
+			formatStatlist(expr.Body)
+			append("end")
 
 		elseif expr.AstType == 'ConstructorExpr' then
-			out = out .. "{"
+			append("{")
 			for i = 1, #expr.EntryList do
 				local entry = expr.EntryList[i]
 				if entry.Type == 'Key' then
-					out = out .. "[" .. formatExpr(entry.Key) .. "]=" .. formatExpr(entry.Value)
+					append("[")
+					formatExpr(entry.Key)
+					append("]=")
+					formatExpr(entry.Value)
 				elseif entry.Type == 'Value' then
-					out = out .. formatExpr(entry.Value)
+					formatExpr(entry.Value)
 				elseif entry.Type == 'KeyString' then
-					out = out .. entry.Key .. "=" .. formatExpr(entry.Value)
+					append(entry.Key)
+					append("=")
+					formatExpr(entry.Value)
 				end
 				if i ~= #expr.EntryList then
-					out = out .. ","
+					append(",")
 				end
 			end
-			out = out .. "}"
+			append("}")
 
 		elseif expr.AstType == 'Parentheses' then
-			out = out .. "(" .. formatExpr(expr.Inner) .. ")"
+			append("(")
+			formatExpr(expr.Inner)
+			append(")")
 		end
-		if not skipParens then
-			out = string.rep('(', expr.ParenCount or 0) .. out
-			out = out .. string.rep(')', expr.ParenCount or 0)
-		end
-		count = count + #out
-		return out
 	end
 
 	local formatStatement = function(statement)
-		local out = ''
 		if statement.AstType == 'AssignmentStatement' then
 			for i = 1, #statement.Lhs do
-				out = out .. formatExpr(statement.Lhs[i])
-				if i ~= #statement.Lhs then
-					out = out .. ","
-				end
+				formatExpr(statement.Lhs[i])
+				if i ~= #statement.Lhs then append(",") end
 			end
 			if #statement.Rhs > 0 then
-				out = out .. "="
+				append("=")
 				for i = 1, #statement.Rhs do
-					out = out .. formatExpr(statement.Rhs[i])
-					if i ~= #statement.Rhs then
-						out = out .. ","
-					end
+					formatExpr(statement.Rhs[i])
+					if i ~= #statement.Rhs then append(",") end
 				end
 			end
 
 		elseif statement.AstType == 'CallStatement' then
-			out = formatExpr(statement.Expression)
+			formatExpr(statement.Expression)
 
 		elseif statement.AstType == 'LocalStatement' then
-			out = out .. "local "
+			append("local ")
 			for i = 1, #statement.LocalList do
-				out = out .. statement.LocalList[i].Name
+				append(statement.LocalList[i].Name)
 				if i ~= #statement.LocalList then
-					out = out .. ","
+					append(",")
 				end
 			end
 			if #statement.InitList > 0 then
-				out = out .. "="
+				append("=")
 				for i = 1, #statement.InitList do
-					out = out .. formatExpr(statement.InitList[i])
-					if i ~= #statement.InitList then
-						out = out .. ","
-					end
+					formatExpr(statement.InitList[i])
+					if i ~= #statement.InitList then append(",") end
 				end
 			end
 
 		elseif statement.AstType == 'IfStatement' then
-			out = joinStatements("if", formatExpr(statement.Clauses[1].Condition))
-			out = joinStatements(out, "then")
-			out = joinStatements(out, formatStatlist(statement.Clauses[1].Body))
+			append("if")
+			formatExpr(statement.Clauses[1].Condition)
+			append("then")
+			formatStatlist(statement.Clauses[1].Body)
 			for i = 2, #statement.Clauses do
 				local st = statement.Clauses[i]
 				if st.Condition then
-					out = joinStatements(out, "elseif")
-					out = joinStatements(out, formatExpr(st.Condition))
-					out = joinStatements(out, "then")
+					append("elseif")
+					formatExpr(st.Condition)
+					append("then")
 				else
-					out = joinStatements(out, "else")
+					append("else")
 				end
-				out = joinStatements(out, formatStatlist(st.Body))
+				formatStatlist(st.Body)
 			end
-			out = joinStatements(out, "end")
+			append("end")
 
 		elseif statement.AstType == 'WhileStatement' then
-			out = joinStatements("while", formatExpr(statement.Condition))
-			out = joinStatements(out, "do")
-			out = joinStatements(out, formatStatlist(statement.Body))
-			out = joinStatements(out, "end")
+			append("while")
+			formatExpr(statement.Condition)
+			append("do")
+			formatStatlist(statement.Body)
+			append("end")
 
 		elseif statement.AstType == 'DoStatement' then
-			out = joinStatements(out, "do")
-			out = joinStatements(out, formatStatlist(statement.Body))
-			out = joinStatements(out, "end")
+			append("do")
+			formatStatlist(statement.Body)
+			append("end")
 
 		elseif statement.AstType == 'ReturnStatement' then
-			out = "return"
+			append("return")
 			for i = 1, #statement.Arguments do
-				out = joinStatements(out, formatExpr(statement.Arguments[i]))
-				if i ~= #statement.Arguments then
-					out = out .. ","
-				end
+				formatExpr(statement.Arguments[i])
+				if i ~= #statement.Arguments then append(",") end
 			end
 
 		elseif statement.AstType == 'BreakStatement' then
-			out = "break"
+			append("break")
 
 		elseif statement.AstType == 'RepeatStatement' then
-			out = "repeat"
-			out = joinStatements(out, formatStatlist(statement.Body))
-			out = joinStatements(out, "until")
-			out = joinStatements(out, formatExpr(statement.Condition))
+			append("repeat")
+			formatStatlist(statement.Body)
+			append("until")
+			formatExpr(statement.Condition)
 
 		elseif statement.AstType == 'Function' then
 			statement.Scope:ObfuscateLocals()
 			if statement.IsLocal then
-				out = "local"
+				append("local")
 			end
-			out = joinStatements(out, "function ")
+			append("function ")
 			if statement.IsLocal then
-				out = out .. statement.Name.Name
+				append(statement.Name.Name)
 			else
-				out = out .. formatExpr(statement.Name)
+				formatExpr(statement.Name)
 			end
-			out = out .. "("
+			append("(")
 			if #statement.Arguments > 0 then
 				for i = 1, #statement.Arguments do
-					out = out .. statement.Arguments[i].Name
+					append(statement.Arguments[i].Name)
 					if i ~= #statement.Arguments then
-						out = out .. ","
+						append(",")
 					elseif statement.VarArg then
-						out = out .. ",..."
+						append(",...")
 					end
 				end
 			elseif statement.VarArg then
-				out = out .. "..."
+				append("...")
 			end
-			out = out .. ")"
-			out = joinStatements(out, formatStatlist(statement.Body))
-			out = joinStatements(out, "end")
+			append(")")
+			formatStatlist(statement.Body)
+			append("end")
 
 		elseif statement.AstType == 'GenericForStatement' then
 			statement.Scope:ObfuscateLocals()
-			out = "for "
+			append("for")
 			for i = 1, #statement.VariableList do
-				out = out .. statement.VariableList[i].Name
-				if i ~= #statement.VariableList then
-					out = out .. ","
-				end
+				append(statement.VariableList[i].Name)
+				if i ~= #statement.VariableList then append(",") end
 			end
-			out = out .. " in"
+			append("in")
 			for i = 1, #statement.Generators do
-				out = joinStatements(out, formatExpr(statement.Generators[i]))
-				if i ~= #statement.Generators then
-					out = joinStatements(out, ',')
-				end
+				formatExpr(statement.Generators[i])
+				if i ~= #statement.Generators then append(",") end
 			end
-			out = joinStatements(out, "do")
-			out = joinStatements(out, formatStatlist(statement.Body))
-			out = joinStatements(out, "end")
+			append("do")
+			formatStatlist(statement.Body)
+			append("end")
 
 		elseif statement.AstType == 'NumericForStatement' then
 			statement.Scope:ObfuscateLocals()
-			out = "for "
-			out = out .. statement.Variable.Name .. "="
-			out = out .. formatExpr(statement.Start) .. "," .. formatExpr(statement.End)
+			append("for")
+			append(statement.Variable.Name)
+			append("=")
+			formatExpr(statement.Start)
+			append(",")
+			formatExpr(statement.End)
 			if statement.Step then
-				out = out .. "," .. formatExpr(statement.Step)
+				append(",")
+				formatExpr(statement.Step)
 			end
-			out = joinStatements(out, "do")
-			out = joinStatements(out, formatStatlist(statement.Body))
-			out = joinStatements(out, "end")
+			append("do")
+			formatStatlist(statement.Body)
+			append("end")
 		elseif statement.AstType == 'LabelStatement' then
-			out = "::" .. statement.Label .. "::"
+			append("::")
+			append(statement.Label)
+			append("::")
 		elseif statement.AstType == 'GotoStatement' then
-			out = "goto " .. statement.Label
+			append("goto")
+			append(statement.Label)
 		elseif statement.AstType == 'Comment' then
 			-- ignore
 		elseif statement.AstType == 'Eof' then
@@ -339,20 +325,17 @@ local function minify(ast)
 		else
 			error("Unknown AST Type: " .. statement.AstType)
 		end
-		count = count + #out
-		return out
 	end
 
 	formatStatlist = function(statList)
-		local out = ''
 		statList.Scope:ObfuscateLocals()
 		for _, stat in pairs(statList.Body) do
-			out = joinStatements(out, formatStatement(stat), ';')
+			formatStatement(stat)
 		end
-		return out
 	end
 
-	return formatStatlist(ast)
+	formatStatlist(ast)
+	return table.concat(out_buf)
 end
 
 --- Minify a string
